@@ -32,8 +32,7 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 - **M2 Onboarding** [Sonnet]: welcome → pick apps you use (installed ones ticked; popular missing ones link to Play) →
   order favourites → check Play auto-update → optional Takeover → done. Export/import layout (file + QR) to set up a
   second TV.
-- **M3 Updater** [Sonnet]: Releases check on launch + daily (WorkManager-free: alarm/job), changelog card, download with
-  progress, install permission step, never mid-app (only when Afterglow is in front).
+- **M3 Updater** merged into M1 Phase 3 (check + download + checksum + install from GitHub Releases). Silent install via ADB later.
 - **M4** merged into M1 Phase 2 (fallbacks and per-brand debloat list stay for later, after the Installed packages list from the TCL is photographed).
 - **M5 Speed + 1.0** [Sonnet; Haiku for copy]: baseline profile, cold start target < 500 ms on TCL, memory target
   < 80 MB, 2 GB emulator test, README with screenshots and ADB-from-PC restore instructions, v1.0 release.

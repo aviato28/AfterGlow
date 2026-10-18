@@ -1,7 +1,7 @@
 # M1 — A launcher you can live with (Home + Takeover)
 
 Goal: after this session the owner can use Afterglow every day on the TCL: real apps, favourites, and the Home
-button opens Afterglow instead of Google TV. Four phases, in order. **Commit and push at the end of every phase**
+button opens Afterglow instead of Google TV. Five phases (0–4), in order. **Commit and push at the end of every phase**
 (`git push`), so a stop mid-way loses nothing. Fix CI if the Build workflow goes red before starting the next phase.
 
 Token rules for this session: read `CLAUDE.md`, `docs/ROADMAP.md` (Design section) and the existing code under
@@ -104,7 +104,25 @@ with `queryIntentActivities`, so no hard-coded names; on the TCL expect `com.goo
 Tests: protected-list filter, HOME-handler selection (fake `PackageManager` data), command building, and the key
 handler (HOME consumed, other keys untouched).
 
-## Phase 3 — Wrap up
+## Phase 3 — Updater (so 0.2.0 is the last APK the owner moves by hand)
+Small and boring on purpose (`update/Updater.kt`, `update/InstallReceiver.kt`; no WorkManager, no background jobs):
+- Check: `GET https://api.github.com/repos/aviato28/AfterGlow/releases/latest` (public, no token). Compare `tag_name`
+  (`v0.3.0`) with `BuildConfig.VERSION_NAME` using a numeric semver compare. Check on app start at most once per 12 h
+  (store the time in DataStore), plus a manual "Check for updates" row in Settings → About. Network use is limited to
+  `api.github.com`, `github.com` and `objects.githubusercontent.com`.
+- Asset: `afterglow-<version>.apk` and `afterglow-<version>.apk.sha256` (what `release.yml` produces). Download to
+  `cacheDir/updates/` with a progress bar, verify SHA-256 against the `.sha256` file, delete the file after install or
+  on failure, and keep only the latest.
+- Install: `PackageInstaller` session, committed with a `PendingIntent` to `InstallReceiver`; on
+  `STATUS_PENDING_USER_ACTION` start the system confirm screen from the extra intent; log other statuses to the
+  last-problem file. Needs `REQUEST_INSTALL_PACKAGES`; if `canRequestPackageInstalls()` is false, show a plain step
+  ("Allow Afterglow to install apps") that opens `ACTION_MANAGE_UNKNOWN_APP_SOURCES` for this package, then continues.
+- UI: Settings → About shows "Version x.y.z", the latest release version and notes (the release body, first 12 lines),
+  and a single button: "Download and install" / "Check for updates". On Home, keep it clean: only a small amber dot on the
+  Settings pill when an update is available. Never interrupt anything (Afterglow only runs when it is on screen).
+- Tests: version compare (`0.9.0` < `0.10.0`, `v` prefix, pre-release tags ignored), checksum verify, 12 h throttle.
+
+## Phase 4 — Wrap up
 - Update `docs/ROADMAP.md`: mark M1 done (and the old M4's basics), list gaps. Update `docs/RELEASING.md` only if
   something changed.
 - Fill the "Not done" section below.
@@ -112,7 +130,7 @@ handler (HOME consumed, other keys untouched).
 
 ## Acceptance (what the owner checks on the TCL)
 Apps appear with banners; OK opens an app; long-press OK adds/removes favourites; Back from an app returns to
-Afterglow's home with focus where it was; Settings → TV settings opens the stock settings; Home button opens
+Afterglow's home with focus where it was; Settings → About shows the version and "Check for updates" works against the latest GitHub release; Settings → TV settings opens the stock settings; Home button opens
 Afterglow (Method B, then Method A); Restore brings Google TV back; no lag moving around.
 
 ## Not done
