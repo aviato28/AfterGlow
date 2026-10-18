@@ -4,7 +4,6 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
-import android.text.format.DateFormat
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -102,7 +101,7 @@ fun HomeScreen(
                 verticalAlignment = Alignment.Top,
             ) {
                 LogoMark(Modifier.padding(start = 6.dp, top = 16.dp))
-                Text(formatClock(context, now), style = Ag.Clock, modifier = Modifier.padding(top = 4.dp))
+                Text(formatClock(now), style = Ag.Clock, modifier = Modifier.padding(top = 4.dp))
             }
 
             Column(Modifier.align(Alignment.TopStart).padding(top = 166.dp)) {
@@ -216,10 +215,8 @@ private fun GearIcon() {
     }
 }
 
-private fun formatClock(context: Context, now: java.time.LocalDateTime): String {
-    val pattern = if (DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm a"
-    return now.format(DateTimeFormatter.ofPattern(pattern, Locale.getDefault()))
-}
+/** Always 24-hour, whatever the TV's own setting says. */
+private fun formatClock(now: java.time.LocalDateTime): String = now.format(DateTimeFormatter.ofPattern("HH:mm"))
 
 fun openTvSettings(context: Context) {
     val intent = Intent("android.settings.SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
