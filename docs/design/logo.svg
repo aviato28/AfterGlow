@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFC27A"/><stop offset=".6" stop-color="#F0707A"/><stop offset="1" stop-color="#8A4FA8"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="50%" cy="58%" r="50%">
+      <stop offset="0" stop-color="#FF9E5E" stop-opacity=".45"/><stop offset="1" stop-color="#FF9E5E" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#0B0908"/>
+  <circle cx="256" cy="296" r="230" fill="url(#halo)"/>
+  <!-- the sun just after it has set: a half disc resting on the horizon -->
+  <path d="M136 296 A120 120 0 0 1 376 296 Z" fill="url(#sun)"/>
+  <rect x="96" y="312" width="320" height="10" rx="5" fill="#F3E9DF"/>
+  <rect x="156" y="342" width="200" height="8" rx="4" fill="#F3E9DF" opacity=".45"/>
+  <rect x="206" y="368" width="100" height="6" rx="3" fill="#F3E9DF" opacity=".2"/>
+</svg>

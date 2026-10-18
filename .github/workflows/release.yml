@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 0.1.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
+      SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+      SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+    steps:
+      - name: Check secrets
+        run: |
+          if [ -z "$SIGNING_KEYSTORE_BASE64" ] || [ -z "$SIGNING_PASSWORD" ]; then
+            echo "::error::Signing secrets are missing. Run 'One-time: create signing key' first (see docs/RELEASING.md)."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Decode keystore
+        run: |
+          echo "$SIGNING_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/afterglow.p12"
+          echo "SIGNING_KEYSTORE_PATH=$RUNNER_TEMP/afterglow.p12" >> "$GITHUB_ENV"
+      - name: Build signed release
+        run: >
+          ./gradlew assembleRelease --stacktrace
+          -PafterglowVersion="$VERSION"
+          -PafterglowCode=$((GITHUB_RUN_NUMBER + 100))
+      - name: Name the APK
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk "afterglow-$VERSION.apk"
+          sha256sum "afterglow-$VERSION.apk" > "afterglow-$VERSION.apk.sha256"
+      - name: Release notes
+        run: |
+          if [ -f docs/CHANGELOG.md ] && awk -v v="$VERSION" '$0 ~ "^## \\[?v?"v"\\]?" {f=1; next} /^## / {f=0} f' docs/CHANGELOG.md | grep -q .; then
+            awk -v v="$VERSION" '$0 ~ "^## \\[?v?"v"\\]?" {f=1; next} /^## / {f=0} f' docs/CHANGELOG.md > release-notes.md
+          fi
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: Afterglow ${{ inputs.version }}
+          body_path: ${{ hashFiles('release-notes.md') != '' && 'release-notes.md' || '' }}
+          generate_release_notes: ${{ hashFiles('release-notes.md') == '' }}
+          files: |
+            afterglow-${{ inputs.version }}.apk
+            afterglow-${{ inputs.version }}.apk.sha256
