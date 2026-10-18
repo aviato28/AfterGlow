@@ -11,7 +11,7 @@ low-memory TVs. Read `docs/ROADMAP.md` first; build sessions implement exactly o
 - The owner tests on a TCL 65Q6C (Google TV) and has no PC; anything needing a computer must have an in-app path.
 
 ## Stack
-- Kotlin, Jetpack Compose, single `:app` module (keep it small; split only if a spec says so). minSdk 29, target latest.
+- Kotlin, Jetpack Compose, single `:app` module (keep it small; split only if a spec says so). minSdk 30 (Android 11+), target latest.
 - No Hilt, no Room, no Retrofit: plain constructors, DataStore, `HttpURLConnection`/OkHttp only if needed. Every
   dependency must earn its place in APK size and startup time.
 - R8 + resource shrinking on, baseline profile for the home screen.
@@ -23,13 +23,14 @@ low-memory TVs. Read `docs/ROADMAP.md` first; build sessions implement exactly o
 - One focus system (`Modifier.tvFocus`): ring always drawn on the focused item, small lift, focus remembered when you
   come back, never "nothing selected" (use `focusSoon()` retry when a screen opens). Ring is never clipped: rows leave room.
 - Many TCL remotes never send Menu to apps: long-press OK opens options everywhere; Menu is a bonus.
+- Look: follow `docs/design/` (home.svg, logo.svg) and the Design section of the roadmap.
 - Text at least 20 sp; 96 dp / 54 dp safe margins.
 - Images: small memory cache (~10%), decode at the size shown, clear on `onTrimMemory`.
 - Crash safety: a launcher that crashes can strand the user. Catch uncaught errors, log them, restart Home once
   (not in a loop), and show the last problem in Settings → About.
 
 ## Never
-- Never ads, analytics, trackers or network calls other than GitHub Releases (updates) and the optional weather API.
+- Never ads, analytics, trackers or network calls other than GitHub Releases (updates).
 - Never install, update or sideload other apps (Netflix, YouTube…). Point to the Play Store only.
 - Never disable Play Store, Play Services, Settings, TV input framework, Widevine/DRM or anything on the
   "protected" list in `docs/specs/M4-takeover.md`. Every disable must be undoable from the app.
