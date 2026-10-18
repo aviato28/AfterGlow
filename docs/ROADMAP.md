@@ -1,6 +1,6 @@
 # Afterglow roadmap
 
-Status: **plan + design direction approved → next: M0 spec.** Nothing is built yet.
+Status: **M0 done → next: M1 spec.**
 
 ## What it is
 A clean, fast home screen for Google TV / Android TV that replaces the stock Google TV launcher. Free, public, open
@@ -25,8 +25,9 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 
 - **Design** [done]: `docs/design/home.svg` (home screen) and `docs/design/logo.svg`. Other screens reuse the same
   parts; no further mockups.
-- **M0 Foundation** [Sonnet]: Gradle project, Compose, 1920 canvas, theme tokens, app icon + TV banner from logo.svg, `tvFocus`, crash-restart, CI: build + unit tests
+- **M0 Foundation** [Sonnet, done]: Gradle project, Compose, 1920 canvas, theme tokens, app icon + TV banner from logo.svg, `tvFocus`, crash-restart, CI: build + unit tests
   on push, signed release on tag `v*` uploads the APK to GitHub Releases; one-time "create signing key" workflow.
+  *Not done:* see "Not done" in `docs/specs/M0-foundation.md` (unverified on a real TV, focus glow approximated, release workflows not yet run).
 - **M1 Home** [Sonnet]: HOME + LEANBACK_LAUNCHER activity; favourites row, all apps grid, Settings button
   (opens a two-item panel: TV settings = stock Android TV settings, Afterglow settings), clock + greeting, ambient glow; hide / reorder / rename apps; installed-apps watcher. Diagnostics page listing
   all installed packages (used to build the TCL debloat list).

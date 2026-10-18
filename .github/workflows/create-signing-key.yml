@@ -1,0 +1,44 @@
+name: "One-time: create signing key"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.AFTERGLOW_BOT_TOKEN }}
+      KEY_BACKUP_PASSPHRASE: ${{ secrets.KEY_BACKUP_PASSPHRASE }}
+      EXISTING_KEY: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+    steps:
+      - name: Check preconditions
+        run: |
+          if [ -n "$EXISTING_KEY" ]; then
+            echo "::error::SIGNING_KEYSTORE_BASE64 already exists. Never replace the key: installed copies could no longer update."
+            exit 1
+          fi
+          if [ -z "$GH_TOKEN" ] || [ -z "$KEY_BACKUP_PASSPHRASE" ]; then
+            echo "::error::Add the secrets AFTERGLOW_BOT_TOKEN and KEY_BACKUP_PASSPHRASE first (see docs/RELEASING.md)."
+            exit 1
+          fi
+      - name: Generate keystore and store secrets
+        run: |
+          PASSWORD=$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | head -c 32)
+          echo "::add-mask::$PASSWORD"
+          mkdir backup
+          keytool -genkeypair -keystore backup/afterglow.p12 -storetype PKCS12 \
+            -alias afterglow -keyalg RSA -keysize 4096 -validity 10000 \
+            -dname "CN=Afterglow" -storepass "$PASSWORD" -keypass "$PASSWORD" 2>/dev/null
+          base64 -w0 backup/afterglow.p12 | gh secret set SIGNING_KEYSTORE_BASE64 --repo "$GITHUB_REPOSITORY"
+          printf '%s' "$PASSWORD" | gh secret set SIGNING_PASSWORD --repo "$GITHUB_REPOSITORY"
+          printf 'Afterglow signing key backup\nkeystore: afterglow.p12 (PKCS12)\nalias: afterglow\npassword: %s\n' "$PASSWORD" > backup/README.txt
+          # The repo is public: only an encrypted file may leave this job.
+          tar -C backup -czf backup.tar.gz afterglow.p12 README.txt
+          gpg --symmetric --batch --pinentry-mode loopback --passphrase "$KEY_BACKUP_PASSPHRASE" \
+            -o afterglow-key-backup.tar.gz.gpg backup.tar.gz
+          rm -rf backup backup.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: afterglow-key-backup
+          path: afterglow-key-backup.tar.gz.gpg
+          retention-days: 1

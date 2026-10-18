@@ -99,4 +99,8 @@ Read `CLAUDE.md` and `docs/ROADMAP.md` (Design section) first. Look: `docs/desig
 - Commit trailers per session instructions; push to `claude/afterglow-tv-launcher-g6ow3l`.
 
 ## Not done
-(build session fills this in)
+- Not run on a device or emulator: only Robolectric tests and a release build were run, so the look and the focus ring are unchecked on the TCL.
+- Focus glow is a few stacked translucent rounded rects instead of a blur (cheap on old GPUs); it may look slightly less soft than the mockup.
+- Crash restart uses `startActivity` from the crashing process; untested on a real device (Android may block background starts).
+- The two owner workflows (`release.yml`, `create-signing-key.yml`) are written but not run, as instructed.
+- No baseline profile yet (M5).
