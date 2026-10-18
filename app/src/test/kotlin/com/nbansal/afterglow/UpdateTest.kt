@@ -27,7 +27,7 @@ class UpdateTest {
 
     @Test
     fun checksum() {
-        val f = File.createTempFile("ag", ".apk").apply { writeText("hello"); deleteOnExit() }
+        val f = File.createTempFile("afterglow", ".apk").apply { writeText("hello"); deleteOnExit() }
         val hex = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
         assertTrue(Versions.checksumMatches(f, "$hex  afterglow-0.2.0.apk\n"))
         assertTrue(Versions.checksumMatches(f, hex.uppercase()))

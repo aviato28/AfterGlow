@@ -26,17 +26,17 @@ object Ag {
     val MarginX = 96.dp
     val MarginY = 54.dp
 
-    private fun inter(weight: FontWeight) = androidx.compose.ui.text.font.Font(
-        R.font.inter,
+    private fun outfit(weight: FontWeight) = androidx.compose.ui.text.font.Font(
+        R.font.outfit,
         weight = weight,
         variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
     )
 
     val Font = FontFamily(
-        inter(FontWeight.Light),
-        inter(FontWeight.Normal),
-        inter(FontWeight.Medium),
-        inter(FontWeight.SemiBold),
+        outfit(FontWeight.Light),
+        outfit(FontWeight.Normal),
+        outfit(FontWeight.Medium),
+        outfit(FontWeight.SemiBold),
     )
 
     val Greeting = TextStyle(fontFamily = Font, fontWeight = FontWeight.Light, fontSize = 84.sp, color = Ink)
