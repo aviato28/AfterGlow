@@ -14,7 +14,8 @@ One look (no themes). Reference device: TCL 65Q6C.
 | Updates of Afterglow | In-app: check GitHub Releases API (no token, public repo), download APK, install with PackageInstaller. Silent install when self-ADB is paired. |
 | Updates of other apps | Left to the Play Store. Afterglow never installs other apps, so certified Netflix/Disney+/YouTube builds keep HDR, Dolby Vision, Atmos, 4K. Onboarding checks Play auto-update is on. |
 | Replacing stock launcher | In-app wireless-debugging pairing ("self-ADB"), then `pm disable-user --user 0` the stock launcher. One-tap restore. Accessibility-service Home-button catcher as fallback for people who skip ADB. |
-| Lost with stock launcher | Google's "Continue watching"/content rows and the Google TV notification panel. Owner OK with that. Inputs, Settings, voice search stay. |
+| Lost with stock launcher | Google's "Continue watching"/content rows and the Google TV notification panel. Owner OK with that. Settings and voice search stay; inputs via the remote's input key. |
+| Settings | Stock Android TV settings (picture, sound, network). Afterglow only has its own small settings page (apps, takeover, updates, about). |
 | Look | See Design below. Clock + time-of-day greeting. No weather. |
 | Android version | 11+ only (minSdk 30): one pairing path, less code. |
 | Licence | MIT. |
@@ -26,8 +27,8 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
   parts; no further mockups.
 - **M0 Foundation** [Sonnet]: Gradle project, Compose, 1920 canvas, theme tokens, app icon + TV banner from logo.svg, `tvFocus`, crash-restart, CI: build + unit tests
   on push, signed release on tag `v*` uploads the APK to GitHub Releases; one-time "create signing key" workflow.
-- **M1 Home** [Sonnet]: HOME + LEANBACK_LAUNCHER activity; favourites row, all apps grid, Inputs (HDMI) row, Settings
-  tile, clock + greeting, ambient glow; hide / reorder / rename apps; installed-apps watcher. Diagnostics page listing
+- **M1 Home** [Sonnet]: HOME + LEANBACK_LAUNCHER activity; favourites row, all apps grid, Settings button
+  (opens a two-item panel: TV settings = stock Android TV settings, Afterglow settings), clock + greeting, ambient glow; hide / reorder / rename apps; installed-apps watcher. Diagnostics page listing
   all installed packages (used to build the TCL debloat list).
 - **M2 Onboarding** [Sonnet]: welcome → pick apps you use (installed ones ticked; popular missing ones link to Play) →
   order favourites → check Play auto-update → optional Takeover → done. Export/import layout (file + QR) to set up a
@@ -51,7 +52,7 @@ Folders, remote-button remapping, screensaver, Obtainium listing.
   sunset (as mockup), night dim ember.
 - Logo: half sun resting on a horizon line with fading reflections; wordmark "afterglow" in lowercase.
 - Home: logo top-left, clock top-right, big light-weight greeting ("Good morning/afternoon/evening/night") + date,
-  Favourites row of the apps' own 16:9 banners, bottom row of quiet pills: HDMI inputs left, All apps + Settings right.
+  Favourites row of the apps' own 16:9 banners, bottom-right pills: All apps + Settings. No inputs row (the remote has an input key).
 - Focus: tile lifts ~6%, warm cream ring `#FFD9B0` + amber glow behind it. Unfocused tiles flat, no shadows.
 - Type: one font (Inter, light 300 for clock/greeting, 400–600 elsewhere). Rounded 20–22 dp tiles, 36 dp pills.
 - Motion: only focus lift and short fades (<200 ms). Nothing moves on its own.

@@ -44,12 +44,8 @@
     <rect x="1594" y="516" width="320" height="180" rx="20" fill="#1F1A10"/><text x="1754" y="618" fill="#E5A00D">plex</text>
   </g>
 
-  <!-- bottom row: inputs, all apps, settings (quiet pills) -->
+  <!-- bottom row: all apps, settings (quiet pills) -->
   <g font-size="26" fill="#F3E9DF">
-    <rect x="96" y="850" width="200" height="72" rx="36" fill="#F3E9DF" fill-opacity=".08" stroke="#F3E9DF" stroke-opacity=".14"/>
-    <text x="196" y="895" text-anchor="middle">HDMI 1</text>
-    <rect x="316" y="850" width="200" height="72" rx="36" fill="#F3E9DF" fill-opacity=".08" stroke="#F3E9DF" stroke-opacity=".14"/>
-    <text x="416" y="895" text-anchor="middle">HDMI 2</text>
     <rect x="1484" y="850" width="220" height="72" rx="36" fill="#F3E9DF" fill-opacity=".08" stroke="#F3E9DF" stroke-opacity=".14"/>
     <text x="1594" y="895" text-anchor="middle">All apps</text>
     <rect x="1724" y="850" width="100" height="72" rx="36" fill="#F3E9DF" fill-opacity=".08" stroke="#F3E9DF" stroke-opacity=".14"/>
