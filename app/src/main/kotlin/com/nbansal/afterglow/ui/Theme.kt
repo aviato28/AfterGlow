@@ -3,7 +3,6 @@ package com.nbansal.afterglow.ui
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
@@ -27,7 +26,7 @@ object Ag {
     val MarginX = 96.dp
     val MarginY = 54.dp
 
-    private fun inter(weight: FontWeight) = Font(
+    private fun inter(weight: FontWeight) = androidx.compose.ui.text.font.Font(
         R.font.inter,
         weight = weight,
         variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
