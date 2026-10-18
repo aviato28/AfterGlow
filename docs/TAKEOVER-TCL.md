@@ -1,21 +1,21 @@
-# Making Afterglow the Home button (TCL Q-series, Google TV, Android 14)
+# DO NOT FOLLOW: disabling Google TV home on the TCL Q-series (Android 14) led to a factory reset
 
-Verified on the owner's TCL 65Q6C. Setting Afterglow as the "chosen home" (`cmd package set-home-activity`) did NOT work:
-Google TV still won. Disabling the Google TV home app did.
+What happened on the owner's TCL 65Q6C (Google TV, Android 14), in order:
+1. Setting Afterglow as the "chosen home" (`cmd package set-home-activity`) printed Success but Home still went to Google TV.
+2. `pm disable-user --user 0 com.google.android.apps.tv.launcherx` made Home stay on Afterglow, BUT the app looked frozen:
+   `dumpsys` showed `com.google.android.tungsten.setupwraith/.RecoveryActivity` (a HOME handler with priority 1, above
+   Afterglow's 0) as the top resumed activity, invisibly eating the remote's keys. This step alone was recoverable
+   (`pm enable com.google.android.apps.tv.launcherx` over adb).
+3. Disabling that `RecoveryActivity` component as well (advice that was wrong to give) left the TV on a black screen after
+   boot. The Gemini overlay still appeared, but could not answer. Wireless debugging was not reachable after the reboot
+   (`adb connect` failed on every open port), so it could not be re-enabled over adb, and the TV needed a factory reset.
 
-Set up once from a phone/tablet with Termux (`pkg install android-tools`), same Wi-Fi as the TV:
-1. TV: Settings > System > About, press OK 7 times on "Android TV OS build". Developer options > Wireless debugging ON >
-   "Pair device with pairing code".
-2. `adb pair IP:PAIRING_PORT` (enter the 6-digit code), then `adb connect IP:CONNECT_PORT` (port from the main Wireless
-   debugging screen; it changes).
-3. List home apps (never disable the setup-recovery or Settings fallback entries):
-   `adb shell cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.HOME`
-   TCL shows: `com.google.android.apps.tv.launcherx` (Google TV), `com.google.android.tungsten.setupwraith` (setup recovery,
-   leave alone), `com.nbansal.afterglow`, `com.android.tv.settings` FallbackHome (leave alone).
-4. Disable Google TV home: `adb shell pm disable-user --user 0 com.google.android.apps.tv.launcherx`
+Lessons:
+- Never disable anything outside the HOME-handler packages you can restore, and never disable setup components.
+- A priority above 0 cannot be claimed by a normal app, so Afterglow cannot outrank `RecoveryActivity` by itself.
+- Wireless debugging cannot be relied on after a reboot; if you disable anything, first make sure there is a way to undo it
+  that does not need the TV's screen (and test that way before relying on it).
+- Do not build or document a takeover feature until it is proven safe on a spare device or an emulator.
 
-Restore (nothing is deleted): `adb shell pm enable com.google.android.apps.tv.launcherx`
-or on the TV: Settings > Apps > See all apps > Show system apps > Google TV home > Enable.
-
-Not built: doing this from inside Afterglow (needs ADB pairing in-app). The Home-key accessibility catcher also did not work
-on this TV (the service switched itself off right after enabling).
+Untried, lower-risk idea for later: the Home-key accessibility catcher (it did switch itself off right after enabling on
+Android 14; likely "restricted settings" for apps installed outside a store) and nothing else disabled.

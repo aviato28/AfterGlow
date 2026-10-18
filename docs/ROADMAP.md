@@ -1,6 +1,6 @@
 # Afterglow roadmap
 
-Status: **M0 done. M1 built (Method A and the Outfit font still open, see the spec's "Not done") → test on the TCL.**
+Status: **M0 and M1 (home, apps, favourites, updater) done and working on the TCL. The Home-button takeover is ON HOLD: see docs/TAKEOVER-TCL.md (it ended in a factory reset on the owner's TV). Do not build or recommend disabling system apps.**
 
 ## What it is
 A clean, fast home screen for Google TV / Android TV that replaces the stock Google TV launcher. Free, public, open
