@@ -22,3 +22,13 @@ Home-key accessibility catcher: DEAD on this TV. logcat shows
 TCL's firmware only permits its own accessibility service (`com.tcl.tv/com.tcl.tv.service.TvAccessibilityService`), so a
 third-party accessibility service switches itself off right after the user confirms. The "Allow restricted settings" option
 is not involved (it is not even shown on this TV). It may still work on TVs without such a policy.
+
+Reboot safety test (nothing disabled), TCL 65Q6C, Android 14: Wireless debugging was connected and trusted, then the TV
+was rebooted. Afterwards the TV did not bring Wireless debugging back on its own ("IP address and port unavailable");
+the old port was gone and the only open ports refused the connection. So after any restart the TV can only be reached
+again by someone toggling Wireless debugging on its screen. That means a takeover (disabling Google TV home) cannot be
+undone from a phone/tablet if the TV ever boots to a black or frozen screen. Decision: takeover NOT supported on this TV.
+
+How the repo https://github.com/Gathin23/tv-vibehack does it: debug connection, `pm disable-user` on the stock launcher,
+then `cmd package set-home-activity --user 0 <pkg>/<activity>`, with a restore script. It works on TVs where network ADB
+stays available after a reboot (for example port 5555 from the USB debugging toggle). Likely fine where that is true.
