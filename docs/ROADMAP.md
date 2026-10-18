@@ -28,18 +28,13 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 - **M0 Foundation** [Sonnet, done]: Gradle project, Compose, 1920 canvas, theme tokens, app icon + TV banner from logo.svg, `tvFocus`, crash-restart, CI: build + unit tests
   on push, signed release on tag `v*` uploads the APK to GitHub Releases; one-time "create signing key" workflow.
   *Not done:* see "Not done" in `docs/specs/M0-foundation.md` (unverified on a real TV, focus glow approximated, release workflows not yet run).
-- **M1 Home** [Sonnet]: HOME + LEANBACK_LAUNCHER activity; favourites row, all apps grid, Settings button
-  (opens a two-item panel: TV settings = stock Android TV settings, Afterglow settings), clock + greeting, ambient glow; hide / reorder / rename apps; installed-apps watcher. Diagnostics page listing
-  all installed packages (used to build the TCL debloat list).
+- **M1 Launcher** [Sonnet, one session, 4 phases]: see `docs/specs/M1-launcher.md`. Polish (Outfit font, softer glow), apps + favourites + All apps + options popup + settings, then the Home-button takeover (accessibility catcher + disable stock launcher through in-app ADB, with Restore).
 - **M2 Onboarding** [Sonnet]: welcome → pick apps you use (installed ones ticked; popular missing ones link to Play) →
   order favourites → check Play auto-update → optional Takeover → done. Export/import layout (file + QR) to set up a
   second TV.
 - **M3 Updater** [Sonnet]: Releases check on launch + daily (WorkManager-free: alarm/job), changelog card, download with
   progress, install permission step, never mid-app (only when Afterglow is in front).
-- **M4 Takeover** [Opus spec, Sonnet build]: wireless-debugging pairing (pairing code + port) via an ADB client library
-  (candidates: libadb-android, dadb); disable stock launcher;
-  optional curated debloat list per brand with a protected list; restore all; re-check after OTA/reboot; accessibility
-  fallback. Spike on the TCL first.
+- **M4** merged into M1 Phase 2 (fallbacks and per-brand debloat list stay for later, after the Installed packages list from the TCL is photographed).
 - **M5 Speed + 1.0** [Sonnet; Haiku for copy]: baseline profile, cold start target < 500 ms on TCL, memory target
   < 80 MB, 2 GB emulator test, README with screenshots and ADB-from-PC restore instructions, v1.0 release.
 
@@ -55,5 +50,5 @@ Folders, remote-button remapping, screensaver, Obtainium listing.
 - Home: logo top-left, clock top-right, big light-weight greeting ("Good morning/afternoon/evening/night") + date,
   Favourites row of the apps' own 16:9 banners, bottom-right pills: All apps + Settings. No inputs row (the remote has an input key).
 - Focus: tile lifts ~6%, warm cream ring `#FFD9B0` + amber glow behind it. Unfocused tiles flat, no shadows.
-- Type: one font (Inter, light 300 for clock/greeting, 400–600 elsewhere). Rounded 20–22 dp tiles, 36 dp pills.
+- Type: one font (Outfit, light 300 for clock/greeting, 400–600 elsewhere). Rounded 20–22 dp tiles, 36 dp pills.
 - Motion: only focus lift and short fades (<200 ms). Nothing moves on its own.
