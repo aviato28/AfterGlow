@@ -33,19 +33,19 @@ object Ag {
         variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
     )
 
-    val Inter = FontFamily(
+    val Font = FontFamily(
         inter(FontWeight.Light),
         inter(FontWeight.Normal),
         inter(FontWeight.Medium),
         inter(FontWeight.SemiBold),
     )
 
-    val Greeting = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Light, fontSize = 84.sp, color = Ink)
-    val Clock = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Light, fontSize = 44.sp, color = Ink)
-    val Date = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Normal, fontSize = 26.sp, color = Muted)
-    val Label = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Normal, fontSize = 24.sp, color = Ink)
+    val Greeting = TextStyle(fontFamily = Font, fontWeight = FontWeight.Light, fontSize = 84.sp, color = Ink)
+    val Clock = TextStyle(fontFamily = Font, fontWeight = FontWeight.Light, fontSize = 44.sp, color = Ink)
+    val Date = TextStyle(fontFamily = Font, fontWeight = FontWeight.Normal, fontSize = 30.sp, color = Muted)
+    val Label = TextStyle(fontFamily = Font, fontWeight = FontWeight.Normal, fontSize = 24.sp, color = Ink)
     val SectionCaps = TextStyle(
-        fontFamily = Inter, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, letterSpacing = 2.sp, color = Muted,
+        fontFamily = Font, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, letterSpacing = 2.sp, color = Muted,
     )
-    val Body = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Normal, fontSize = 24.sp, color = Ink)
+    val Body = TextStyle(fontFamily = Font, fontWeight = FontWeight.Normal, fontSize = 24.sp, color = Ink)
 }

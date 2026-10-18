@@ -59,7 +59,7 @@ fun Modifier.tvFocus(
                 for (i in GLOW_LAYERS downTo 1) {
                     val grow = i * 5.dp.toPx()
                     drawRoundRect(
-                        color = Ag.Amber.copy(alpha = 0.07f),
+                        color = Ag.Amber.copy(alpha = 0.05f),
                         topLeft = Offset(-grow, -grow),
                         size = Size(size.width + 2 * grow, size.height + 2 * grow),
                         cornerRadius = CornerRadius(corner + grow),
