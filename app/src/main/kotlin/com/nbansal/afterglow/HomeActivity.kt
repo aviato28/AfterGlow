@@ -29,6 +29,8 @@ import com.nbansal.afterglow.home.HomeScreen
 import com.nbansal.afterglow.home.openTvSettings
 import com.nbansal.afterglow.settings.AboutPage
 import com.nbansal.afterglow.settings.HiddenAppsPage
+import com.nbansal.afterglow.settings.HomeButtonPage
+import com.nbansal.afterglow.takeover.Takeover
 import com.nbansal.afterglow.settings.PackagesPage
 import com.nbansal.afterglow.settings.SettingsPage
 import com.nbansal.afterglow.settings.SettingsRow
@@ -124,11 +126,13 @@ class HomeActivity : ComponentActivity() {
             Screen.Settings -> SettingsPage(
                 "Afterglow settings",
                 listOf(
+                    SettingsRow("Home button", Takeover.homeLabel(this)) { screen = Screen.HomeButton },
                     SettingsRow("Hidden apps", "${model.hiddenApps.size}") { screen = Screen.Hidden },
                     SettingsRow("Installed packages") { screen = Screen.Packages },
                     SettingsRow("About") { screen = Screen.About },
                 ),
             )
+            Screen.HomeButton -> HomeButtonPage()
             Screen.Hidden -> HiddenAppsPage(model)
             Screen.Packages -> PackagesPage()
             Screen.About -> AboutPage(onClearProblem = {})

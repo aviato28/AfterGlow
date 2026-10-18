@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nbansal.afterglow.ui.Ag
 import com.nbansal.afterglow.ui.ListRow
@@ -25,14 +26,14 @@ class SettingsRow(val label: String, val value: String? = null, val onClick: () 
 
 /** A titled, scrolling list of big rows; the first row takes focus when the page opens. */
 @Composable
-fun SettingsPage(title: String, rows: List<SettingsRow>, modifier: Modifier = Modifier, header: (@Composable () -> Unit)? = null) {
+fun SettingsPage(title: String, rows: List<SettingsRow>, modifier: Modifier = Modifier, headerHeight: Dp = 170.dp, header: (@Composable () -> Unit)? = null) {
     val first = remember { FocusRequester() }
     LaunchedEffect(rows.isNotEmpty()) { if (rows.isNotEmpty()) first.focusSoon() }
     Box(modifier.fillMaxSize()) {
         Text(title.uppercase(), style = Ag.SectionCaps, modifier = Modifier.padding(start = 100.dp, top = Ag.MarginY + 20.dp))
         header?.let { Box(Modifier.padding(start = 100.dp, top = 130.dp, end = 100.dp)) { it() } }
         LazyColumn(
-            Modifier.padding(top = if (header != null) 300.dp else 120.dp).width(1100.dp),
+            Modifier.padding(top = if (header != null) 130.dp + headerHeight else 120.dp).width(1100.dp),
             state = rememberLazyListState(),
             contentPadding = PaddingValues(start = Ag.MarginX, top = 24.dp, bottom = 60.dp, end = 24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
