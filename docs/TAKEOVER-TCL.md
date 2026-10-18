@@ -17,5 +17,8 @@ Lessons:
   that does not need the TV's screen (and test that way before relying on it).
 - Do not build or document a takeover feature until it is proven safe on a spare device or an emulator.
 
-Untried, lower-risk idea for later: the Home-key accessibility catcher (it did switch itself off right after enabling on
-Android 14; likely "restricted settings" for apps installed outside a store) and nothing else disabled.
+Home-key accessibility catcher: DEAD on this TV. logcat shows
+`AccessibilityManagerService: Skipping enabling service disallowed by device admin policy: com.nbansal.afterglow/...HomeKeyService`.
+TCL's firmware only permits its own accessibility service (`com.tcl.tv/com.tcl.tv.service.TvAccessibilityService`), so a
+third-party accessibility service switches itself off right after the user confirms. The "Allow restricted settings" option
+is not involved (it is not even shown on this TV). It may still work on TVs without such a policy.
