@@ -1,6 +1,6 @@
 # Afterglow roadmap
 
-Status: **M0 done → next: M1 spec.**
+Status: **M0 done. M1 built (Method A and the Outfit font still open, see the spec's "Not done") → test on the TCL.**
 
 ## What it is
 A clean, fast home screen for Google TV / Android TV that replaces the stock Google TV launcher. Free, public, open

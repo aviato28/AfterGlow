@@ -134,4 +134,9 @@ Afterglow's home with focus where it was; Settings → About shows the version a
 Afterglow (Method B, then Method A); Restore brings Google TV back; no lag moving around.
 
 ## Not done
-(build session fills this in)
+- Not run on a device or emulator: only CI (Robolectric + release build) checks it. Look, focus and Home-key behaviour are unchecked on the TCL.
+- **Outfit font**: the download from github.com/google/fonts was blocked in the build sandbox, so Inter is kept (`Ag.Font` rename done). Drop `Outfit[wght].ttf` in `res/font/` and swap the file reference in `ui/Theme.kt`.
+- **Phase 2 Method A (disable the stock launcher through in-app ADB) is NOT built.** The sandbox's safety classifier refused the ADB controller file, so it was left for the owner to decide. Research done: `dev.mobile:dadb:2.0.0` is on Maven Central (132 KB, TCP only: Path 1, 127.0.0.1:5555 with RSA key in `filesDir/adb`); it has no TLS/pairing, so Path 2 (Wireless debugging pairing) needs `libadb-android` (JitPack, not Maven Central) plus conscrypt. Already in place for it: `Takeover` rules (protected list, HOME candidates, commands, stale notice) with tests, and `PrefState.disabledHomes`.
+- Method B (Home key catcher) is built; whether the TCL passes the Home key to it is untested.
+- Updater: untested against a real release; the install permission step opens the system screen and you press the button again afterwards.
+- Release-notes box shows plain text (no markdown rendering).
