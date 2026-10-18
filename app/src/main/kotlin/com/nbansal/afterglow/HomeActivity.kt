@@ -1,31 +1,165 @@
 package com.nbansal.afterglow
 
+import android.content.BroadcastReceiver
+import android.content.ComponentCallbacks2
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.nbansal.afterglow.apps.AppEntry
+import com.nbansal.afterglow.apps.Banners
+import com.nbansal.afterglow.core.AfterglowApp
+import com.nbansal.afterglow.core.AppModel
+import com.nbansal.afterglow.home.AllAppsScreen
+import com.nbansal.afterglow.home.AppActions
+import com.nbansal.afterglow.home.AppOptions
 import com.nbansal.afterglow.home.HomeScreen
+import com.nbansal.afterglow.home.openTvSettings
+import com.nbansal.afterglow.settings.AboutPage
+import com.nbansal.afterglow.settings.HiddenAppsPage
+import com.nbansal.afterglow.settings.PackagesPage
+import com.nbansal.afterglow.settings.SettingsPage
+import com.nbansal.afterglow.settings.SettingsRow
 import com.nbansal.afterglow.ui.AfterglowBackground
+import com.nbansal.afterglow.ui.MenuRow
+import com.nbansal.afterglow.ui.RenameDialog
 import com.nbansal.afterglow.ui.TvCanvas
+import com.nbansal.afterglow.ui.TvMenu
 import com.nbansal.afterglow.ui.rememberGlowPhase
 
 class HomeActivity : ComponentActivity() {
+    private lateinit var model: AppModel
+    private var screen by mutableStateOf(Screen.Home)
+    private var homeSignal by mutableIntStateOf(0)
+    private val homeFocus = mutableIntStateOf(0)
+    private val allAppsFocus = mutableIntStateOf(0)
+    private var optionsFor by mutableStateOf<AppEntry?>(null)
+    private var renameFor by mutableStateOf<AppEntry?>(null)
+    private var settingsMenu by mutableStateOf(false)
+
+    private val packageReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) = model.refresh()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // A launcher must never exit on Back.
+        model = (application as AfterglowApp).model
+        // A launcher must never exit on Back: go up one screen, and on Home do nothing.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() = Unit
+            override fun handleOnBackPressed() {
+                screen.parent?.let { screen = it }
+            }
         })
         setContent {
             TvCanvas {
                 Box(Modifier.fillMaxSize()) {
                     AfterglowBackground(rememberGlowPhase())
-                    HomeScreen()
+                    Content()
                 }
             }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_CHANGED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addDataScheme("package")
+        }
+        registerReceiver(packageReceiver, filter)
+        model.refresh()
+    }
+
+    override fun onStop() {
+        unregisterReceiver(packageReceiver)
+        super.onStop()
+    }
+
+    /** Home pressed while Afterglow is already on top: back to the first tile. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.hasCategory(Intent.CATEGORY_HOME)) {
+            screen = Screen.Home
+            optionsFor = null
+            renameFor = null
+            settingsMenu = false
+            homeFocus.intValue = 0
+            homeSignal++
+        }
+    }
+
+    @Composable
+    private fun Content() {
+        when (screen) {
+            Screen.Home -> HomeScreen(
+                favourites = model.favourites,
+                focusIndex = homeFocus,
+                homeSignal = homeSignal,
+                onOpen = { model.repo.launch(it.pkg) },
+                onOptions = { optionsFor = it },
+                onAllApps = { screen = Screen.AllApps },
+                onSettings = { settingsMenu = true },
+            )
+            Screen.AllApps -> AllAppsScreen(
+                apps = model.visibleApps,
+                focusIndex = allAppsFocus,
+                onOpen = { model.repo.launch(it.pkg) },
+                onOptions = { optionsFor = it },
+            )
+            Screen.Settings -> SettingsPage(
+                "Afterglow settings",
+                listOf(
+                    SettingsRow("Hidden apps", "${model.hiddenApps.size}") { screen = Screen.Hidden },
+                    SettingsRow("Installed packages") { screen = Screen.Packages },
+                    SettingsRow("About") { screen = Screen.About },
+                ),
+            )
+            Screen.Hidden -> HiddenAppsPage(model)
+            Screen.Packages -> PackagesPage()
+            Screen.About -> AboutPage(onClearProblem = {})
+        }
+
+        if (settingsMenu) {
+            TvMenu(
+                "Settings",
+                listOf(
+                    MenuRow("TV settings") { openTvSettings(this) },
+                    MenuRow("Afterglow settings") { screen = Screen.Settings },
+                ),
+            ) { settingsMenu = false }
+        }
+        optionsFor?.let { app ->
+            AppOptions(
+                app,
+                AppActions(
+                    isFavourite = model.isFavourite(app.pkg),
+                    onToggleFavourite = { model.toggleFavourite(app.pkg) },
+                    onMoveEarlier = { model.moveEarlier(app.pkg) },
+                    onMoveLater = { model.moveLater(app.pkg) },
+                    onHide = { model.hide(app.pkg) },
+                    onRename = { renameFor = app },
+                    onInfo = { model.repo.appInfo(app.pkg) },
+                    onUninstall = { model.repo.uninstall(app.pkg) },
+                ),
+            ) { optionsFor = null }
+        }
+        renameFor?.let { app ->
+            RenameDialog(app.label, { model.rename(app.pkg, it) }) { renameFor = null }
         }
     }
 
@@ -33,6 +167,7 @@ class HomeActivity : ComponentActivity() {
     override fun onTrimMemory(level: Int) {
         @Suppress("DEPRECATION")
         super.onTrimMemory(level)
-        // M1: clear the image memory cache here.
+        @Suppress("DEPRECATION")
+        if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) Banners.clear()
     }
 }

@@ -10,6 +10,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.focus.onFocusChanged
+import com.nbansal.afterglow.apps.AppEntry
+import com.nbansal.afterglow.ui.AppTile
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,49 +65,105 @@ const val TAG_SETTINGS = "pill-settings"
 private val PillShape = RoundedCornerShape(36.dp)
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    favourites: List<AppEntry> = emptyList(),
+    focusIndex: MutableIntState = remember { mutableIntStateOf(0) },
+    homeSignal: Int = 0,
+    updateAvailable: Boolean = false,
+    onOpen: (AppEntry) -> Unit = {},
+    onOptions: (AppEntry) -> Unit = {},
+    onAllApps: () -> Unit = {},
+    onSettings: () -> Unit = { },
+) {
     val context = LocalContext.current
     val now by rememberNow()
     val allApps = remember { FocusRequester() }
-    LaunchedEffect(Unit) { allApps.focusSoon() }
+    val listState = rememberLazyListState()
+    val requesters = remember(favourites.size) { List(favourites.size) { FocusRequester() } }
+    val hasFavourites = favourites.isNotEmpty()
 
-    Box(modifier.fillMaxSize().padding(horizontal = Ag.MarginX, vertical = Ag.MarginY)) {
-        Row(
-            Modifier.align(Alignment.TopStart).fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top,
-        ) {
-            LogoMark(Modifier.padding(start = 6.dp, top = 16.dp))
-            Text(formatClock(context, now), style = Ag.Clock, modifier = Modifier.padding(top = 4.dp))
+    // First favourite (or the saved one) gets focus; no favourites: "All apps". Home key again: back to the first tile.
+    LaunchedEffect(hasFavourites, homeSignal) {
+        if (hasFavourites) {
+            val i = focusIndex.intValue.coerceIn(favourites.indices)
+            listState.scrollToItem(i)
+            requesters[i].focusSoon()
+        } else {
+            allApps.focusSoon()
+        }
+    }
+
+    Box(modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().padding(horizontal = Ag.MarginX, vertical = Ag.MarginY)) {
+            Row(
+                Modifier.align(Alignment.TopStart).fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top,
+            ) {
+                LogoMark(Modifier.padding(start = 6.dp, top = 16.dp))
+                Text(formatClock(context, now), style = Ag.Clock, modifier = Modifier.padding(top = 4.dp))
+            }
+
+            Column(Modifier.align(Alignment.TopStart).padding(top = 166.dp)) {
+                Text(Greeting.at(now.toLocalTime()).text, style = Ag.Greeting)
+                Text(
+                    now.format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())),
+                    style = Ag.Date,
+                    modifier = Modifier.padding(start = 4.dp, top = 8.dp),
+                )
+            }
+
+            Row(
+                Modifier.align(Alignment.BottomEnd).padding(bottom = 104.dp),
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+            ) {
+                Pill(
+                    Modifier.width(220.dp).focusRequester(allApps).testTag(TAG_ALL_APPS),
+                    onClick = onAllApps,
+                ) { Text("All apps", style = Ag.Label.copy(fontSize = 26.sp)) }
+                Pill(Modifier.width(100.dp).testTag(TAG_SETTINGS), onClick = onSettings) {
+                    GearIcon()
+                    if (updateAvailable) {
+                        Box(
+                            Modifier.align(Alignment.TopEnd).padding(top = 16.dp, end = 20.dp).size(14.dp)
+                                .background(Ag.Amber, CircleShape),
+                        )
+                    }
+                }
+            }
         }
 
-        Column(Modifier.align(Alignment.TopStart).padding(top = 166.dp)) {
-            Text(Greeting.at(now.toLocalTime()).text, style = Ag.Greeting)
+        Text("FAVOURITES", style = Ag.SectionCaps, modifier = Modifier.padding(start = 100.dp, top = 440.dp))
+        if (hasFavourites) {
+            LazyRow(
+                Modifier.padding(top = 480.dp).fillMaxWidth(),
+                state = listState,
+                contentPadding = PaddingValues(horizontal = Ag.MarginX, vertical = 36.dp),
+                horizontalArrangement = Arrangement.spacedBy(40.dp),
+            ) {
+                itemsIndexed(favourites, key = { _, app -> app.pkg }) { i, app ->
+                    AppTile(
+                        app,
+                        Modifier.focusRequester(requesters[i]).onFocusChanged { if (it.isFocused) focusIndex.intValue = i },
+                        width = 320.dp,
+                        onClick = { onOpen(app) },
+                        onLongClick = { onOptions(app) },
+                    )
+                }
+            }
+        } else {
             Text(
-                now.format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())),
-                style = Ag.Date,
-                modifier = Modifier.padding(start = 4.dp, top = 8.dp),
+                "Press OK on All apps, then hold OK on an app to add it here",
+                style = Ag.Body.copy(color = Ag.Muted),
+                modifier = Modifier.padding(start = 100.dp, top = 520.dp),
             )
-        }
-
-        Row(
-            Modifier.align(Alignment.BottomEnd).padding(bottom = 104.dp),
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-        ) {
-            Pill(
-                Modifier.width(220.dp).focusRequester(allApps).testTag(TAG_ALL_APPS),
-                onClick = { /* M1: open the all-apps grid */ },
-            ) { Text("All apps", style = Ag.Label.copy(fontSize = 26.sp)) }
-            Pill(
-                Modifier.width(100.dp).testTag(TAG_SETTINGS),
-                onClick = { openSettings(context) },
-            ) { GearIcon() }
         }
     }
 }
 
 @Composable
-private fun Pill(modifier: Modifier, onClick: () -> Unit, content: @Composable () -> Unit) {
+private fun Pill(modifier: Modifier, onClick: () -> Unit, content: @Composable BoxScope.() -> Unit) {
     Box(
         modifier
             .height(72.dp)
@@ -154,7 +221,7 @@ private fun formatClock(context: Context, now: java.time.LocalDateTime): String 
     return now.format(DateTimeFormatter.ofPattern(pattern, Locale.getDefault()))
 }
 
-private fun openSettings(context: Context) {
+fun openTvSettings(context: Context) {
     val intent = Intent("android.settings.SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     try {
         context.startActivity(intent)
