@@ -3,6 +3,9 @@
 
     <!-- A home screen has to see every app (app list, installed-packages page, HOME handlers). -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <!-- Only for the update check against GitHub Releases. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
@@ -31,6 +34,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <receiver android:name=".update.InstallReceiver" android:exported="false" />
 
         <service
             android:name=".takeover.HomeKeyService"

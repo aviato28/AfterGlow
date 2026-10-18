@@ -14,6 +14,9 @@ import androidx.compose.ui.platform.LocalContext
 import com.nbansal.afterglow.core.AppModel
 import com.nbansal.afterglow.core.CrashGuard
 import com.nbansal.afterglow.ui.Ag
+import com.nbansal.afterglow.update.Versions
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -46,20 +49,32 @@ fun PackagesPage() {
 }
 
 @Composable
-fun AboutPage(onClearProblem: () -> Unit, extraRows: List<SettingsRow> = emptyList()) {
+fun AboutPage(model: AppModel) {
     val context = LocalContext.current
     var problemVersion by remember { mutableIntStateOf(0) }
     val problem = remember(problemVersion) { CrashGuard.lastProblem(context) }
+    val latest = model.latest
+    val available = model.updateAvailable
     val rows = buildList {
         add(SettingsRow("Version", versionName(context)) {})
-        addAll(extraRows)
+        add(SettingsRow("Latest release", latest?.tag?.removePrefix("v") ?: "–") {})
+        add(
+            SettingsRow(
+                if (available) "Download and install" else "Check for updates",
+                model.updateStatus.ifEmpty { null },
+            ) { if (available) model.downloadAndInstall() else model.checkForUpdates() },
+        )
         add(SettingsRow(if (problem == null) "No problems recorded" else "Clear last problem") {
             CrashGuard.clearProblem(context)
             problemVersion++
-            onClearProblem()
         })
     }
-    SettingsPage("About", rows, header = problem?.let { text ->
-        { Text(text.lines().take(6).joinToString("\n"), style = Ag.Body.copy(color = Ag.Muted), maxLines = 6) }
-    })
+    val text = if (available) latest?.notes?.let { Versions.firstLines(it) } else problem?.lines()?.take(6)?.joinToString("\n")
+    SettingsPage(
+        "About", rows,
+        headerHeight = if (available) 380.dp else 200.dp,
+        header = text?.takeIf { it.isNotBlank() }?.let { t ->
+            { Text(t, style = Ag.Body.copy(color = Ag.Muted, fontSize = 22.sp), maxLines = 12) }
+        },
+    )
 }

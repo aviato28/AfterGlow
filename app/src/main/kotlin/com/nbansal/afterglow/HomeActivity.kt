@@ -85,6 +85,7 @@ class HomeActivity : ComponentActivity() {
         }
         registerReceiver(packageReceiver, filter)
         model.refresh()
+        model.checkIfDue()
     }
 
     override fun onStop() {
@@ -112,6 +113,7 @@ class HomeActivity : ComponentActivity() {
                 favourites = model.favourites,
                 focusIndex = homeFocus,
                 homeSignal = homeSignal,
+                updateAvailable = model.updateAvailable,
                 onOpen = { model.repo.launch(it.pkg) },
                 onOptions = { optionsFor = it },
                 onAllApps = { screen = Screen.AllApps },
@@ -135,7 +137,7 @@ class HomeActivity : ComponentActivity() {
             Screen.HomeButton -> HomeButtonPage()
             Screen.Hidden -> HiddenAppsPage(model)
             Screen.Packages -> PackagesPage()
-            Screen.About -> AboutPage(onClearProblem = {})
+            Screen.About -> AboutPage(model)
         }
 
         if (settingsMenu) {

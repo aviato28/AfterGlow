@@ -9,6 +9,10 @@ import com.nbansal.afterglow.apps.AppRepository
 import com.nbansal.afterglow.data.Favourites
 import com.nbansal.afterglow.data.PrefState
 import com.nbansal.afterglow.data.Prefs
+import com.nbansal.afterglow.settings.versionName
+import com.nbansal.afterglow.update.Release
+import com.nbansal.afterglow.update.Updater
+import com.nbansal.afterglow.update.Versions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -71,4 +75,62 @@ class AppModel(val app: Application) {
     fun hide(pkg: String) = scope.launch { prefs.setHidden(state.hidden + pkg) }
     fun unhide(pkg: String) = scope.launch { prefs.setHidden(state.hidden - pkg) }
     fun rename(pkg: String, name: String) = scope.launch { prefs.setNames(Favourites.rename(state.names, pkg, name)) }
+
+    // ---- updates ----
+    val updater = Updater(app)
+    var latest by mutableStateOf<Release?>(null); private set
+    var updateStatus by mutableStateOf(""); private set
+    var needInstallPermission by mutableStateOf(false); private set
+    private var busy = false
+
+    val updateAvailable: Boolean
+        get() = latest?.let { Versions.isNewer(it.tag, versionName(app)) } == true
+
+    /** On app start: at most once per 12 hours. */
+    fun checkIfDue() {
+        if (Versions.shouldCheck(state.lastUpdateCheck, System.currentTimeMillis())) checkForUpdates()
+    }
+
+    fun checkForUpdates() {
+        if (busy) return
+        busy = true
+        updateStatus = "Checking…"
+        scope.launch {
+            val result = withContext(Dispatchers.IO) { runCatching { updater.latest() } }
+            result.onSuccess {
+                latest = it
+                updateStatus = if (updateAvailable) "Update available" else "You are up to date"
+                prefs.setLastUpdateCheck(System.currentTimeMillis())
+            }.onFailure { updateStatus = "Could not check (no network?)" }
+            busy = false
+        }
+    }
+
+    fun downloadAndInstall() {
+        val release = latest ?: return
+        if (busy) return
+        if (!updater.canInstall()) {
+            needInstallPermission = true
+            updateStatus = "Allow Afterglow to install apps, then try again"
+            runCatching { app.startActivity(updater.allowInstallIntent()) }
+            return
+        }
+        needInstallPermission = false
+        busy = true
+        updateStatus = "Downloading 0%"
+        scope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    val file = updater.download(release) { updateStatus = "Downloading ${(it * 100).toInt()}%" }
+                    if (file == null) null else { updater.install(file); true }
+                }
+            }
+            updateStatus = when {
+                result.isFailure -> "Download failed"
+                result.getOrNull() == null -> "Download did not pass the safety check"
+                else -> "Ready: confirm on the TV"
+            }
+            busy = false
+        }
+    }
 }
