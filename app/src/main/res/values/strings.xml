@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Afterglow</string>
+    <string name="home_key_service_name">Afterglow Home key</string>
+    <string name="home_key_service_description">Only watches the Home button so it can open Afterglow. It does not read the screen, your apps or anything you type.</string>
 </resources>

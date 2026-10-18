@@ -3,7 +3,6 @@ package com.nbansal.afterglow.ui
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
@@ -27,25 +26,25 @@ object Ag {
     val MarginX = 96.dp
     val MarginY = 54.dp
 
-    private fun inter(weight: FontWeight) = Font(
-        R.font.inter,
+    private fun outfit(weight: FontWeight) = androidx.compose.ui.text.font.Font(
+        R.font.outfit,
         weight = weight,
         variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
     )
 
-    val Inter = FontFamily(
-        inter(FontWeight.Light),
-        inter(FontWeight.Normal),
-        inter(FontWeight.Medium),
-        inter(FontWeight.SemiBold),
+    val Font = FontFamily(
+        outfit(FontWeight.Light),
+        outfit(FontWeight.Normal),
+        outfit(FontWeight.Medium),
+        outfit(FontWeight.SemiBold),
     )
 
-    val Greeting = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Light, fontSize = 84.sp, color = Ink)
-    val Clock = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Light, fontSize = 44.sp, color = Ink)
-    val Date = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Normal, fontSize = 26.sp, color = Muted)
-    val Label = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Normal, fontSize = 24.sp, color = Ink)
+    val Greeting = TextStyle(fontFamily = Font, fontWeight = FontWeight.Light, fontSize = 84.sp, color = Ink)
+    val Clock = TextStyle(fontFamily = Font, fontWeight = FontWeight.Light, fontSize = 44.sp, color = Ink)
+    val Date = TextStyle(fontFamily = Font, fontWeight = FontWeight.Normal, fontSize = 30.sp, color = Muted)
+    val Label = TextStyle(fontFamily = Font, fontWeight = FontWeight.Normal, fontSize = 24.sp, color = Ink)
     val SectionCaps = TextStyle(
-        fontFamily = Inter, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, letterSpacing = 2.sp, color = Muted,
+        fontFamily = Font, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, letterSpacing = 2.sp, color = Muted,
     )
-    val Body = TextStyle(fontFamily = Inter, fontWeight = FontWeight.Normal, fontSize = 24.sp, color = Ink)
+    val Body = TextStyle(fontFamily = Font, fontWeight = FontWeight.Normal, fontSize = 24.sp, color = Ink)
 }
