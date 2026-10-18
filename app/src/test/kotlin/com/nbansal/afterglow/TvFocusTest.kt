@@ -70,4 +70,11 @@ class TvFocusTest {
         assertEquals(1, longClicks)
         assertEquals(0, clicks)
     }
+
+    @Test
+    fun releaseWithoutPressDoesNotClick() {
+        // The release of the key that opened a popup lands on the popup's first row: it must be ignored.
+        send(AndroidKeyEvent.ACTION_UP)
+        assertEquals(0, clicks)
+    }
 }

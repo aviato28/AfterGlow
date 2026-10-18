@@ -45,6 +45,9 @@ fun Modifier.tvFocus(
 ): Modifier = composed {
     var focused by remember { mutableStateOf(false) }
     var longFired by remember { mutableStateOf(false) }
+    // A release only counts as a click if this item also saw the press: a popup that opens during a long press must not
+    // receive the release of the key that opened it.
+    var downSeen by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(if (focused) 1.06f else 1f, tween(durationMillis = 120), label = "tvFocusScale")
 
     this
@@ -86,6 +89,7 @@ fun Modifier.tvFocus(
             val isOk = event.key in OkKeys
             when {
                 isOk && event.type == KeyEventType.KeyDown -> {
+                    downSeen = true
                     if (event.nativeKeyEvent.repeatCount >= 1 && !longFired && onLongClick != null) {
                         longFired = true
                         onLongClick()
@@ -93,7 +97,9 @@ fun Modifier.tvFocus(
                     true
                 }
                 isOk && event.type == KeyEventType.KeyUp -> {
-                    if (longFired) longFired = false else onClick()
+                    val pressedHere = downSeen
+                    downSeen = false
+                    if (longFired) longFired = false else if (pressedHere) onClick()
                     true
                 }
                 event.key == Key.Menu && onLongClick != null -> {
@@ -105,7 +111,7 @@ fun Modifier.tvFocus(
         }
         .onFocusChanged {
             focused = it.isFocused
-            if (!it.isFocused) longFired = false
+            if (!it.isFocused) { longFired = false; downSeen = false }
         }
         .focusable()
 }
