@@ -1,34 +1,52 @@
-# DO NOT FOLLOW: disabling Google TV home on the TCL Q-series (Android 14) led to a factory reset
+# Making Afterglow the Home button on a TCL Google TV (TCL 65Q6C, Android 14): VERIFIED RECIPE
 
-What happened on the owner's TCL 65Q6C (Google TV, Android 14), in order:
-1. Setting Afterglow as the "chosen home" (`cmd package set-home-activity`) printed Success but Home still went to Google TV.
-2. `pm disable-user --user 0 com.google.android.apps.tv.launcherx` made Home stay on Afterglow, BUT the app looked frozen:
-   `dumpsys` showed `com.google.android.tungsten.setupwraith/.RecoveryActivity` (a HOME handler with priority 1, above
-   Afterglow's 0) as the top resumed activity, invisibly eating the remote's keys. This step alone was recoverable
-   (`pm enable com.google.android.apps.tv.launcherx` over adb).
-3. Disabling that `RecoveryActivity` component as well (advice that was wrong to give) left the TV on a black screen after
-   boot. The Gemini overlay still appeared, but could not answer. Wireless debugging was not reachable after the reboot
-   (`adb connect` failed on every open port), so it could not be re-enabled over adb, and the TV needed a factory reset.
+Works on the owner's TCL 65Q6C (Google TV, Android 14): Home opens Afterglow, Back from apps returns to it, the mic button
+(Assistant) works, and it survives a restart. Needs a phone/tablet with Termux (`pkg install android-tools nmap`).
+Everything is DISABLED, not uninstalled, and can be undone with two commands.
 
-Lessons:
-- Never disable anything outside the HOME-handler packages you can restore, and never disable setup components.
-- A priority above 0 cannot be claimed by a normal app, so Afterglow cannot outrank `RecoveryActivity` by itself.
-- Wireless debugging cannot be relied on after a reboot; if you disable anything, first make sure there is a way to undo it
-  that does not need the TV's screen (and test that way before relying on it).
-- Do not build or document a takeover feature until it is proven safe on a spare device or an emulator.
+## Why the usual tricks do not work on this TV
+- `cmd package set-home-activity` and `cmd role add-role-holder android.app.role.HOME` succeed but Home still opens Google TV.
+- The Home-key accessibility service is blocked by TCL's device policy
+  (`Skipping enabling service disallowed by device admin policy`).
+- Disabling only `com.google.android.apps.tv.launcherx` makes Home land on `com.google.android.tungsten.setupwraith/.RecoveryActivity`
+  (a HOME handler with higher priority than any app), an invisible screen that eats the remote's keys; after a restart the TV
+  shows black. Shell cannot disable that single component ("Shell cannot change component state"), but it CAN disable the
+  whole package.
+- So both packages must be disabled: `launcherx` and `setupwraith`.
 
-Home-key accessibility catcher: DEAD on this TV. logcat shows
-`AccessibilityManagerService: Skipping enabling service disallowed by device admin policy: com.nbansal.afterglow/...HomeKeyService`.
-TCL's firmware only permits its own accessibility service (`com.tcl.tv/com.tcl.tv.service.TvAccessibilityService`), so a
-third-party accessibility service switches itself off right after the user confirms. The "Allow restricted settings" option
-is not involved (it is not even shown on this TV). It may still work on TVs without such a policy.
+## The safety net you must have FIRST: adb that survives a restart
+Wireless debugging does NOT come back after a reboot on this TV (it says "IP address and port unavailable"). Port 5555 does
+(it is open when the "USB debugging" toggle is on). Test before touching anything:
+1. Developer options: turn on USB debugging (and Wireless debugging). `nmap -p 5555 <tv ip>` must say open.
+2. `adb connect <tv ip>:5555`, accept "Allow USB debugging?" on the TV with "Always allow".
+3. `adb reboot`, wait 3 minutes, `adb connect <tv ip>:5555` must give `device` with nothing touched on the TV.
+If this fails, STOP: a bad state could not be undone without the TV's screen. On a phone hotspot the TV's address can change;
+read it from the TV's Wireless debugging screen.
 
-Reboot safety test (nothing disabled), TCL 65Q6C, Android 14: Wireless debugging was connected and trusted, then the TV
-was rebooted. Afterwards the TV did not bring Wireless debugging back on its own ("IP address and port unavailable");
-the old port was gone and the only open ports refused the connection. So after any restart the TV can only be reached
-again by someone toggling Wireless debugging on its screen. That means a takeover (disabling Google TV home) cannot be
-undone from a phone/tablet if the TV ever boots to a black or frozen screen. Decision: takeover NOT supported on this TV.
+## Steps (set `export ANDROID_SERIAL=<tv ip>:5555` first; run commands one at a time)
+1. Undo timer on the TV (10 min), check it runs (`sleep 600` line):
+   `adb shell "nohup sh -c 'sleep 600; pm enable com.google.android.apps.tv.launcherx; pm enable com.google.android.tungsten.setupwraith' >/dev/null 2>&1 &"`
+   `adb shell "ps -A | grep sleep"`
+2. `adb shell pm disable-user --user 0 com.google.android.tungsten.setupwraith`
+3. `adb shell pm disable-user --user 0 com.google.android.apps.tv.launcherx`
+4. Self-checking line (undoes both if Home does not resolve to Afterglow):
+   `R=$(adb shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME | tail -n 1 | tr -d '\r'); echo "Home is now: $R"; case "$R" in *afterglow*) echo GOOD;; *) echo BAD; adb shell pm enable com.google.android.apps.tv.launcherx; adb shell pm enable com.google.android.tungsten.setupwraith;; esac`
+5. If GOOD: press Home on the remote and test. Cancel the timer: `adb shell pkill -f "sleep 600"`.
+6. `adb reboot`; Afterglow must come up by itself.
 
-How the repo https://github.com/Gathin23/tv-vibehack does it: debug connection, `pm disable-user` on the stock launcher,
-then `cmd package set-home-activity --user 0 <pkg>/<activity>`, with a restore script. It works on TVs where network ADB
-stays available after a reboot (for example port 5555 from the USB debugging toggle). Likely fine where that is true.
+## Undo
+`adb shell pm enable com.google.android.apps.tv.launcherx` and `adb shell pm enable com.google.android.tungsten.setupwraith`,
+or on the TV: Settings > Apps > See all apps > Show system apps > enable them. A factory reset also restores both.
+
+## Known side effects
+- The remote's Settings (gear) key was handled by Google TV home; Afterglow now catches it itself while it is on screen.
+- Google TV's rows, notifications panel and recommendations are gone. First-time setup cannot be re-run while `setupwraith` is off.
+- Never disable anything else here without the same adb-after-restart test.
+
+## History (what went wrong on the way, so nobody repeats it)
+A first attempt with only `launcherx` disabled and no way back over adb after a restart ended in a black screen and a factory
+reset. The cause was the invisible `RecoveryActivity` taking Home, not an extra command. Wireless debugging cannot be relied on
+after a restart; port 5555 can.
+
+Reference: https://github.com/Gathin23/tv-vibehack does the same thing (debug connection, `pm disable-user` on the stock
+launcher, `cmd package set-home-activity`) with a restore script, on TVs where network adb stays available.
