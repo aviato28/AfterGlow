@@ -7,6 +7,7 @@ enum class Screen(val parent: Screen?) {
     Settings(Home),
     Onboarding(Home),
     SpeedUp(Settings),
+    Screensaver(Settings),
     HomeButton(Settings),
     Hidden(Settings),
     Packages(Settings),

@@ -56,6 +56,7 @@ fun OnboardingScreen(model: AppModel, onFinish: () -> Unit) {
     when (o.step) {
         OnboardingStep.Home -> HomeButtonPage(model, extraRows = listOf(nextRow, backRow))
         OnboardingStep.SpeedUp -> SpeedUpPage(model, extraRows = listOf(SettingsRow("Next") { o.next() }, backRow))
+        OnboardingStep.Screensaver -> com.nbansal.afterglow.settings.ScreensaverPage(model, extraRows = listOf(nextRow, backRow))
         OnboardingStep.Apps -> AppsStep(model.visibleApps, o.ticked, { o.toggle(it) }, onNext = { o.next() }, onSkip = { o.skip() }, onBack = { o.back() })
         OnboardingStep.Order -> OrderStep(model.visibleApps, o.ticked, { p, d -> o.move(p, d) }, onNext = { o.next() }, onBack = { o.back() })
         OnboardingStep.Welcome -> TextStep(

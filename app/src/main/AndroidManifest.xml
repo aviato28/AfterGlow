@@ -35,6 +35,18 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".saver.ClockDream"
+            android:exported="true"
+            android:label="Afterglow clock"
+            android:permission="android.permission.BIND_DREAM_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data android:name="android.service.dream" android:resource="@xml/clock_dream" />
+        </service>
+
         <receiver android:name=".update.InstallReceiver" android:exported="false" />
 
         <service

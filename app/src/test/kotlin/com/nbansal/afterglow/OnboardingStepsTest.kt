@@ -12,7 +12,7 @@ class OnboardingStepsTest {
         var s = OnboardingSteps.first
         val seen = mutableListOf(s)
         while (s != Done) { s = OnboardingSteps.next(s); seen += s }
-        assertEquals(listOf(Welcome, Apps, Order, Updates, Home, SpeedUp, Done), seen)
+        assertEquals(listOf(Welcome, Apps, Order, Updates, Home, SpeedUp, Screensaver, Done), seen)
         assertEquals(Done, OnboardingSteps.next(Done))
     }
 
@@ -29,7 +29,7 @@ class OnboardingStepsTest {
         assertEquals(Apps, OnboardingSteps.back(Order))
         assertEquals(Order, OnboardingSteps.back(Updates, pickedApps = true))
         assertEquals(Apps, OnboardingSteps.back(Updates, pickedApps = false))
-        assertEquals(SpeedUp, OnboardingSteps.back(Done))
+        assertEquals(Screensaver, OnboardingSteps.back(Done))
     }
 
     @Test

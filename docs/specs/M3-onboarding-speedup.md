@@ -93,3 +93,10 @@ Update `docs/ROADMAP.md`, fill "Not done" below, Build workflow green. Do not ru
 - Recents row has up to 8 small tiles at the top of All apps; it is a grid header, so up/down moves into it by normal focus search.
 - Popup-close refocus re-runs the screens' saved-index focus (no new focus system). Not checked on a real remote.
 - Restore with a lost list only re-enables shipped-list packages that are currently disabled.
+
+Phase 5 (clock screensaver): built, not yet run on a TV or by CI at the time of writing.
+- Weight 200 is set with `Paint.setFontVariationSettings` on the `res/font` Outfit (a `Typeface.Builder` cannot open a packed resource font); falls back to the regular weight.
+- The current screensaver is displayed by reading `Settings.Secure` directly (no adb needed to look); the `settings get` commands are whitelisted and used to verify after a change.
+- Component syntax for `settings put` also accepts comma-separated components and the word `null`, so any earlier value can be restored.
+- Added an onboarding step "Screensaver" (between Speed up and Done); Next skips it.
+- Not tested on the TV: dream selection, night look, minute shift/fade.

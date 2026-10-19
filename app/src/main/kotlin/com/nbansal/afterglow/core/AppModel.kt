@@ -11,6 +11,7 @@ import com.nbansal.afterglow.data.PrefState
 import com.nbansal.afterglow.data.Prefs
 import com.nbansal.afterglow.data.Recents
 import com.nbansal.afterglow.onboarding.OnboardingState
+import com.nbansal.afterglow.saver.SaverController
 import com.nbansal.afterglow.settings.versionName
 import com.nbansal.afterglow.takeover.SpeedUpController
 import com.nbansal.afterglow.takeover.TakeoverController
@@ -31,6 +32,7 @@ class AppModel(val app: Application) {
     val repo = AppRepository(app)
     val takeover = TakeoverController(app, prefs)
     val speedUp = SpeedUpController(app, prefs)
+    val saver = SaverController(app, prefs)
 
     val onboarding = OnboardingState { scope.launch { prefs.setFavourites(it) } }
 
