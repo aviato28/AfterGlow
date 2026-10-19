@@ -33,7 +33,7 @@ low-memory TVs. Read `docs/ROADMAP.md` first; build sessions implement exactly o
 - Never ads, analytics, trackers or network calls other than GitHub Releases (updates).
 - Never install, update or sideload other apps (Netflix, YouTube…). Point to the Play Store only.
 - Never disable Play Store, Play Services, Settings, TV input framework, Widevine/DRM or anything on the
-  "protected" list in `docs/specs/M4-takeover.md`. Every disable must be undoable from the app.
+  "protected" list in `takeover/` (see `docs/specs/M2-takeover-in-app.md`). Every disable must be undoable from the app, and nothing may be disabled without first proving the TV stays reachable after a restart (`docs/TAKEOVER-TCL.md`).
 - Never commit a keystore or secret. Release signing: GitHub secrets `SIGNING_KEYSTORE_BASE64`, `SIGNING_PASSWORD`.
   Never replace the key once created (installed copies could no longer update).
 - No code or names from Penumbra/Vanta streaming features; only the generic TV patterns above.
