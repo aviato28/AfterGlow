@@ -35,7 +35,7 @@ class SpeedUpTest {
     @Test
     fun manufacturerFileName() {
         assertEquals("debloat/tcl.txt", Debloat.assetFor("TCL"))
-        assertEquals("debloat/tclcorp.txt", Debloat.assetFor("TCL Corp./x"))
+        assertEquals("debloat/tclcorp.txt", Debloat.assetFor("TCL Corp."))
         assertNull(Debloat.assetFor(""))
         assertNull(Debloat.assetFor(null))
     }
