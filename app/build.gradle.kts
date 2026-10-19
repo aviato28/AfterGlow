@@ -86,6 +86,7 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.coroutines.android)
     implementation(libs.profileinstaller)
+    implementation(libs.dadb)
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

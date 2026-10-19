@@ -20,7 +20,7 @@ object Takeover {
     )
     const val ProtectedPrefix = "com.android.providers."
 
-    private val PackageName = Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+")
+    internal val PackageName = Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+")
 
     fun isProtected(pkg: String) = pkg in ProtectedExact || pkg.startsWith(ProtectedPrefix)
 
