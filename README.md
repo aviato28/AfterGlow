@@ -32,9 +32,11 @@ Home-button takeover below has only been verified on that TCL.
 Google TV does not let apps replace the Home button, and each brand locks it differently. Afterglow never does this behind your
 back, and **it can always be undone**: nothing is uninstalled, only switched off.
 
-- **TCL Google TV (verified on the 65Q6C):** follow [`docs/TAKEOVER-TCL.md`](docs/TAKEOVER-TCL.md). It needs a phone or tablet with
-  Termux and takes about ten minutes. Read the "safety net" section first: the TV must stay reachable after a restart, or a bad
-  state cannot be undone. An in-app version with a Restore button is being built.
+- **In the app (verified on the TCL 65Q6C):** Settings > Afterglow settings > **Home button** has **Make Afterglow my Home** and
+  **Restore Google TV**. It uses the TV's own debugging port, so first turn on Developer options > **USB debugging** and press
+  Allow when the TV asks. It checks the result and undoes itself if Home does not end up on Afterglow.
+- **By hand (TCL):** [`docs/TAKEOVER-TCL.md`](docs/TAKEOVER-TCL.md) has the same steps for a phone or tablet with Termux, and the
+  safety checks. Read its "safety net" section first: the TV must stay reachable after a restart, or a bad state cannot be undone.
 - **Other TVs:** the same idea (switch off the stock launcher with `pm disable-user`) works on many TVs. The
   [tv-vibehack](https://github.com/Gathin23/tv-vibehack) project documents it for several brands.
 - **Undo, any time:** re-enable the apps you switched off (see the recipe), or on the TV: Settings > Apps > See all apps > Show
@@ -48,8 +50,7 @@ Afterglow never installs or updates other apps (Netflix, YouTube and others upda
 HDR, Dolby Vision and 4K working).
 
 ## Status and roadmap
-See [`docs/ROADMAP.md`](docs/ROADMAP.md). Next: in-app takeover and Restore, first-run setup, a "speed up my TV" list, a clock
-screensaver, then 1.0.
+See [`docs/ROADMAP.md`](docs/ROADMAP.md). Next: first-run setup, a "speed up my TV" list, a clock screensaver, then 1.0.
 
 ## Build from source
 ```
