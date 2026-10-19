@@ -46,4 +46,8 @@ Update `docs/TAKEOVER-TCL.md` (add "now also available in the app") and `docs/RO
 green. Do not run Release (the owner does). No pull request.
 
 ## Not done
-(build session fills this in)
+- Not built or run here (no Android SDK, no emulator): CI must be green and the owner tests on the TCL.
+- First connection waits up to 30 s for "Allow USB debugging?" using dadb's socket timeout, so all commands share that 30 s limit (connect is 15 s).
+- Status line shows the app's name for other launchers rather than the literal "something else".
+- Restore probe on page open only runs if an adb key already exists, to avoid popping the Allow question unasked.
+- No lost-list restore beyond the two TCL packages (as specified); Afterglow not tested against other TVs.

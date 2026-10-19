@@ -129,4 +129,33 @@ class TakeoverFlowTest {
         assertTrue(r is FlowResult.Stopped)
         assertTrue(tv.disabled.isEmpty())
     }
+
+    @Test
+    fun restoreEnablesTheSavedListAndClearsIt() = runBlocking {
+        val tv = FakeTv(disabled = mutableSetOf(Launcher, Wraith))
+        val store = MemoryStore(setOf(Launcher, Wraith))
+        val r = TakeoverFlow(tv, Self, store).restore()
+        assertTrue(r is FlowResult.Done)
+        assertTrue(tv.disabled.isEmpty())
+        assertTrue(store.value.isEmpty())
+        assertEquals(listOf("pm enable"), tv.log.filter { it.startsWith("pm enable") }.map { it.substringBeforeLast(' ') }.distinct())
+        tv.log.filter { it.startsWith("pm ") }.forEach { assertEquals(1, it.split(' ').count { t -> t.contains('.') }) }
+    }
+
+    @Test
+    fun restoreWithLostListUsesTheTwoKnownPackagesOnly() = runBlocking {
+        val tv = FakeTv(disabled = mutableSetOf(Launcher, Wraith, "com.example.other"))
+        val store = MemoryStore()
+        val flow = TakeoverFlow(tv, Self, store)
+        assertTrue(flow.restoreNeeded())
+        assertTrue(flow.restore() is FlowResult.Done)
+        assertEquals(setOf("com.example.other"), tv.disabled)
+    }
+
+    @Test
+    fun restoreWithNothingToDoSaysSo() = runBlocking {
+        val flow = TakeoverFlow(FakeTv(), Self, MemoryStore())
+        assertTrue(!flow.restoreNeeded())
+        assertTrue(flow.restore() is FlowResult.Stopped)
+    }
 }

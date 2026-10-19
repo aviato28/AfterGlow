@@ -70,6 +70,31 @@ class TakeoverFlow(private val adb: Adb, private val self: String, private val s
         return FlowResult.Done("Done. Press Home to try it.", after)
     }
 
+    /** Packages we turn back on when the saved list is lost (the two the TCL recipe disables). */
+    val KnownTakeoverPackages = setOf("com.google.android.apps.tv.launcherx", "com.google.android.tungsten.setupwraith")
+
+    /** True when the saved list is not empty, or a known home package is disabled on the TV. */
+    suspend fun restoreNeeded(): Boolean =
+        store.get().isNotEmpty() ||
+            HomeParsing.disabledPackages(adb.run(AdbWhitelist.ListDisabled).output).any { it in KnownTakeoverPackages }
+
+    suspend fun restore(): FlowResult {
+        var list = store.get()
+        if (list.isEmpty()) {
+            list = HomeParsing.disabledPackages(adb.run(AdbWhitelist.ListDisabled).output).filter { it in KnownTakeoverPackages }.toSet()
+        }
+        if (list.isEmpty()) return FlowResult.Stopped("Nothing to restore: Google TV's home screen is already on.")
+        val failed = mutableSetOf<String>()
+        for (pkg in list) {
+            val r = adb.run(Takeover.enableCommand(pkg))
+            if (!Takeover.enableSucceeded(r.exitCode, r.output)) failed += pkg
+        }
+        store.set(failed)
+        val now = resolve()
+        if (failed.isNotEmpty()) return FlowResult.Stopped("Some apps could not be switched on again. Try Restore once more, or use the manual route.")
+        return FlowResult.Done("Google TV is restored. Home button opens: ${describe(now)}.", now)
+    }
+
     /** Re-enable everything we touched; the saved list only goes back to what it was once every enable worked. */
     private suspend fun undo(plan: List<String>, saved: Set<String>, message: String): FlowResult {
         var allBack = true

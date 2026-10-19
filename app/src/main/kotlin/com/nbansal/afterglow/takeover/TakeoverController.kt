@@ -36,6 +36,49 @@ class TakeoverController(app: Application, private val prefs: Prefs) {
     fun confirm() { if (step == TakeoverStep.Confirm1) step = TakeoverStep.Confirm2 else if (step == TakeoverStep.Confirm2) start() }
     fun cancel() { if (step != TakeoverStep.Working) step = TakeoverStep.Idle }
 
+    /** Set by [refreshRestoreProbe]: a known home app is switched off even though our list is empty. */
+    var probeSaysRestore by mutableStateOf(false); private set
+
+    fun refreshRestoreProbe() {
+        // Only when this TV already accepted our key, so opening the page never pops the "Allow" question.
+        if (step == TakeoverStep.Working || !adb.hasKey()) return
+        scope.launch {
+            probeSaysRestore = withContext(Dispatchers.IO) {
+                try { flow.restoreNeeded() } catch (_: AdbException) { false } finally { adb.close() }
+            }
+        }
+    }
+
+    fun restore() {
+        if (step == TakeoverStep.Working) return
+        step = TakeoverStep.Working
+        message = "Restoring… " + AdbShell.AllowHint
+        scope.launch {
+            val result = withContext(NonCancellable + Dispatchers.IO) {
+                try {
+                    flow.restore()
+                } catch (e: AdbException) {
+                    FlowResult.Stopped(
+                        if (e.kind == AdbException.Kind.NotListening || e.kind == AdbException.Kind.NotAllowed)
+                            explain(e) + "\nManual route: " + ManualRoute
+                        else "Something went wrong talking to the TV.\nManual route: $ManualRoute",
+                    )
+                } finally {
+                    adb.close()
+                }
+            }
+            finish(result)
+        }
+    }
+
+    private fun finish(result: FlowResult) {
+        when (result) {
+            is FlowResult.Done -> { message = result.message; homeNow = result.homeNow; probeSaysRestore = false }
+            is FlowResult.Stopped -> message = result.message
+        }
+        step = TakeoverStep.Result
+    }
+
     private fun start() {
         step = TakeoverStep.Working
         message = "Working… " + AdbShell.AllowHint
@@ -49,15 +92,14 @@ class TakeoverController(app: Application, private val prefs: Prefs) {
                     adb.close()
                 }
             }
-            when (result) {
-                is FlowResult.Done -> { message = result.message; homeNow = result.homeNow }
-                is FlowResult.Stopped -> message = result.message
-            }
-            step = TakeoverStep.Result
+            finish(result)
         }
     }
 
     companion object {
+        const val ManualRoute =
+            "Settings > Apps > See all apps > Show system apps, then open each switched-off Google TV app and press Enable."
+
         fun explain(e: AdbException) = when (e.kind) {
             AdbException.Kind.NotListening -> AdbShell.NotListeningHint
             AdbException.Kind.NotAllowed -> "The TV did not allow the connection in time. ${AdbShell.AllowHint} Then try again."

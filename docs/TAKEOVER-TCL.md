@@ -4,6 +4,10 @@ Works on the owner's TCL 65Q6C (Google TV, Android 14): Home opens Afterglow, Ba
 (Assistant) works, and it survives a restart. Needs a phone/tablet with Termux (`pkg install android-tools nmap`).
 Everything is DISABLED, not uninstalled, and can be undone with two commands.
 
+**Now also available in the app:** Settings > Afterglow settings > Home button has "Make Afterglow my Home" and "Restore Google TV"
+(spec `docs/specs/M2-takeover-in-app.md`). It does the same steps over the TV's own port 5555 and undoes itself if Home does not
+resolve to Afterglow. The manual recipe below stays as the fallback.
+
 ## Why the usual tricks do not work on this TV
 - `cmd package set-home-activity` and `cmd role add-role-holder android.app.role.HOME` succeed but Home still opens Google TV.
 - The Home-key accessibility service is blocked by TCL's device policy

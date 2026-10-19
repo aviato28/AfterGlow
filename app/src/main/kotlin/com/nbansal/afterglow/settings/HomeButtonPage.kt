@@ -36,6 +36,9 @@ fun HomeButtonPage(model: AppModel) {
         } catch (_: ActivityNotFoundException) {
         }
     }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { t.refreshRestoreProbe() }
+    val restoreRow = SettingsRow("Restore Google TV") { t.restore() }
+    val showRestore = model.state.disabledHomes.isNotEmpty() || t.probeSaysRestore
     val cancel = SettingsRow("Cancel") { t.cancel() }
 
     val (text, rows) = when (t.step) {
@@ -43,8 +46,7 @@ fun HomeButtonPage(model: AppModel) {
             val catcher = if (catcherOn) "The Home-key catcher is on." else "The Home-key catcher is a secondary route for TVs that allow it."
             "Home button opens: $opensNow\n$catcher" to listOf(
                 SettingsRow("Make Afterglow my Home") { t.begin() },
-                catcherRow,
-            )
+            ) + listOfNotNull(restoreRow.takeIf { showRestore }) + catcherRow
         }
         TakeoverStep.Confirm1 -> (
             "Afterglow will switch off the TV's own home screen apps (not uninstall them) so the Home button opens Afterglow. " +
