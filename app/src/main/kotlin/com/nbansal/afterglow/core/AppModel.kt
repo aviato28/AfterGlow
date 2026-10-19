@@ -9,6 +9,7 @@ import com.nbansal.afterglow.apps.AppRepository
 import com.nbansal.afterglow.data.Favourites
 import com.nbansal.afterglow.data.PrefState
 import com.nbansal.afterglow.data.Prefs
+import com.nbansal.afterglow.onboarding.OnboardingState
 import com.nbansal.afterglow.settings.versionName
 import com.nbansal.afterglow.takeover.TakeoverController
 import com.nbansal.afterglow.update.Release
@@ -27,6 +28,8 @@ class AppModel(val app: Application) {
     val prefs = Prefs(app)
     val repo = AppRepository(app)
     val takeover = TakeoverController(app, prefs)
+
+    val onboarding = OnboardingState { scope.launch { prefs.setFavourites(it) } }
 
     var apps by mutableStateOf<List<AppEntry>>(emptyList()); private set
     var state by mutableStateOf(PrefState()); private set
@@ -49,6 +52,11 @@ class AppModel(val app: Application) {
 
     val hiddenApps: List<AppEntry>
         get() = apps.filter { it.pkg in state.hidden }.map { Favourites.named(it, state.names) }
+
+    /** Opens the walk-through at the start, with today's favourites already ticked. */
+    fun restartOnboarding() = onboarding.restart(state.favourites.orEmpty())
+
+    fun finishOnboarding() { scope.launch { prefs.setOnboarded(true) } }
 
     fun isFavourite(pkg: String) = pkg in state.favourites.orEmpty()
 

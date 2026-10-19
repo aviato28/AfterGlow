@@ -28,6 +28,8 @@ import com.nbansal.afterglow.home.AppActions
 import com.nbansal.afterglow.home.AppOptions
 import com.nbansal.afterglow.home.HomeScreen
 import com.nbansal.afterglow.home.openTvSettings
+import com.nbansal.afterglow.onboarding.OnboardingScreen
+import com.nbansal.afterglow.onboarding.OnboardingStep
 import com.nbansal.afterglow.settings.AboutPage
 import com.nbansal.afterglow.settings.HiddenAppsPage
 import com.nbansal.afterglow.settings.HomeButtonPage
@@ -62,6 +64,11 @@ class HomeActivity : ComponentActivity() {
         // A launcher must never exit on Back: go up one screen, and on Home do nothing.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                if (inOnboarding()) {
+                    if (model.onboarding.step == OnboardingStep.Welcome) { if (screen == Screen.Onboarding) screen = Screen.Settings }
+                    else model.onboarding.back()
+                    return
+                }
                 screen.parent?.let { screen = it }
             }
         })
@@ -116,8 +123,19 @@ class HomeActivity : ComponentActivity() {
         }
     }
 
+    private fun inOnboarding() = (model.state.loaded && !model.state.onboarded) || screen == Screen.Onboarding
+
+    private fun finishOnboarding() {
+        model.finishOnboarding()
+        screen = Screen.Home
+    }
+
     @Composable
     private fun Content() {
+        if (inOnboarding()) {
+            OnboardingScreen(model, ::finishOnboarding)
+            return
+        }
         when (screen) {
             Screen.Home -> HomeScreen(
                 favourites = model.favourites,
@@ -141,9 +159,12 @@ class HomeActivity : ComponentActivity() {
                     SettingsRow("Home button", Takeover.homeLabel(this)) { screen = Screen.HomeButton },
                     SettingsRow("Hidden apps", "${model.hiddenApps.size}") { screen = Screen.Hidden },
                     SettingsRow("Installed packages") { screen = Screen.Packages },
+                    SettingsRow("Set up again") { model.restartOnboarding(); screen = Screen.Onboarding },
                     SettingsRow("About") { screen = Screen.About },
                 ),
             )
+            Screen.Onboarding -> Unit
+            Screen.SpeedUp -> Unit
             Screen.HomeButton -> HomeButtonPage(model)
             Screen.Hidden -> HiddenAppsPage(model)
             Screen.Packages -> PackagesPage()
