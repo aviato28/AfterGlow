@@ -144,7 +144,7 @@ class HomeActivity : ComponentActivity() {
                     SettingsRow("About") { screen = Screen.About },
                 ),
             )
-            Screen.HomeButton -> HomeButtonPage()
+            Screen.HomeButton -> HomeButtonPage(model)
             Screen.Hidden -> HiddenAppsPage(model)
             Screen.Packages -> PackagesPage()
             Screen.About -> AboutPage(model)
