@@ -43,15 +43,15 @@ fun HomeButtonPage(model: AppModel, extraRows: List<SettingsRow> = emptyList()) 
 
     val (text, rows) = when (t.step) {
         TakeoverStep.Idle -> {
-            val catcher = if (catcherOn) "The Home-key catcher is on." else "The Home-key catcher is a secondary route for TVs that allow it."
+            val catcher = if (catcherOn) "The Home-key catcher is on." else "The Home-key catcher is a backup for TVs where the first method is not allowed."
             "Home button opens: $opensNow\n$catcher" to listOf(
                 SettingsRow("Make Afterglow my Home") { t.begin() },
             ) + listOfNotNull(restoreRow.takeIf { showRestore }) + catcherRow + extraRows
         }
         TakeoverStep.Confirm1 -> (
-            "Afterglow will switch off the TV's own home screen apps (not uninstall them) so the Home button opens Afterglow. " +
+            "Afterglow will switch off the TV's own home screen (nothing is uninstalled) so the Home button opens Afterglow. " +
                 "It checks the result and undoes everything by itself if it does not work. " +
-                "Needs USB debugging on in Developer options."
+                "USB debugging must be on in the TV's Developer options."
             ) to listOf(SettingsRow("Continue") { t.confirm() }, cancel)
         TakeoverStep.Confirm2 -> (
             "Are you sure? You can go back any time with Restore Google TV on this page."

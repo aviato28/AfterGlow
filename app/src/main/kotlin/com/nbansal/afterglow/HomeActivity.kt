@@ -13,6 +13,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -151,6 +152,7 @@ class HomeActivity : ComponentActivity() {
             Screen.AllApps -> AllAppsScreen(
                 apps = model.visibleApps,
                 recents = model.recentApps,
+                refocus = homeSignal,
                 focusIndex = allAppsFocus,
                 onOpen = { model.launch(it.pkg) },
                 onOptions = { optionsFor = it },
@@ -173,6 +175,10 @@ class HomeActivity : ComponentActivity() {
             Screen.Packages -> PackagesPage()
             Screen.About -> AboutPage(model)
         }
+
+        // When the last popup closes, focus goes back to the item that opened it (the screens remember their index).
+        val popupOpen = optionsFor != null || renameFor != null || settingsMenu
+        LaunchedEffect(popupOpen) { if (!popupOpen) homeSignal++ }
 
         if (settingsMenu) {
             TvMenu(

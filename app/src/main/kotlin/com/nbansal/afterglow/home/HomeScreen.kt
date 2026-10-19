@@ -153,7 +153,7 @@ fun HomeScreen(
             }
         } else {
             Text(
-                "Press OK on All apps, then hold OK on an app to add it here",
+                "No favourites yet. Open All apps, hold OK on an app and choose Add to favourites.",
                 style = Ag.Body.copy(color = Ag.Muted),
                 modifier = Modifier.padding(start = 100.dp, top = 520.dp),
             )

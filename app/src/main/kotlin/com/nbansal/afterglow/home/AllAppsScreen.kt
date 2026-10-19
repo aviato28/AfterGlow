@@ -35,6 +35,7 @@ import com.nbansal.afterglow.ui.focusSoon
 fun AllAppsScreen(
     apps: List<AppEntry>,
     recents: List<AppEntry> = emptyList(),
+    refocus: Int = 0,
     focusIndex: MutableIntState = remember { mutableIntStateOf(0) },
     onOpen: (AppEntry) -> Unit,
     onOptions: (AppEntry) -> Unit,
@@ -42,7 +43,7 @@ fun AllAppsScreen(
 ) {
     val state = rememberLazyGridState()
     val requesters = remember(apps.size) { List(apps.size) { FocusRequester() } }
-    LaunchedEffect(apps.isNotEmpty()) {
+    LaunchedEffect(apps.isNotEmpty(), refocus) {
         if (apps.isNotEmpty()) {
             val i = focusIndex.intValue.coerceIn(apps.indices)
             state.scrollToItem(i + if (recents.isNotEmpty()) 1 else 0)
