@@ -33,6 +33,22 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
+## Task list (open items, newest first)
+1. **BUG: the Afterglow clock screensaver starts while a movie is playing** (reported by the owner on 0.5.0). The TV's idle timer
+   counts playback time, and Google TV's own ambient mode probably checked for playing media where our DreamService does not.
+   Plan: in `ClockDream.onDreamingStarted()` check `AudioManager.isMusicActive()` (and active playback configurations, API 26+); if
+   something is playing, call `wakeUp()` straight away so the screen returns to the movie and the idle timer restarts. Add a unit test
+   for the decision (pure function). Cheap fix, about ten lines. Note: video from an HDMI input has no audio session on the TV, so test that too.
+2. **Remote's Settings (gear) key and the Netflix / Prime Video / YouTube buttons do nothing since the takeover.** Diagnose from the TV's log
+   (`adb logcat -c`, press each button, `adb logcat -d | grep -E "publishKeyEvent|START u0|Unable to find|ActivityNotFound"`); the owner is
+   running this from Termux on the phone (TV on the phone's hotspot). If Afterglow receives the key codes, map them in `HomeActivity.onKeyDown`
+   (Settings opens TV settings, the app buttons launch their app via `AppRepository.launch`). If the system consumes them, document it.
+3. **Check the shipped "Speed up my TV" list against the owner's real TV** (all items are unticked and unverified). Needs the output of
+   `adb shell pm list packages` (system and third-party) from the owner.
+4. **Real screenshots for the README** (replace the preview render): `adb exec-out screencap -p > afterglow-home.png` from Termux, then add to `docs/screenshots/`.
+5. Chunk C: speed pass and 1.0 (baseline profile, memory check on a 2 GB TV, release 1.0).
+6. Tidy: the screensaver and takeover pages have only been tested on the TCL 65Q6C; other TVs untested.
+
 ## Later (not v1)
 Folders, remote-button remapping, Obtainium listing.
 
