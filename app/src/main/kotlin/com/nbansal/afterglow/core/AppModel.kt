@@ -9,6 +9,7 @@ import com.nbansal.afterglow.apps.AppRepository
 import com.nbansal.afterglow.data.Favourites
 import com.nbansal.afterglow.data.PrefState
 import com.nbansal.afterglow.data.Prefs
+import com.nbansal.afterglow.data.Recents
 import com.nbansal.afterglow.onboarding.OnboardingState
 import com.nbansal.afterglow.settings.versionName
 import com.nbansal.afterglow.takeover.SpeedUpController
@@ -59,6 +60,15 @@ class AppModel(val app: Application) {
     fun restartOnboarding() = onboarding.restart(state.favourites.orEmpty())
 
     fun finishOnboarding() { scope.launch { prefs.setOnboarded(true) } }
+
+    val recentApps: List<AppEntry>
+        get() = Recents.resolve(Recents.decode(state.recents), apps, state.hidden, state.names)
+
+    /** Every launch from Afterglow goes through here so Recents can be kept. */
+    fun launch(pkg: String) {
+        scope.launch { prefs.setRecents(Recents.encode(Recents.record(Recents.decode(state.recents), pkg, System.currentTimeMillis()))) }
+        repo.launch(pkg)
+    }
 
     fun isFavourite(pkg: String) = pkg in state.favourites.orEmpty()
 

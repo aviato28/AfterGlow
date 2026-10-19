@@ -2,10 +2,15 @@ package com.nbansal.afterglow.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.item
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -21,6 +26,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import com.nbansal.afterglow.apps.AppEntry
+import com.nbansal.afterglow.data.Recents
 import com.nbansal.afterglow.ui.Ag
 import com.nbansal.afterglow.ui.AppTile
 import com.nbansal.afterglow.ui.focusSoon
@@ -28,6 +34,7 @@ import com.nbansal.afterglow.ui.focusSoon
 @Composable
 fun AllAppsScreen(
     apps: List<AppEntry>,
+    recents: List<AppEntry> = emptyList(),
     focusIndex: MutableIntState = remember { mutableIntStateOf(0) },
     onOpen: (AppEntry) -> Unit,
     onOptions: (AppEntry) -> Unit,
@@ -38,7 +45,7 @@ fun AllAppsScreen(
     LaunchedEffect(apps.isNotEmpty()) {
         if (apps.isNotEmpty()) {
             val i = focusIndex.intValue.coerceIn(apps.indices)
-            state.scrollToItem(i)
+            state.scrollToItem(i + if (recents.isNotEmpty()) 1 else 0)
             requesters[i].focusSoon()
         }
     }
@@ -52,6 +59,22 @@ fun AllAppsScreen(
             horizontalArrangement = Arrangement.spacedBy(40.dp),
             verticalArrangement = Arrangement.spacedBy(36.dp),
         ) {
+            if (recents.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }, key = "recent") {
+                    Column {
+                        Text("RECENT", style = Ag.SectionCaps, modifier = Modifier.padding(bottom = 16.dp))
+                        Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                            for (slot in 0 until Recents.MAX) {
+                                Box(Modifier.weight(1f)) {
+                                    recents.getOrNull(slot)?.let { app ->
+                                        AppTile(app, onClick = { onOpen(app) }, onLongClick = { onOptions(app) })
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             itemsIndexed(apps, key = { _, app -> app.pkg }) { i, app ->
                 AppTile(
                     app,

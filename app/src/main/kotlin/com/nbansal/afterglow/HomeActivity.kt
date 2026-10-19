@@ -143,15 +143,16 @@ class HomeActivity : ComponentActivity() {
                 focusIndex = homeFocus,
                 homeSignal = homeSignal,
                 updateAvailable = model.updateAvailable,
-                onOpen = { model.repo.launch(it.pkg) },
+                onOpen = { model.launch(it.pkg) },
                 onOptions = { optionsFor = it },
                 onAllApps = { screen = Screen.AllApps },
                 onSettings = { settingsMenu = true },
             )
             Screen.AllApps -> AllAppsScreen(
                 apps = model.visibleApps,
+                recents = model.recentApps,
                 focusIndex = allAppsFocus,
-                onOpen = { model.repo.launch(it.pkg) },
+                onOpen = { model.launch(it.pkg) },
                 onOptions = { optionsFor = it },
             )
             Screen.Settings -> SettingsPage(
