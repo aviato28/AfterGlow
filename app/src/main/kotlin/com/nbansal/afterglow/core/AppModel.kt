@@ -10,6 +10,7 @@ import com.nbansal.afterglow.data.Favourites
 import com.nbansal.afterglow.data.PrefState
 import com.nbansal.afterglow.data.Prefs
 import com.nbansal.afterglow.settings.versionName
+import com.nbansal.afterglow.takeover.TakeoverController
 import com.nbansal.afterglow.update.Release
 import com.nbansal.afterglow.update.Updater
 import com.nbansal.afterglow.update.Versions
@@ -25,6 +26,7 @@ class AppModel(val app: Application) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     val prefs = Prefs(app)
     val repo = AppRepository(app)
+    val takeover = TakeoverController(app, prefs)
 
     var apps by mutableStateOf<List<AppEntry>>(emptyList()); private set
     var state by mutableStateOf(PrefState()); private set
