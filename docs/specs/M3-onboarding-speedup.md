@@ -37,6 +37,8 @@ Shown once (flag in DataStore, re-runnable from Afterglow settings > "Set up aga
   small tiles at the top of the All apps screen (hidden apps excluded, favourites still shown). Home stays favourites-only.
 
 ## Phase 4: Polish
+- **Home button page: the "Restore Google TV" row is always visible** (not only after a first adb connection). Pressing it connects (the TV may
+  ask "Allow USB debugging?") and, if nothing was switched off, says "Nothing to restore: Google TV's home screen is already on."
 - Home button page and About page wording in plain language; show the version and "up to date" state clearly.
 - Favourites empty state text; focus is never lost when a popup closes (return to the item that opened it).
 - The remote's Settings key opens TV settings from any Afterglow screen (already on Home).
