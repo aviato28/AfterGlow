@@ -1,0 +1,16 @@
+## TCL TVs. One package per line, then # and a short reason. All UNVERIFIED on a real TV: none is ticked by default.
+## Only packages that are installed on this TV are shown. Protected packages are never offered (see SpeedUp.kt).
+com.tcl.tv.plus # TCL TV+ free channels
+com.tcl.channelplus # TCL Channel+ promotions
+com.tcl.tv.tclhome_passive # TCL's own home screen helper
+com.tcl.partnercustomizer # Partner shortcuts and offers
+com.tcl.interactive # Interactive promotions
+com.tcl.smartlink.core # TCL phone link service
+com.tcl.exhibit # Shop demo mode
+com.tcl.esticker # Shop price stickers
+com.tcl.ocean.instructions # On-screen user guide
+com.tcl.repairguide # Repair guide
+com.google.android.feedback # Sends feedback reports to Google
+com.google.android.marvin.talkback # TalkBack screen reader
+com.google.android.apps.tv.dreamx # Screensaver ambient mode
+com.google.android.tv.remote.service # Phone remote control service

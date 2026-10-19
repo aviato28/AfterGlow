@@ -26,11 +26,10 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 - **Design, M0 Foundation, M1 Launcher** [done]: look, project and CI, home screen, apps, favourites, All apps, options popup,
   settings, updater, Outfit font. Takeover verified by hand on the TCL (`docs/TAKEOVER-TCL.md`).
 - **Chunk A: in-app takeover and Restore** [Sonnet, one session]: `docs/specs/M2-takeover-in-app.md`. Done, tested on the TCL (released in 0.3.0).
-- **Chunk B: onboarding, "Speed up my TV", recents in All apps, polish** [Sonnet, one session]: `docs/specs/M3-onboarding-speedup.md`.
+- **Chunk B: onboarding, "Speed up my TV", recents in All apps, clock screensaver, polish** [Sonnet, one session]: `docs/specs/M3-onboarding-speedup.md`.
 - **Chunk C: speed pass and 1.0** [Sonnet]: baseline profile, cold start under 500 ms, memory check on a 2 GB TV, README with screenshots
   and the TCL recipe, v1.0 release.
-- **Chunk D: clock screensaver** [design chat first, then Sonnet]: an Android screensaver (Dream) in the Afterglow look, replacing
-  Google TV's blurry-photo-and-ugly-clock one. Styles and mockups to be discussed with the owner before any spec is written.
+- **Clock screensaver:** designed with the owner (centered thin clock on the sunset glow, tiny half-sun horizon, dim and small at night) and built as Phase 5 of Chunk B.
 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
