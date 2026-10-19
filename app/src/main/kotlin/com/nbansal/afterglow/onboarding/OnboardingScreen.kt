@@ -2,7 +2,6 @@ package com.nbansal.afterglow.onboarding
 
 import android.content.Intent
 import android.net.Uri
-import android.view.KeyEvent as AndroidKeyEvent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.nativeKeyEvent
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -142,10 +144,10 @@ private fun OrderStep(apps: List<AppEntry>, ticked: List<String>, onMove: (Strin
                 ListRow(
                     label,
                     Modifier.then(if (pkg == ticked.first()) Modifier.focusRequester(first) else Modifier).onPreviewKeyEvent {
-                        if (it.nativeKeyEvent.action != AndroidKeyEvent.ACTION_DOWN) false
-                        else when (it.nativeKeyEvent.keyCode) {
-                            AndroidKeyEvent.KEYCODE_DPAD_LEFT -> { onMove(pkg, -1); true }
-                            AndroidKeyEvent.KEYCODE_DPAD_RIGHT -> { onMove(pkg, +1); true }
+                        if (it.type != KeyEventType.KeyDown) false
+                        else when (it.key) {
+                            Key.DirectionLeft -> { onMove(pkg, -1); true }
+                            Key.DirectionRight -> { onMove(pkg, +1); true }
                             else -> false
                         }
                     },
