@@ -23,22 +23,19 @@ One look (no themes). Reference device: TCL 65Q6C.
 ## Milestones
 Each milestone gets a spec in `docs/specs/` written by the planning chat before building. Model per milestone in brackets.
 
-- **Design** [done]: `docs/design/home.svg` (home screen) and `docs/design/logo.svg`. Other screens reuse the same
-  parts; no further mockups.
-- **M0 Foundation** [Sonnet, done]: Gradle project, Compose, 1920 canvas, theme tokens, app icon + TV banner from logo.svg, `tvFocus`, crash-restart, CI: build + unit tests
-  on push, signed release on tag `v*` uploads the APK to GitHub Releases; one-time "create signing key" workflow.
-  *Not done:* see "Not done" in `docs/specs/M0-foundation.md` (unverified on a real TV, focus glow approximated, release workflows not yet run).
-- **M1 Launcher** [Sonnet, one session, 4 phases]: see `docs/specs/M1-launcher.md`. Polish (Outfit font, softer glow), apps + favourites + All apps + options popup + settings, then the Home-button takeover (accessibility catcher + disable stock launcher through in-app ADB, with Restore).
-- **M2 Onboarding** [Sonnet]: welcome → pick apps you use (installed ones ticked; popular missing ones link to Play) →
-  order favourites → check Play auto-update → optional Takeover → done. Export/import layout (file + QR) to set up a
-  second TV.
-- **M3 Updater** merged into M1 Phase 3 (check + download + checksum + install from GitHub Releases). Silent install via ADB later.
-- **M4** merged into M1 Phase 2 (fallbacks and per-brand debloat list stay for later, after the Installed packages list from the TCL is photographed).
-- **M5 Speed + 1.0** [Sonnet; Haiku for copy]: baseline profile, cold start target < 500 ms on TCL, memory target
-  < 80 MB, 2 GB emulator test, README with screenshots and ADB-from-PC restore instructions, v1.0 release.
+- **Design, M0 Foundation, M1 Launcher** [done]: look, project and CI, home screen, apps, favourites, All apps, options popup,
+  settings, updater, Outfit font. Takeover verified by hand on the TCL (`docs/TAKEOVER-TCL.md`).
+- **Chunk A: in-app takeover and Restore** [Sonnet, one session]: `docs/specs/M2-takeover-in-app.md`.
+- **Chunk B: onboarding, "Speed up my TV", recents in All apps, polish** [Sonnet, one session]: `docs/specs/M3-onboarding-speedup.md`.
+- **Chunk C: speed pass and 1.0** [Sonnet]: baseline profile, cold start under 500 ms, memory check on a 2 GB TV, README with screenshots
+  and the TCL recipe, v1.0 release.
+- **Chunk D: clock screensaver** [design chat first, then Sonnet]: an Android screensaver (Dream) in the Afterglow look, replacing
+  Google TV's blurry-photo-and-ugly-clock one. Styles and mockups to be discussed with the owner before any spec is written.
+
+Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Later (not v1)
-Folders, remote-button remapping, screensaver, Obtainium listing.
+Folders, remote-button remapping, Obtainium listing.
 
 ## Design
 - Mood: the sky just after sunset. Near-black base `#0B0908`; a soft glow rises from the bottom edge
