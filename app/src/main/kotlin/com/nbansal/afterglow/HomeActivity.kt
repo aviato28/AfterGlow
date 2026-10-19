@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -91,6 +92,15 @@ class HomeActivity : ComponentActivity() {
     override fun onStop() {
         unregisterReceiver(packageReceiver)
         super.onStop()
+    }
+
+    /** The remote's Settings (gear) key used to be handled by Google TV home, which is switched off: open the TV's settings here. */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_SETTINGS) {
+            openTvSettings(this)
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     /** Home pressed while Afterglow is already on top: back to the first tile. */

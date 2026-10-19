@@ -89,7 +89,9 @@ fun Modifier.tvFocus(
             val isOk = event.key in OkKeys
             when {
                 isOk && event.type == KeyEventType.KeyDown -> {
-                    downSeen = true
+                    // Only a fresh press counts. The auto-repeats of a held key also reach a popup that opened under the long
+                    // press, and must not make its first row think it was pressed.
+                    if (event.nativeKeyEvent.repeatCount == 0) downSeen = true
                     if (event.nativeKeyEvent.repeatCount >= 1 && !longFired && onLongClick != null) {
                         longFired = true
                         onLongClick()

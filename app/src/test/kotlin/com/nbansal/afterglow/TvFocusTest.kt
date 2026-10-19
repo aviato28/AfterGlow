@@ -77,4 +77,13 @@ class TvFocusTest {
         send(AndroidKeyEvent.ACTION_UP)
         assertEquals(0, clicks)
     }
+
+    @Test
+    fun heldKeyRepeatsThenReleaseDoNotClick() {
+        // A popup opened by a long press receives the held key's repeats and then its release: no click.
+        send(AndroidKeyEvent.ACTION_DOWN, repeat = 1)
+        send(AndroidKeyEvent.ACTION_DOWN, repeat = 2)
+        send(AndroidKeyEvent.ACTION_UP)
+        assertEquals(0, clicks)
+    }
 }
