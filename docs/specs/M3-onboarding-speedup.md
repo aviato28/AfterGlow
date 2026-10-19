@@ -86,4 +86,10 @@ protected-list filtering (including every name above), recents ordering and cap,
 Update `docs/ROADMAP.md`, fill "Not done" below, Build workflow green. Do not run Release and do not open a pull request.
 
 ## Not done
-(build session fills this in)
+- Nothing was compiled or run in the build session (no Android SDK there); the Build workflow on the branch is the first compile. Nothing was tested on the TCL.
+- "Installed only" uses `PackageManager` (QUERY_ALL_PACKAGES is already held) instead of adb `pm list packages`, so the whitelist did not grow.
+- Onboarding shows once for everyone who has not seen it, including existing installs. Ticked apps start as today's favourites.
+- Onboarding Home / Speed-up steps reuse the settings pages with extra Next/Back rows; "Next" there is the skip.
+- Recents row has up to 8 small tiles at the top of All apps; it is a grid header, so up/down moves into it by normal focus search.
+- Popup-close refocus re-runs the screens' saved-index focus (no new focus system). Not checked on a real remote.
+- Restore with a lost list only re-enables shipped-list packages that are currently disabled.

@@ -2,6 +2,7 @@ package com.nbansal.afterglow.data
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -19,6 +20,11 @@ data class PrefState(
     val names: Map<String, String> = emptyMap(),
     val disabledHomes: Set<String> = emptySet(),
     val lastUpdateCheck: Long = 0L,
+    val onboarded: Boolean = false,
+    val disabledExtras: Set<String> = emptySet(),
+    val recents: List<String> = emptyList(),
+    /** False until DataStore has delivered its first value (so first-run screens never flash). */
+    val loaded: Boolean = false,
 )
 
 class Prefs(context: Context) {
@@ -31,6 +37,10 @@ class Prefs(context: Context) {
             names = p[NAMES]?.let(::decodeMap) ?: emptyMap(),
             disabledHomes = p[DISABLED] ?: emptySet(),
             lastUpdateCheck = p[LAST_CHECK] ?: 0L,
+            onboarded = p[ONBOARDED] ?: false,
+            disabledExtras = p[EXTRAS] ?: emptySet(),
+            recents = p[RECENTS]?.let(::decodeList) ?: emptyList(),
+            loaded = true,
         )
     }
 
@@ -39,6 +49,10 @@ class Prefs(context: Context) {
     suspend fun setNames(map: Map<String, String>) = edit { it[NAMES] = encodeMap(map) }
     suspend fun setDisabledHomes(set: Set<String>) = edit { it[DISABLED] = set }
     suspend fun setLastUpdateCheck(ms: Long) = edit { it[LAST_CHECK] = ms }
+
+    suspend fun setOnboarded(done: Boolean) = edit { it[ONBOARDED] = done }
+    suspend fun setDisabledExtras(set: Set<String>) = edit { it[EXTRAS] = set }
+    suspend fun setRecents(list: List<String>) = edit { it[RECENTS] = encodeList(list) }
 
     private suspend fun edit(block: (androidx.datastore.preferences.core.MutablePreferences) -> Unit) {
         store.edit { block(it) }
@@ -49,6 +63,9 @@ class Prefs(context: Context) {
         private val HIDDEN = stringSetPreferencesKey("hidden")
         private val NAMES = stringPreferencesKey("names")
         private val DISABLED = stringSetPreferencesKey("disabled_homes")
+        private val ONBOARDED = booleanPreferencesKey("onboarded")
+        private val EXTRAS = stringSetPreferencesKey("disabled_extras")
+        private val RECENTS = stringPreferencesKey("recents")
         private val LAST_CHECK = longPreferencesKey("last_update_check")
 
         fun encodeList(list: List<String>) = list.joinToString("\n")

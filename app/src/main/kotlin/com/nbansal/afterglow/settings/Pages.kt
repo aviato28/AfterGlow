@@ -57,14 +57,23 @@ fun AboutPage(model: AppModel) {
     val available = model.updateAvailable
     val rows = buildList {
         add(SettingsRow("Version", versionName(context)) {})
-        add(SettingsRow("Latest release", latest?.tag?.removePrefix("v") ?: "–") {})
+        add(
+            SettingsRow(
+                "Status",
+                when {
+                    available -> "Update available: ${latest?.tag?.removePrefix("v")}"
+                    latest != null -> "Up to date"
+                    else -> "Not checked yet"
+                },
+            ) {},
+        )
         add(
             SettingsRow(
                 if (available) "Download and install" else "Check for updates",
                 model.updateStatus.ifEmpty { null },
             ) { if (available) model.downloadAndInstall() else model.checkForUpdates() },
         )
-        add(SettingsRow(if (problem == null) "No problems recorded" else "Clear last problem") {
+        add(SettingsRow(if (problem == null) "No problems so far" else "Clear last problem") {
             CrashGuard.clearProblem(context)
             problemVersion++
         })
