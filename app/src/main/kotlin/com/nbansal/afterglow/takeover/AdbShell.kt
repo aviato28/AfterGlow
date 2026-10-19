@@ -21,13 +21,29 @@ object AdbWhitelist {
     const val ResolveHome = "cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME"
     const val QueryHomes = "cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.HOME"
     const val ListDisabled = "pm list packages -d"
+    const val GetScreensaver = "settings get secure screensaver_components"
+    const val GetScreensaverEnabled = "settings get secure screensaver_enabled"
+
+    /** One component `pkg/class`, or several separated by commas (that is how the setting stores them), or the word null. */
+    private val Components = Regex("null|[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+/[A-Za-z0-9_.$]+(,[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+/[A-Za-z0-9_.$]+)*")
+
+    fun putScreensaver(value: String): String {
+        require(Components.matches(value)) { "bad component" }
+        return "settings put secure screensaver_components $value"
+    }
+
+    fun putScreensaverEnabled(on: Boolean) = "settings put secure screensaver_enabled ${if (on) 1 else 0}"
 
     fun allows(command: String): Boolean {
-        if (command == ResolveHome || command == QueryHomes || command == ListDisabled) return true
+        if (command == ResolveHome || command == QueryHomes || command == ListDisabled ||
+            command == GetScreensaver || command == GetScreensaverEnabled) return true
         val parts = command.split(' ')
         return when {
             parts.size == 5 && parts[0] == "pm" && parts[1] == "disable-user" && parts[2] == "--user" && parts[3] == "0" ->
                 Takeover.PackageName.matches(parts[4])
+            parts.size == 5 && parts[0] == "settings" && parts[1] == "put" && parts[2] == "secure" ->
+                (parts[3] == "screensaver_components" && Components.matches(parts[4])) ||
+                    (parts[3] == "screensaver_enabled" && (parts[4] == "0" || parts[4] == "1"))
             parts.size == 3 && parts[0] == "pm" && parts[1] == "enable" -> Takeover.PackageName.matches(parts[2])
             else -> false
         }

@@ -162,6 +162,7 @@ class HomeActivity : ComponentActivity() {
                 listOf(
                     SettingsRow("Home button", Takeover.homeLabel(this)) { screen = Screen.HomeButton },
                     SettingsRow("Speed up my TV") { screen = Screen.SpeedUp },
+                    SettingsRow("Screensaver", com.nbansal.afterglow.saver.Saver.describe(android.provider.Settings.Secure.getString(contentResolver, "screensaver_components"))) { screen = Screen.Screensaver },
                     SettingsRow("Hidden apps", "${model.hiddenApps.size}") { screen = Screen.Hidden },
                     SettingsRow("Installed packages") { screen = Screen.Packages },
                     SettingsRow("Set up again") { model.restartOnboarding(); screen = Screen.Onboarding },
@@ -170,6 +171,7 @@ class HomeActivity : ComponentActivity() {
             )
             Screen.Onboarding -> Unit
             Screen.SpeedUp -> SpeedUpPage(model)
+            Screen.Screensaver -> com.nbansal.afterglow.settings.ScreensaverPage(model)
             Screen.HomeButton -> HomeButtonPage(model)
             Screen.Hidden -> HiddenAppsPage(model)
             Screen.Packages -> PackagesPage()

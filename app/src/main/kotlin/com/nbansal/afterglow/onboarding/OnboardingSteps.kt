@@ -3,7 +3,7 @@ package com.nbansal.afterglow.onboarding
 import com.nbansal.afterglow.apps.AppEntry
 import com.nbansal.afterglow.data.Favourites
 
-enum class OnboardingStep { Welcome, Apps, Order, Updates, Home, SpeedUp, Done }
+enum class OnboardingStep { Welcome, Apps, Order, Updates, Home, SpeedUp, Screensaver, Done }
 
 /** Step order and skip rules of the first-run walk-through (pure, unit-tested). */
 object OnboardingSteps {

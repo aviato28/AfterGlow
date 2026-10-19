@@ -24,6 +24,14 @@ enum class GlowPhase(val amber: Float, val rose: Float, val violet: Float, val w
     Evening(0.55f, 0.38f, 0.22f, Ag.Amber, Ag.Rose),
     Night(0.24f, 0.12f, 0.05f, Color(0xFFFF9E5E), Color(0xFFC8503C));
 
+    /** Gradient stops of the radial glow, shared by Home and the clock screensaver. [scale] dims the whole glow. */
+    fun stops(scale: Float = 1f): List<Pair<Float, Color>> = listOf(
+        0f to warm.copy(alpha = amber * scale),
+        0.28f to mid.copy(alpha = rose * scale),
+        0.55f to Ag.Violet.copy(alpha = violet * scale),
+        1f to Ag.Base.copy(alpha = 0f),
+    )
+
     companion object {
         fun at(time: LocalTime): GlowPhase = when (time.hour) {
             in 5..10 -> Morning
@@ -54,10 +62,7 @@ fun rememberGlowPhase(): GlowPhase {
 fun AfterglowBackground(phase: GlowPhase, modifier: Modifier = Modifier) {
     val brush = remember(phase) {
         Brush.radialGradient(
-            0f to phase.warm.copy(alpha = phase.amber),
-            0.28f to phase.mid.copy(alpha = phase.rose),
-            0.55f to Ag.Violet.copy(alpha = phase.violet),
-            1f to Ag.Base.copy(alpha = 0f),
+            *phase.stops().toTypedArray(),
             center = Offset.Zero,
             radius = 0.85f,
         )

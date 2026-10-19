@@ -23,6 +23,8 @@ data class PrefState(
     val onboarded: Boolean = false,
     val disabledExtras: Set<String> = emptySet(),
     val recents: List<String> = emptyList(),
+    /** `screensaver_components` as it was before "Use Afterglow clock" ("null" = none was set); null = nothing saved. */
+    val saverPrevious: String? = null,
     /** False until DataStore has delivered its first value (so first-run screens never flash). */
     val loaded: Boolean = false,
 )
@@ -40,6 +42,7 @@ class Prefs(context: Context) {
             onboarded = p[ONBOARDED] ?: false,
             disabledExtras = p[EXTRAS] ?: emptySet(),
             recents = p[RECENTS]?.let(::decodeList) ?: emptyList(),
+            saverPrevious = p[SAVER_PREVIOUS],
             loaded = true,
         )
     }
@@ -54,6 +57,8 @@ class Prefs(context: Context) {
     suspend fun setDisabledExtras(set: Set<String>) = edit { it[EXTRAS] = set }
     suspend fun setRecents(list: List<String>) = edit { it[RECENTS] = encodeList(list) }
 
+    suspend fun setSaverPrevious(value: String?) = edit { if (value == null) it.remove(SAVER_PREVIOUS) else it[SAVER_PREVIOUS] = value }
+
     private suspend fun edit(block: (androidx.datastore.preferences.core.MutablePreferences) -> Unit) {
         store.edit { block(it) }
     }
@@ -66,6 +71,7 @@ class Prefs(context: Context) {
         private val ONBOARDED = booleanPreferencesKey("onboarded")
         private val EXTRAS = stringSetPreferencesKey("disabled_extras")
         private val RECENTS = stringPreferencesKey("recents")
+        private val SAVER_PREVIOUS = stringPreferencesKey("saver_previous")
         private val LAST_CHECK = longPreferencesKey("last_update_check")
 
         fun encodeList(list: List<String>) = list.joinToString("\n")
