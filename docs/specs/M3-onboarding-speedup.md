@@ -1,4 +1,4 @@
-# M3: Onboarding, Speed-up and polish (Chunk B)
+# M3: Onboarding, Speed-up, screensaver and polish (Chunk B)
 
 Do this AFTER `docs/specs/M2-takeover-in-app.md` is merged (it reuses its adb layer `takeover/AdbShell.kt`, the command whitelist,
 `disabledHomes` handling and the "persist the plan first, verify, undo on failure" pattern). Read `CLAUDE.md`,
@@ -13,7 +13,8 @@ Shown once (flag in DataStore, re-runnable from Afterglow settings > "Set up aga
    Play Store, which keeps HDR, Dolby Vision and 4K working. Button "Open Play Store" (leanback/market intent, ignore failure).
    Say "Turn on auto-update in Play Store settings". Do not claim to read the setting.
 4. **Make Afterglow my Home:** runs the M2 takeover screen. Skippable. Explain in two lines that USB debugging must be on.
-5. **Speed up my TV (optional):** opens Phase 2. Skippable. 6. Done.
+5. **Speed up my TV (optional):** opens Phase 2. Skippable.
+6. **Screensaver (optional):** offers "Use Afterglow clock" (Phase 5). Skippable. 7. Done.
 
 ## Phase 2: "Speed up my TV" (safe, undoable, never automatic)
 - Shipped list: `assets/debloat/tcl.txt` (one package per line with a short plain-language reason after `#`; comments start with `##`).
@@ -44,9 +45,42 @@ Shown once (flag in DataStore, re-runnable from Afterglow settings > "Set up aga
 - The remote's Settings key opens TV settings from any Afterglow screen (already on Home).
 - Keep the Back rule: Back never leaves Afterglow's Home.
 
+## Phase 5: Clock screensaver ("Afterglow clock")
+Design approved by the owner (mockup: a huge thin clock on the sunset glow, greeting and date small underneath, a tiny half-sun on a hairline
+horizon). Replaces Google TV's blurry-photo-and-ugly-clock ambient mode. Keep it light: **plain Android Views and Canvas, no Compose, no
+network, no libraries**.
+- `saver/ClockDream.kt`: a `DreamService` (label "Afterglow clock", `BIND_DREAM_SERVICE`, intent filter `android.service.dreams.DreamService`,
+  meta-data `android.service.dream` with an empty xml, no settings activity), `isInteractive = false`, `isFullscreen = true`. Content is one custom
+  `View` (`saver/ClockView.kt`) that draws everything itself on a 1920x1080 layout scaled to the screen width (same idea as `TvCanvas`).
+- Look (sizes in layout px; ONE constants object `SaverStyle` so the owner can tune them): background `#0B0908`; glow = the same radial
+  gradient and time-of-day phases as `ui/Glow.kt` (move the phase logic to a shared pure function; do not duplicate it); clock `HH:mm`, always
+  24-hour, Outfit weight 200 (`Typeface.Builder` with `'wght' 200`, fall back to the regular weight if variations fail), `ClockSize = 330`,
+  letter spacing -6; one line under it "Good evening  ·  Monday, 19 October" (38 px, secondary colour, greeting in warm white); a hairline
+  horizon 520 px wide (fading at both ends) with a 64x32 half-sun in the logo gradient resting on it, centred, 62 px below the text.
+- **Night** (21:00 to 05:00, same boundaries as Glow): clock at 60% size and 55% opacity, glow reduced to a faint amber ember, greeting hidden
+  (date stays), horizon and sun at 40% opacity. The night style is one constant (`NightStyle`) so it can later become "black with a tiny clock".
+- **No burn-in:** once a minute, at the minute change, move the whole group by a random offset (at most 60 px sideways, 40 px up or down, never
+  off screen) with a 1.5 s cross-fade. Nothing else moves. Redraw only on the minute and during that fade; stop all callbacks in
+  `onDreamingStopped`; no wake locks; no animations loops.
+- **Set as screensaver (in Afterglow, Settings > Afterglow settings > Screensaver):** shows the current screensaver (read with
+  `settings get secure screensaver_components`) in plain words ("Afterglow clock", "Google TV ambient mode" for `...dreamx`, "something else",
+  "off") and two buttons: **Use Afterglow clock** and **Undo**.
+  - Use: save the previous value of `screensaver_components` in DataStore FIRST, then
+    `settings put secure screensaver_components com.nbansal.afterglow/com.nbansal.afterglow.saver.ClockDream` and
+    `settings put secure screensaver_enabled 1`; read the setting back to verify, and put the old value back if it did not stick.
+  - Undo: put the saved previous value back (if there was none, say so and point to the TV's own Screen saver page).
+  - **Extend the adb whitelist (M2 `AdbWhitelist`, with tests) with exactly:** `settings get secure screensaver_components`,
+    `settings get secure screensaver_enabled`, `settings put secure screensaver_components <pkg>/<class>` (component syntax check),
+    `settings put secure screensaver_enabled 0|1`. Nothing else.
+  - If adb is not reachable (USB debugging off), show the manual route: the TV's Settings > Device Preferences > Screen saver, and the
+    screensaver timeout is also set there. Add a "Open screen saver settings" row using `Settings.ACTION_DREAM_SETTINGS` (ignore failure).
+    Do not invent a "preview now" adb command; just say the screensaver starts after the TV's own timeout.
+- Note from the TCL example: disabling `com.google.android.apps.tv.dreamx` leaves `screensaver_components` pointing at it, which is one more
+  reason to point the setting at the Afterglow clock.
+
 ## Tests (JVM)
 Onboarding step order and skip logic, favourites ordering from ticked apps, debloat list parsing and "installed only" filtering,
-protected-list filtering (including every name above), recents ordering and cap, one-package-per-command, restore with a lost list.
+protected-list filtering (including every name above), recents ordering and cap, one-package-per-command, restore with a lost list, screensaver: greeting and phase per hour (incl. boundaries 04:59, 05:00, 20:59, 21:00), 24-hour text, night style values, offsets always inside the screen, whitelist accepts exactly the four settings commands and rejects variants, previous-value save and restore.
 
 ## Wrap-up
 Update `docs/ROADMAP.md`, fill "Not done" below, Build workflow green. Do not run Release and do not open a pull request.
