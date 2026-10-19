@@ -33,6 +33,7 @@ import com.nbansal.afterglow.apps.AppEntry
 import com.nbansal.afterglow.core.AppModel
 import com.nbansal.afterglow.settings.HomeButtonPage
 import com.nbansal.afterglow.settings.SettingsRow
+import com.nbansal.afterglow.settings.SpeedUpPage
 import com.nbansal.afterglow.ui.Ag
 import com.nbansal.afterglow.ui.AppTile
 import com.nbansal.afterglow.ui.ListRow
@@ -52,11 +53,7 @@ fun OnboardingScreen(model: AppModel, onFinish: () -> Unit) {
 
     when (o.step) {
         OnboardingStep.Home -> HomeButtonPage(model, extraRows = listOf(nextRow, backRow))
-        OnboardingStep.SpeedUp -> TextStep(
-            "Speed up my TV (optional)",
-            "Switch off TV-maker apps you never use. Nothing is uninstalled and everything can be restored.",
-            listOf(skipRow, backRow),
-        )
+        OnboardingStep.SpeedUp -> SpeedUpPage(model, extraRows = listOf(SettingsRow("Next") { o.next() }, backRow))
         OnboardingStep.Apps -> AppsStep(model.visibleApps, o.ticked, { o.toggle(it) }, onNext = { o.next() }, onSkip = { o.skip() }, onBack = { o.back() })
         OnboardingStep.Order -> OrderStep(model.visibleApps, o.ticked, { p, d -> o.move(p, d) }, onNext = { o.next() }, onBack = { o.back() })
         OnboardingStep.Welcome -> TextStep(

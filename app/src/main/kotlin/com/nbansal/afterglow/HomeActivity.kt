@@ -37,6 +37,7 @@ import com.nbansal.afterglow.takeover.Takeover
 import com.nbansal.afterglow.settings.PackagesPage
 import com.nbansal.afterglow.settings.SettingsPage
 import com.nbansal.afterglow.settings.SettingsRow
+import com.nbansal.afterglow.settings.SpeedUpPage
 import com.nbansal.afterglow.ui.AfterglowBackground
 import com.nbansal.afterglow.ui.MenuRow
 import com.nbansal.afterglow.ui.RenameDialog
@@ -157,6 +158,7 @@ class HomeActivity : ComponentActivity() {
                 "Afterglow settings",
                 listOf(
                     SettingsRow("Home button", Takeover.homeLabel(this)) { screen = Screen.HomeButton },
+                    SettingsRow("Speed up my TV") { screen = Screen.SpeedUp },
                     SettingsRow("Hidden apps", "${model.hiddenApps.size}") { screen = Screen.Hidden },
                     SettingsRow("Installed packages") { screen = Screen.Packages },
                     SettingsRow("Set up again") { model.restartOnboarding(); screen = Screen.Onboarding },
@@ -164,7 +166,7 @@ class HomeActivity : ComponentActivity() {
                 ),
             )
             Screen.Onboarding -> Unit
-            Screen.SpeedUp -> Unit
+            Screen.SpeedUp -> SpeedUpPage(model)
             Screen.HomeButton -> HomeButtonPage(model)
             Screen.Hidden -> HiddenAppsPage(model)
             Screen.Packages -> PackagesPage()
