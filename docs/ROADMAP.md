@@ -48,6 +48,11 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
       Also ruled out: `com.tcl.suspension` (MainActivity, InputActivity and the `com.tcl.quickpanel.show.window` service action all open the INPUT menu), launcherx
       (no panel activity, only a slice provider), `TOGGLE_NOTIFICATION_HANDLER_PANEL`. Log: in another app the Settings key (83, `KEYCODE_NOTIFICATION`) goes straight to
       the app and no system component reacts (`handleKeyBeforeDispatching keyCode=83 disable`). **PARKED: keep full-screen Settings. `tclhome_passive` is an empty stub (activity class missing). Untried: `com.tcl.tv`, `com.tcl.systemui.plugin`.**
+      **ROOT CAUSE FOUND (restored-state log, 23 Oct):** the Settings key makes TCL's `TclShortCutKeyManager` start `launcherx/.dashboard.DashboardHandler`
+      (action `android.app.action.TOGGLE_NOTIFICATION_HANDLER_PANEL`) in the Google TV launcher package. That package is disabled by the takeover, so the call fails.
+      Home candidates: launcherx HomeActivity priority 2, setupwraith RecoveryActivity 1, Afterglow 0, FallbackHome -1; highest wins, no chooser, and a normal app cannot
+      raise its priority. So: **Afterglow as Home and the stock side bar cannot coexist on this TV.** Left: TV setting `tcl_app_settings_key_customization=true` (look for
+      a "customize buttons" menu in TV Settings); a custom panel inside Afterglow (only on Afterglow's own screen, no video behind). Decision: keep full-screen Settings.
       Next (only if the owner wants it): Restore once, press Settings during a video with `adb logcat -c` then `adb logcat -d | findstr "START cmp="`, then
       re-apply the takeover. Otherwise accept full-screen Settings, or try `com.android.tv.settings` side-panel activities. Not worth more guessing.
    b. **"Learn a button" launches the app instead of learning** when the pressed button is already mapped (Netflix, Prime, Settings). Fix: while the Learn
