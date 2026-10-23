@@ -59,9 +59,9 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
    (image cache, no leaks when opening apps and coming back), measure and record the numbers in the README.
 6. **Real screenshots in the README + a download button on the owner's website** (afterglow.nbansal28.com should link to the latest GitHub release
    APK). Screenshots: `adb exec-out screencap -p > afterglow-home.png` from the laptop, then `docs/screenshots/`.
+7. Release 1.0 after 4 to 6 (and the Speed up list check, task 8).
 8. **Check the shipped "Speed up my TV" list against the owner's real TV** (all items are unticked and unverified). Needs the output of
    `adb shell pm list packages` (system and third-party) from the owner.
-7. Release 1.0 after 4 to 6 (and the Speed up list check, task 8).
 9. Tidy: the screensaver and takeover pages have only been tested on the TCL 65Q6C; other TVs untested.
 
 ## Later (not v1)
