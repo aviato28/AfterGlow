@@ -26,6 +26,8 @@ fun QuickPanelPage(model: AppModel) {
     val text = buildString {
         append(c.message.ifEmpty { Intro })
         append("\n\nSource: ${KeyWatch.source}   Service: ${if (KeyWatch.running) "running" else "stopped"}")
+        append("\nLog lines seen: ${KeyWatch.linesSeen}")
+        if (KeyWatch.lastError.isNotEmpty()) append("\nLast error: ${KeyWatch.lastError}")
         append("\nLast keys: ${keys.ifEmpty { "none yet (press Settings now to test)" }}")
         if (!on && c.message.isEmpty()) append("\nIf it fails: " + AdbShell.NotListeningHint)
     }

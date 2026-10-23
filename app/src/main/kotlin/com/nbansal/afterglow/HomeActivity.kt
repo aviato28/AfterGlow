@@ -28,7 +28,6 @@ import com.nbansal.afterglow.home.AllAppsScreen
 import com.nbansal.afterglow.home.AppActions
 import com.nbansal.afterglow.home.AppOptions
 import com.nbansal.afterglow.home.HomeScreen
-import com.nbansal.afterglow.data.ButtonMap
 import com.nbansal.afterglow.home.RemoteKeys
 import com.nbansal.afterglow.home.openTvSettings
 import com.nbansal.afterglow.keys.KeyWatch
@@ -118,12 +117,9 @@ class HomeActivity : ComponentActivity() {
         super.onStop()
     }
 
-    /** Settings > Remote buttons is waiting for a press: take any learnable button (even a mapped one) before Compose or [onKeyDown] sees it. */
+    /** Settings > Remote buttons is waiting for a press: the learner gets every key before Compose, [onKeyDown], mappings or the service. */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (learning && screen == Screen.RemoteButtons && ButtonMap.isLearnable(event.keyCode)) {
-            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) KeyWatch.handle(this, event.keyCode)
-            return true
-        }
+        if (KeyWatch.learnerTakes(event.keyCode, event.action, event.repeatCount)) return true
         return super.dispatchKeyEvent(event)
     }
 

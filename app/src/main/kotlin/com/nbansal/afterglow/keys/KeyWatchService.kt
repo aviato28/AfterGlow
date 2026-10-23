@@ -20,9 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -67,27 +65,18 @@ class KeyWatchService : Service() {
     private fun startWatching() {
         if (job?.isActive == true) return
         job = scope.launch {
-            while (isActive) {
-                val started = System.currentTimeMillis()
-                var found = false
-                try {
-                    val source = KeySources.pick(this@KeyWatchService)
-                    KeyWatch.source = source?.name ?: "none"
-                    found = source != null
-                    source?.keyDowns()?.collect { code ->
-                        val now = System.currentTimeMillis()
-                        KeyWatch.seen(code, now)
+            try {
+                KeyReader.forDevice(this@KeyWatchService).run { code ->
+                    val now = System.currentTimeMillis()
+                    KeyWatch.seen(code, now)
+                    if (!KeyWatch.serviceIgnores(code, now)) {
                         runCatching { KeyWatch.handle(this@KeyWatchService, code, now) }.onFailure { CrashGuard.record(this@KeyWatchService, it) }
                     }
-                } catch (e: kotlinx.coroutines.CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    CrashGuard.record(this@KeyWatchService, e)
                 }
-                KeyWatch.source = "none"
-                // The log ended (or nothing works yet): wait before trying again, longer when no source works at all.
-                val wait = if (found) MinRestartMs - (System.currentTimeMillis() - started) else NoSourceRetryMs
-                delay(wait.coerceAtLeast(0))
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                CrashGuard.record(this@KeyWatchService, e)
             }
         }
     }
@@ -115,8 +104,6 @@ class KeyWatchService : Service() {
     companion object {
         private const val Channel = "remote_keys"
         private const val NotificationId = 7
-        private const val MinRestartMs = 5_000L
-        private const val NoSourceRetryMs = 60_000L
 
         fun start(context: Context) {
             runCatching { context.startForegroundService(Intent(context, KeyWatchService::class.java)) }
