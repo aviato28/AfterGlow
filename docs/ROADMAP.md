@@ -34,15 +34,16 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open items, newest first)
-1. **BUG: the Afterglow clock screensaver starts while a movie is playing** (reported by the owner on 0.5.0). The TV's idle timer
-   counts playback time, and Google TV's own ambient mode probably checked for playing media where our DreamService does not.
-   Plan: in `ClockDream.onDreamingStarted()` check `AudioManager.isMusicActive()` (and active playback configurations, API 26+); if
-   something is playing, call `wakeUp()` straight away so the screen returns to the movie and the idle timer restarts. Add a unit test
-   for the decision (pure function). Cheap fix, about ten lines. Note: video from an HDMI input has no audio session on the TV, so test that too.
-2. **Remote's Settings (gear) key and the Netflix / Prime Video / YouTube buttons do nothing since the takeover.** Diagnose from the TV's log
-   (`adb logcat -c`, press each button, `adb logcat -d | grep -E "publishKeyEvent|START u0|Unable to find|ActivityNotFound"`); the owner is
-   running this from Termux on the phone (TV on the phone's hotspot). If Afterglow receives the key codes, map them in `HomeActivity.onKeyDown`
-   (Settings opens TV settings, the app buttons launch their app via `AppRepository.launch`). If the system consumes them, document it.
+1. **BUG: the Afterglow clock screensaver starts while a movie is playing** (owner, 0.5.0). Fix WRITTEN, not merged, not built, untested:
+   `ClockDream.onDreamingStarted()` calls `wakeUp()` when `AudioManager.isMusicActive()`. It is in commit 1f54b3d on branch
+   `claude/afterglow-tv-launcher-g6ow3l` (the build was cancelled at the owner's request). To test: play a movie, let the TV idle, the screensaver must
+   not appear; pause, it may. Still to check: video from an HDMI input has no audio session on the TV.
+2. **Remote buttons dead since the takeover: Settings key, Netflix, Prime Video, YouTube.** Findings from the TV's input log (TCL 65Q6C, owner's laptop):
+   Settings = key code 83 (`KEYCODE_NOTIFICATION`), Netflix = 4062, Prime Video = 4099; all three reach Afterglow's window when it is in front.
+   **YouTube sends nothing to the app** (the TV consumes it), so it cannot be mapped; what it does now is unknown. Fix WRITTEN, not merged, not built,
+   untested: `home/RemoteKeys.kt` + `HomeActivity.onKeyDown` (Settings opens TV settings, Netflix and Prime launch their app) + `RemoteKeysTest`, in the same
+   commit 1f54b3d. Limits: only works while Afterglow is on screen (inside another app these keys go to that app). Open: ask the owner what the YouTube button does.
+   **Next step (only when the owner says go):** check CI on that branch, merge, Release 0.5.1, owner tests the buttons and the screensaver.
 3. **Check the shipped "Speed up my TV" list against the owner's real TV** (all items are unticked and unverified). Needs the output of
    `adb shell pm list packages` (system and third-party) from the owner.
 4. **Real screenshots for the README** (replace the preview render): `adb exec-out screencap -p > afterglow-home.png` from Termux, then add to `docs/screenshots/`.
