@@ -34,8 +34,10 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open items, newest first)
-00. **BUILD NEXT: Quick panel + remote keys everywhere + Learn-a-button fix** (owner wants it): `docs/specs/M4-quick-panel.md`. Watches the system log for the Settings
-   key (works while another app plays), shows our own side panel over the video, launches mapped apps from any app. Opt-in, undoable, diagnostics on screen.
+00. **DONE, awaiting a TV test: Quick panel + remote keys everywhere + Learn-a-button fix** (`docs/specs/M4-quick-panel.md`; also closes task 0a/0b).
+   `keys/` (log watcher service, Local or Adb source), `panel/QuickPanel.kt` (overlay), Settings > Afterglow settings > Quick panel (switch + diagnostics).
+   To test: switch it on; play YouTube, press Settings -> panel over the video, video keeps playing; Netflix/Prime keys launch the app from inside
+   YouTube; Settings > Remote buttons > Learn a button captures the Netflix key (code 4062) instead of opening Netflix.
 0. **Two bugs from the 0.6.0 TV test (owner). Not started.**
    a. **Settings key opens full-screen Settings; TCL's normal behaviour is a narrow side bar on the right**, so you can change picture/sound while the
       video keeps playing. Goal: same side bar. Unknown: which component draws it (likely part of the Google TV launcher we disabled, or a TCL/`com.android.tv.settings`

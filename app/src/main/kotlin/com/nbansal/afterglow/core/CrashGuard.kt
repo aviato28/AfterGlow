@@ -46,6 +46,11 @@ object CrashGuard {
     fun report(thread: Thread, error: Throwable, nowMs: Long): String =
         "${Instant.ofEpochMilli(nowMs)}\nthread: ${thread.name}\n${Log.getStackTraceString(error)}".take(MAX_STACK_CHARS)
 
+    /** A caught problem (no crash, no restart): still shown in Settings > About. */
+    fun record(context: Context, error: Throwable) {
+        runCatching { File(context.filesDir, FILE_NAME).writeText(report(Thread.currentThread(), error, System.currentTimeMillis())) }
+    }
+
     fun lastProblem(context: Context): String? =
         File(context.filesDir, FILE_NAME).takeIf { it.exists() }?.readText()
 

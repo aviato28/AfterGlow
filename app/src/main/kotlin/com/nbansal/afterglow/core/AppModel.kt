@@ -11,6 +11,7 @@ import com.nbansal.afterglow.data.Favourites
 import com.nbansal.afterglow.data.PrefState
 import com.nbansal.afterglow.data.Prefs
 import com.nbansal.afterglow.data.Recents
+import com.nbansal.afterglow.keys.QuickPanelController
 import com.nbansal.afterglow.onboarding.OnboardingState
 import com.nbansal.afterglow.saver.SaverController
 import com.nbansal.afterglow.settings.versionName
@@ -34,6 +35,7 @@ class AppModel(val app: Application) {
     val takeover = TakeoverController(app, prefs)
     val speedUp = SpeedUpController(app, prefs)
     val saver = SaverController(app, prefs)
+    val quickPanel = QuickPanelController(app, prefs)
 
     val onboarding = OnboardingState { scope.launch { prefs.setFavourites(it) } }
 

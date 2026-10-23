@@ -27,6 +27,8 @@ data class PrefState(
     val saverPrevious: String? = null,
     /** Remote buttons learned by the owner: key code -> package. */
     val buttons: Map<Int, String> = emptyMap(),
+    /** Settings > Quick panel switch: key watcher service + overlay panel. */
+    val quickPanel: Boolean = false,
     /** False until DataStore has delivered its first value (so first-run screens never flash). */
     val loaded: Boolean = false,
 )
@@ -46,6 +48,7 @@ class Prefs(context: Context) {
             recents = p[RECENTS]?.let(::decodeList) ?: emptyList(),
             saverPrevious = p[SAVER_PREVIOUS],
             buttons = p[BUTTONS]?.let(ButtonMap::decode) ?: emptyMap(),
+            quickPanel = p[QUICK_PANEL] ?: false,
             loaded = true,
         )
     }
@@ -64,6 +67,8 @@ class Prefs(context: Context) {
 
     suspend fun setButtons(map: Map<Int, String>) = edit { it[BUTTONS] = ButtonMap.encode(map) }
 
+    suspend fun setQuickPanel(on: Boolean) = edit { it[QUICK_PANEL] = on }
+
     private suspend fun edit(block: (androidx.datastore.preferences.core.MutablePreferences) -> Unit) {
         store.edit { block(it) }
     }
@@ -78,6 +83,7 @@ class Prefs(context: Context) {
         private val RECENTS = stringPreferencesKey("recents")
         private val SAVER_PREVIOUS = stringPreferencesKey("saver_previous")
         private val BUTTONS = stringPreferencesKey("remote_buttons")
+        private val QUICK_PANEL = booleanPreferencesKey("quick_panel")
         private val LAST_CHECK = longPreferencesKey("last_update_check")
 
         fun encodeList(list: List<String>) = list.joinToString("\n")

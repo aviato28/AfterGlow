@@ -2,8 +2,13 @@ package com.nbansal.afterglow.takeover
 
 import android.content.Context
 import dadb.AdbKeyPair
+import dadb.AdbShellPacket
 import dadb.Dadb
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.InetSocketAddress
@@ -24,6 +29,17 @@ object AdbWhitelist {
     const val GetScreensaver = "settings get secure screensaver_components"
     const val GetScreensaverEnabled = "settings get secure screensaver_enabled"
 
+    /** Quick panel: watch remote key presses (WindowManager tag only), and Afterglow's own two permissions on and off. */
+    const val Logcat = "logcat -v brief -T 1 WindowManager:D *:S"
+    const val OverlayAllow = "appops set com.nbansal.afterglow SYSTEM_ALERT_WINDOW allow"
+    const val OverlayDefault = "appops set com.nbansal.afterglow SYSTEM_ALERT_WINDOW default"
+    const val GrantLogs = "pm grant com.nbansal.afterglow android.permission.READ_LOGS"
+    const val RevokeLogs = "pm revoke com.nbansal.afterglow android.permission.READ_LOGS"
+    private val Exact = setOf(
+        ResolveHome, QueryHomes, ListDisabled, GetScreensaver, GetScreensaverEnabled,
+        Logcat, OverlayAllow, OverlayDefault, GrantLogs, RevokeLogs,
+    )
+
     /** One component `pkg/class`, or several separated by commas (that is how the setting stores them), or the word null. */
     private val Components = Regex("null|[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+/[A-Za-z0-9_.$]+(,[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z0-9_]+)+/[A-Za-z0-9_.$]+)*")
 
@@ -35,8 +51,7 @@ object AdbWhitelist {
     fun putScreensaverEnabled(on: Boolean) = "settings put secure screensaver_enabled ${if (on) 1 else 0}"
 
     fun allows(command: String): Boolean {
-        if (command == ResolveHome || command == QueryHomes || command == ListDisabled ||
-            command == GetScreensaver || command == GetScreensaverEnabled) return true
+        if (command in Exact) return true
         val parts = command.split(' ')
         return when {
             parts.size == 5 && parts[0] == "pm" && parts[1] == "disable-user" && parts[2] == "--user" && parts[3] == "0" ->
@@ -77,6 +92,32 @@ class AdbShell(private val context: Context) : Adb(), AutoCloseable {
             close()
             throw AdbException(AdbException.Kind.NotAllowed, e.message ?: "No answer from the TV's debugging service")
         }
+    }
+
+    /** Output of a long-running whitelisted command, line by line; cancelling the flow closes the connection (this instance is then reusable). */
+    fun lines(command: String): Flow<String> = callbackFlow {
+        if (!AdbWhitelist.allows(command)) throw AdbException(AdbException.Kind.Rejected, "Command not allowed")
+        launch(Dispatchers.IO) {
+            runCatching {
+                connection().openShell(command).use { shell ->
+                    val pending = StringBuilder()
+                    while (true) {
+                        val packet = shell.read()
+                        if (packet is AdbShellPacket.Exit) break
+                        if (packet !is AdbShellPacket.StdOut) continue
+                        pending.append(String(packet.payload))
+                        var nl = pending.indexOf("\n")
+                        while (nl >= 0) {
+                            trySend(pending.substring(0, nl).trimEnd('\r'))
+                            pending.delete(0, nl + 1)
+                            nl = pending.indexOf("\n")
+                        }
+                    }
+                }
+            }
+            channel.close()
+        }
+        awaitClose { close() }
     }
 
     private fun connection(): Dadb {

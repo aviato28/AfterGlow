@@ -92,8 +92,8 @@ fun AboutPage(model: AppModel) {
 fun buttonName(keyCode: Int): String = android.view.KeyEvent.keyCodeToString(keyCode).removePrefix("KEYCODE_")
 
 /**
- * Settings > Remote buttons. [learning]: waiting for a button press (HomeActivity captures it); [learned]: a code was captured,
- * pick the app for it. Learned buttons only work while Afterglow is on screen, and buttons the TV keeps for itself never arrive.
+ * Settings > Remote buttons. While [learning], the next press is captured before any mapping (HomeActivity and the key watcher both
+ * read [com.nbansal.afterglow.keys.KeyWatch.learning]); [learned]: a code was captured, pick the app for it. Learned buttons beat the built-ins.
  */
 @Composable
 fun RemoteButtonsPage(model: AppModel, learning: Boolean, learned: Int?, onLearn: () -> Unit, onPicked: () -> Unit) {
@@ -101,7 +101,7 @@ fun RemoteButtonsPage(model: AppModel, learning: Boolean, learned: Int?, onLearn
     val rows: List<SettingsRow>
     when {
         learned != null -> {
-            note = "Button ${buttonName(learned)}: pick the app it opens."
+            note = "Button ${buttonName(learned)} (code $learned): pick the app it opens."
             rows = model.visibleApps.map { app -> SettingsRow(app.label) { model.mapButton(learned, app.pkg); onPicked() } }
         }
         learning -> {
@@ -109,11 +109,14 @@ fun RemoteButtonsPage(model: AppModel, learning: Boolean, learned: Int?, onLearn
             rows = emptyList()
         }
         else -> {
-            note = "Give a remote button an app. Works while Afterglow is on screen."
+            note = "Give a remote button an app. Works while Afterglow is on screen, or everywhere with Quick panel switched on."
             val names = model.apps.associate { it.pkg to com.nbansal.afterglow.data.Favourites.named(it, model.state.names).label }
             rows = listOf(SettingsRow("Learn a button", onClick = onLearn)) +
                 model.state.buttons.entries.sortedBy { it.key }.map { (code, pkg) ->
-                    SettingsRow("${buttonName(code)} → ${names[pkg] ?: pkg}", "OK to remove") { model.unmapButton(code) }
+                    val builtIn = com.nbansal.afterglow.home.RemoteKeys.builtIn(code) != null
+                    SettingsRow("${buttonName(code)} → ${names[pkg] ?: pkg}", if (builtIn) "OK: reset to default" else "OK to remove") {
+                        model.unmapButton(code)
+                    }
                 }
         }
     }

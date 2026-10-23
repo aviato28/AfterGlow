@@ -29,9 +29,12 @@ import com.nbansal.afterglow.home.AppActions
 import com.nbansal.afterglow.home.AppOptions
 import com.nbansal.afterglow.home.HomeScreen
 import com.nbansal.afterglow.data.ButtonMap
-import com.nbansal.afterglow.home.RemoteAction
 import com.nbansal.afterglow.home.RemoteKeys
 import com.nbansal.afterglow.home.openTvSettings
+import com.nbansal.afterglow.keys.KeyWatch
+import com.nbansal.afterglow.keys.KeyWatchService
+import com.nbansal.afterglow.keys.QuickPanelController
+import com.nbansal.afterglow.settings.QuickPanelPage
 import com.nbansal.afterglow.onboarding.OnboardingScreen
 import com.nbansal.afterglow.onboarding.OnboardingStep
 import com.nbansal.afterglow.settings.AboutPage
@@ -59,8 +62,8 @@ class HomeActivity : ComponentActivity() {
     private var optionsFor by mutableStateOf<AppEntry?>(null)
     private var renameFor by mutableStateOf<AppEntry?>(null)
     private var settingsMenu by mutableStateOf(false)
-    private var learning by mutableStateOf(false)
-    private var learned by mutableStateOf<Int?>(null)
+    private var learning by KeyWatch::learning
+    private var learned by KeyWatch::learned
 
     private val packageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) = model.refresh()
@@ -81,6 +84,9 @@ class HomeActivity : ComponentActivity() {
                 screen.parent?.let { screen = it }
             }
         })
+        openFrom(intent)
+        // Restarted in the middle of switching Quick panel on or off (granting READ_LOGS can kill the app): continue on that page.
+        if (QuickPanelController.reopenMarker(this).delete()) screen = Screen.QuickPanel
         setContent {
             TvCanvas {
                 Box(Modifier.fillMaxSize()) {
@@ -103,40 +109,39 @@ class HomeActivity : ComponentActivity() {
         registerReceiver(packageReceiver, filter)
         model.refresh()
         model.checkIfDue()
+        KeyWatchService.startIfOn(this)
     }
 
     override fun onStop() {
         unregisterReceiver(packageReceiver)
+        learning = false
         super.onStop()
     }
 
-    /** Settings > Remote buttons is waiting for a press: take any learnable button before Compose or [onKeyDown] sees it. */
+    /** Settings > Remote buttons is waiting for a press: take any learnable button (even a mapped one) before Compose or [onKeyDown] sees it. */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (learning && screen == Screen.RemoteButtons && ButtonMap.isLearnable(event.keyCode)) {
-            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
-                learned = event.keyCode
-                learning = false
-            }
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) KeyWatch.handle(this, event.keyCode)
             return true
         }
         return super.dispatchKeyEvent(event)
     }
 
     /**
-     * Buttons that Google TV home used to handle (Settings, Netflix, Prime Video) now come here; see [RemoteKeys].
-     * After those, buttons the owner learned in Settings > Remote buttons.
+     * Learned buttons, then the ones Google TV home used to handle (Settings opens the quick panel, Netflix, Prime Video); see
+     * [com.nbansal.afterglow.home.RemoteKeys.resolve]. The key watcher may see the same press in the log: [KeyWatch] runs it once.
      */
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        val action = RemoteKeys.actionFor(keyCode)
-            ?: model.buttonApp(keyCode)?.let { RemoteAction.Launch(it) }
-            ?: return super.onKeyDown(keyCode, event)
-        if (event.repeatCount == 0) {
-            when (action) {
-                RemoteAction.TvSettings -> openTvSettings(this)
-                is RemoteAction.Launch -> model.repo.launch(action.pkg)
-            }
+        if (event.repeatCount > 0) return RemoteKeys.resolve(keyCode, model.state.buttons, learning) != null || super.onKeyDown(keyCode, event)
+        return KeyWatch.handle(this, keyCode) || super.onKeyDown(keyCode, event)
+    }
+
+    /** Quick panel > Afterglow settings. */
+    private fun openFrom(intent: Intent?) {
+        if (intent?.getStringExtra(ExtraOpen) == OpenSettings) {
+            intent.removeExtra(ExtraOpen)
+            screen = Screen.Settings
         }
-        return true
     }
 
     /** Home pressed while Afterglow is already on top: back to the first tile. */
@@ -152,6 +157,7 @@ class HomeActivity : ComponentActivity() {
             homeFocus.intValue = 0
             homeSignal++
         }
+        openFrom(intent)
     }
 
     private fun inOnboarding() = (model.state.loaded && !model.state.onboarded) || screen == Screen.Onboarding
@@ -193,6 +199,7 @@ class HomeActivity : ComponentActivity() {
                     SettingsRow("Speed up my TV") { screen = Screen.SpeedUp },
                     SettingsRow("Screensaver", com.nbansal.afterglow.saver.Saver.describe(android.provider.Settings.Secure.getString(contentResolver, "screensaver_components"))) { screen = Screen.Screensaver },
                     SettingsRow("Remote buttons", "${model.state.buttons.size}") { screen = Screen.RemoteButtons },
+                    SettingsRow("Quick panel", if (model.state.quickPanel) "On" else "Off") { screen = Screen.QuickPanel },
                     SettingsRow("Hidden apps", "${model.hiddenApps.size}") { screen = Screen.Hidden },
                     SettingsRow("Installed packages") { screen = Screen.Packages },
                     SettingsRow("Set up again") { model.restartOnboarding(); screen = Screen.Onboarding },
@@ -205,6 +212,7 @@ class HomeActivity : ComponentActivity() {
             Screen.HomeButton -> HomeButtonPage(model)
             Screen.Hidden -> HiddenAppsPage(model)
             Screen.RemoteButtons -> RemoteButtonsPage(model, learning, learned, onLearn = { learning = true }, onPicked = { learned = null })
+            Screen.QuickPanel -> QuickPanelPage(model)
             Screen.Packages -> PackagesPage()
             Screen.About -> AboutPage(model)
         }
@@ -240,6 +248,11 @@ class HomeActivity : ComponentActivity() {
         renameFor?.let { app ->
             RenameDialog(app.label, { model.rename(app.pkg, it) }) { renameFor = null }
         }
+    }
+
+    companion object {
+        const val ExtraOpen = "com.nbansal.afterglow.OPEN"
+        const val OpenSettings = "settings"
     }
 
     @Deprecated("Deprecated in Java")

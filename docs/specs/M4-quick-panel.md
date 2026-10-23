@@ -57,3 +57,7 @@ own panel over the video. Read `CLAUDE.md` and `docs/ROADMAP.md` (task list) fir
 
 ## Not done (expected; list honestly in the session's final reply)
 Picture mode / sound mode / sleep timer controls (TCL private), HDMI-input check, YouTube key (the TV swallows it), other TV brands.
+
+Build session notes: Picture and Display both open `Settings.ACTION_DISPLAY_SETTINGS` (there is no standard picture-settings action); Network tries
+Wi-Fi, then wireless settings. The first log line (`-T 1` backlog) is dropped so an old press never fires. If granting READ_LOGS fails after the overlay
+was allowed, the switch stays on and the Adb source is used. Not tested on a TV (no device in the build session).
