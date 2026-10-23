@@ -44,11 +44,18 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
    untested: `home/RemoteKeys.kt` + `HomeActivity.onKeyDown` (Settings opens TV settings, Netflix and Prime launch their app) + `RemoteKeysTest`, in the same
    commit 1f54b3d. Limits: only works while Afterglow is on screen (inside another app these keys go to that app). Open: ask the owner what the YouTube button does.
    **Next step (only when the owner says go):** check CI on that branch, merge, Release 0.5.1, owner tests the buttons and the screensaver.
-3. **Check the shipped "Speed up my TV" list against the owner's real TV** (all items are unticked and unverified). Needs the output of
+3. **Remote-button mapping: "TCL Channel" button should open Penumbra+ (owner request).** Do NOT hard-code it: Penumbra+ is a private app and
+   its name must not appear in this public repo, and the key code of the Channel button is not known yet. Build it as a general feature instead:
+   Settings > Afterglow settings > **Remote buttons**: "Learn a button" (press the remote button, Afterglow shows its key code), pick any installed app
+   for it; the mapping (key code -> package) lives in DataStore and is checked in `HomeActivity.onKeyDown` after the built-in `RemoteKeys`
+   (Settings 83, Netflix 4062, Prime 4099). Also lets the owner remap Netflix/Prime. Same limits as task 2: only while Afterglow is on screen, and
+   a button the TV consumes (like YouTube) cannot be learned. Needs: a unit-tested mapping store and a plain "press a button" capture screen.
+   Until then, the key code can be read with the adb log test (press the Channel button once, `findstr publishKeyEvent`).
+4. **Check the shipped "Speed up my TV" list against the owner's real TV** (all items are unticked and unverified). Needs the output of
    `adb shell pm list packages` (system and third-party) from the owner.
-4. **Real screenshots for the README** (replace the preview render): `adb exec-out screencap -p > afterglow-home.png` from Termux, then add to `docs/screenshots/`.
-5. Chunk C: speed pass and 1.0 (baseline profile, memory check on a 2 GB TV, release 1.0).
-6. Tidy: the screensaver and takeover pages have only been tested on the TCL 65Q6C; other TVs untested.
+5. **Real screenshots for the README** (replace the preview render): `adb exec-out screencap -p > afterglow-home.png` from Termux, then add to `docs/screenshots/`.
+6. Chunk C: speed pass and 1.0 (baseline profile, memory check on a 2 GB TV, release 1.0).
+7. Tidy: the screensaver and takeover pages have only been tested on the TCL 65Q6C; other TVs untested.
 
 ## Later (not v1)
 Folders, remote-button remapping, Obtainium listing.
