@@ -34,23 +34,16 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open items, newest first)
-1. **BUG: the Afterglow clock screensaver starts while a movie is playing** (owner, 0.5.0). Fix WRITTEN, not merged, not built, untested:
-   `ClockDream.onDreamingStarted()` calls `wakeUp()` when `AudioManager.isMusicActive()`. It is in commit 1f54b3d on branch
-   `claude/afterglow-tv-launcher-g6ow3l` (the build was cancelled at the owner's request). To test: play a movie, let the TV idle, the screensaver must
-   not appear; pause, it may. Still to check: video from an HDMI input has no audio session on the TV.
-2. **Remote buttons dead since the takeover: Settings key, Netflix, Prime Video, YouTube.** Findings from the TV's input log (TCL 65Q6C, owner's laptop):
-   Settings = key code 83 (`KEYCODE_NOTIFICATION`), Netflix = 4062, Prime Video = 4099; all three reach Afterglow's window when it is in front.
-   **YouTube sends nothing to the app** (the TV consumes it), so it cannot be mapped; what it does now is unknown. Fix WRITTEN, not merged, not built,
-   untested: `home/RemoteKeys.kt` + `HomeActivity.onKeyDown` (Settings opens TV settings, Netflix and Prime launch their app) + `RemoteKeysTest`, in the same
-   commit 1f54b3d. Limits: only works while Afterglow is on screen (inside another app these keys go to that app). Open: ask the owner what the YouTube button does.
-   **Next step (only when the owner says go):** check CI on that branch, merge, Release 0.5.1, owner tests the buttons and the screensaver.
-3. **Remote-button mapping: "TCL Channel" button should open Penumbra+ (owner request).** Do NOT hard-code it: Penumbra+ is a private app and
-   its name must not appear in this public repo, and the key code of the Channel button is not known yet. Build it as a general feature instead:
-   Settings > Afterglow settings > **Remote buttons**: "Learn a button" (press the remote button, Afterglow shows its key code), pick any installed app
-   for it; the mapping (key code -> package) lives in DataStore and is checked in `HomeActivity.onKeyDown` after the built-in `RemoteKeys`
-   (Settings 83, Netflix 4062, Prime 4099). Also lets the owner remap Netflix/Prime. Same limits as task 2: only while Afterglow is on screen, and
-   a button the TV consumes (like YouTube) cannot be learned. Needs: a unit-tested mapping store and a plain "press a button" capture screen.
-   Until then, the key code can be read with the adb log test (press the Channel button once, `findstr publishKeyEvent`).
+1. **DONE, awaiting a TV test: screensaver no longer starts while a movie is playing** (commit 1f54b3d). `ClockDream.onDreamingStarted()`
+   calls `wakeUp()` when `AudioManager.isMusicActive()`. To test: play a movie, let the TV idle, no screensaver; pause, it may. Still to
+   check: video from an HDMI input has no audio session on the TV.
+2. **DONE, awaiting a TV test: remote Settings (83), Netflix (4062) and Prime Video (4099) buttons** (commit 1f54b3d, `home/RemoteKeys.kt`
+   + `HomeActivity.onKeyDown` + `RemoteKeysTest`). Only while Afterglow is on screen. YouTube sends nothing to the app (the TV consumes it);
+   open: ask the owner what it does now.
+3. **DONE, awaiting a TV test: Settings > Afterglow settings > Remote buttons.** "Learn a button" waits for a press (`HomeActivity.dispatchKeyEvent`;
+   Back, D-pad, OK, Home, Menu, power and volume can't be learned), then you pick any installed app. Stored as key code -> package in DataStore
+   (`data/ButtonMap.kt`, `ButtonMapTest`), checked in `HomeActivity.onKeyDown` after the built-in `RemoteKeys` (so Netflix/Prime can't be
+   remapped yet). Rows on the page remove a mapping. Same limits as task 2. To test: learn the TCL Channel button, pick an app, press it on Home.
 4. **Auto-restore if Afterglow crash-loops** (safety). If Afterglow crashes 3 times within 2 minutes (`CrashGuard`), run the M2 Restore flow by
    itself over `127.0.0.1:5555` (re-enable the packages saved in `disabledHomes`) so Google TV comes back instead of leaving the TV stuck, then
    show a note in Settings > About. Reuse `TakeoverFlow.restore()`; no new adb commands. Needs: crash counter with timestamps, a guard against

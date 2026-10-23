@@ -28,6 +28,7 @@ import com.nbansal.afterglow.home.AllAppsScreen
 import com.nbansal.afterglow.home.AppActions
 import com.nbansal.afterglow.home.AppOptions
 import com.nbansal.afterglow.home.HomeScreen
+import com.nbansal.afterglow.data.ButtonMap
 import com.nbansal.afterglow.home.RemoteAction
 import com.nbansal.afterglow.home.RemoteKeys
 import com.nbansal.afterglow.home.openTvSettings
@@ -38,6 +39,7 @@ import com.nbansal.afterglow.settings.HiddenAppsPage
 import com.nbansal.afterglow.settings.HomeButtonPage
 import com.nbansal.afterglow.takeover.Takeover
 import com.nbansal.afterglow.settings.PackagesPage
+import com.nbansal.afterglow.settings.RemoteButtonsPage
 import com.nbansal.afterglow.settings.SettingsPage
 import com.nbansal.afterglow.settings.SettingsRow
 import com.nbansal.afterglow.settings.SpeedUpPage
@@ -57,6 +59,8 @@ class HomeActivity : ComponentActivity() {
     private var optionsFor by mutableStateOf<AppEntry?>(null)
     private var renameFor by mutableStateOf<AppEntry?>(null)
     private var settingsMenu by mutableStateOf(false)
+    private var learning by mutableStateOf(false)
+    private var learned by mutableStateOf<Int?>(null)
 
     private val packageReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) = model.refresh()
@@ -73,6 +77,7 @@ class HomeActivity : ComponentActivity() {
                     else model.onboarding.back()
                     return
                 }
+                if (learning || learned != null) { learning = false; learned = null; return }
                 screen.parent?.let { screen = it }
             }
         })
@@ -105,9 +110,26 @@ class HomeActivity : ComponentActivity() {
         super.onStop()
     }
 
-    /** Buttons that Google TV home used to handle (Settings, Netflix, Prime Video) now come here; see [RemoteKeys]. */
+    /** Settings > Remote buttons is waiting for a press: take any learnable button before Compose or [onKeyDown] sees it. */
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (learning && screen == Screen.RemoteButtons && ButtonMap.isLearnable(event.keyCode)) {
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                learned = event.keyCode
+                learning = false
+            }
+            return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    /**
+     * Buttons that Google TV home used to handle (Settings, Netflix, Prime Video) now come here; see [RemoteKeys].
+     * After those, buttons the owner learned in Settings > Remote buttons.
+     */
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        val action = RemoteKeys.actionFor(keyCode) ?: return super.onKeyDown(keyCode, event)
+        val action = RemoteKeys.actionFor(keyCode)
+            ?: model.buttonApp(keyCode)?.let { RemoteAction.Launch(it) }
+            ?: return super.onKeyDown(keyCode, event)
         if (event.repeatCount == 0) {
             when (action) {
                 RemoteAction.TvSettings -> openTvSettings(this)
@@ -125,6 +147,8 @@ class HomeActivity : ComponentActivity() {
             optionsFor = null
             renameFor = null
             settingsMenu = false
+            learning = false
+            learned = null
             homeFocus.intValue = 0
             homeSignal++
         }
@@ -168,6 +192,7 @@ class HomeActivity : ComponentActivity() {
                     SettingsRow("Home button", Takeover.homeLabel(this)) { screen = Screen.HomeButton },
                     SettingsRow("Speed up my TV") { screen = Screen.SpeedUp },
                     SettingsRow("Screensaver", com.nbansal.afterglow.saver.Saver.describe(android.provider.Settings.Secure.getString(contentResolver, "screensaver_components"))) { screen = Screen.Screensaver },
+                    SettingsRow("Remote buttons", "${model.state.buttons.size}") { screen = Screen.RemoteButtons },
                     SettingsRow("Hidden apps", "${model.hiddenApps.size}") { screen = Screen.Hidden },
                     SettingsRow("Installed packages") { screen = Screen.Packages },
                     SettingsRow("Set up again") { model.restartOnboarding(); screen = Screen.Onboarding },
@@ -179,6 +204,7 @@ class HomeActivity : ComponentActivity() {
             Screen.Screensaver -> com.nbansal.afterglow.settings.ScreensaverPage(model)
             Screen.HomeButton -> HomeButtonPage(model)
             Screen.Hidden -> HiddenAppsPage(model)
+            Screen.RemoteButtons -> RemoteButtonsPage(model, learning, learned, onLearn = { learning = true }, onPicked = { learned = null })
             Screen.Packages -> PackagesPage()
             Screen.About -> AboutPage(model)
         }

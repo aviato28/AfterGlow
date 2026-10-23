@@ -10,6 +10,7 @@ enum class Screen(val parent: Screen?) {
     Screensaver(Settings),
     HomeButton(Settings),
     Hidden(Settings),
+    RemoteButtons(Settings),
     Packages(Settings),
     About(Settings),
 }
