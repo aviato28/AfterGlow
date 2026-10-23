@@ -34,7 +34,7 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open items, newest first)
-000. **BUILD NEXT (0.7.0 TV test, 23 Oct): two M4 fixes. Not started; owner is out of credits, tasklist only.**
+000. **DONE, awaiting a TV test: two M4 fixes from the 0.7.0 TV test (23 Oct)** (no self-test wait, Adb retry every 5 s, diagnostics; learner takes every key in `dispatchKeyEvent`, service ignores keys while learning).
    a. Quick panel works inside Afterglow but not over other apps: diagnostics say **Source: none, Service: running, Last keys: none**. Cause: the source choice waits for a
       log line during a self-test, but no key is pressed then, so it never picks. Fix: no wait; Local reader if READ_LOGS is granted and logcat stays alive, else the Adb reader
       (dadb 127.0.0.1:5555), retry at most every 5 s; diagnostics show source, lines seen, last matched key + time, last error. Unit-test with fakes.
