@@ -28,6 +28,8 @@ import com.nbansal.afterglow.home.AllAppsScreen
 import com.nbansal.afterglow.home.AppActions
 import com.nbansal.afterglow.home.AppOptions
 import com.nbansal.afterglow.home.HomeScreen
+import com.nbansal.afterglow.home.RemoteAction
+import com.nbansal.afterglow.home.RemoteKeys
 import com.nbansal.afterglow.home.openTvSettings
 import com.nbansal.afterglow.onboarding.OnboardingScreen
 import com.nbansal.afterglow.onboarding.OnboardingStep
@@ -103,13 +105,16 @@ class HomeActivity : ComponentActivity() {
         super.onStop()
     }
 
-    /** The remote's Settings (gear) key used to be handled by Google TV home, which is switched off: open the TV's settings here. */
+    /** Buttons that Google TV home used to handle (Settings, Netflix, Prime Video) now come here; see [RemoteKeys]. */
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_SETTINGS) {
-            openTvSettings(this)
-            return true
+        val action = RemoteKeys.actionFor(keyCode) ?: return super.onKeyDown(keyCode, event)
+        if (event.repeatCount == 0) {
+            when (action) {
+                RemoteAction.TvSettings -> openTvSettings(this)
+                is RemoteAction.Launch -> model.repo.launch(action.pkg)
+            }
         }
-        return super.onKeyDown(keyCode, event)
+        return true
     }
 
     /** Home pressed while Afterglow is already on top: back to the first tile. */
