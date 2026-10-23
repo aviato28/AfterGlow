@@ -34,6 +34,13 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open items, newest first)
+000. **BUILD NEXT (0.7.0 TV test, 23 Oct): two M4 fixes. Not started; owner is out of credits, tasklist only.**
+   a. Quick panel works inside Afterglow but not over other apps: diagnostics say **Source: none, Service: running, Last keys: none**. Cause: the source choice waits for a
+      log line during a self-test, but no key is pressed then, so it never picks. Fix: no wait; Local reader if READ_LOGS is granted and logcat stays alive, else the Adb reader
+      (dadb 127.0.0.1:5555), retry at most every 5 s; diagnostics show source, lines seen, last matched key + time, last error. Unit-test with fakes.
+   b. Learn a button still launches the app when a built-in key (Netflix/Prime/Settings) is pressed. Fix: override `HomeActivity.dispatchKeyEvent`; if the learning flag is set,
+      give the key to the learner and return true before anything else; the service ignores keys while learning. Unit-test.
+   Then: merge + Release 0.7.1, owner re-tests (photo of the diagnostics block).
 00. **DONE, awaiting a TV test: Quick panel + remote keys everywhere + Learn-a-button fix** (`docs/specs/M4-quick-panel.md`; also closes task 0a/0b).
    `keys/` (log watcher service, Local or Adb source), `panel/QuickPanel.kt` (overlay), Settings > Afterglow settings > Quick panel (switch + diagnostics).
    To test: switch it on; play YouTube, press Settings -> panel over the video, video keeps playing; Netflix/Prime keys launch the app from inside
