@@ -87,3 +87,35 @@ fun AboutPage(model: AppModel) {
         },
     )
 }
+
+/** Readable name for a key code: "PROG_RED", or the bare number for vendor buttons. */
+fun buttonName(keyCode: Int): String = android.view.KeyEvent.keyCodeToString(keyCode).removePrefix("KEYCODE_")
+
+/**
+ * Settings > Remote buttons. [learning]: waiting for a button press (HomeActivity captures it); [learned]: a code was captured,
+ * pick the app for it. Learned buttons only work while Afterglow is on screen, and buttons the TV keeps for itself never arrive.
+ */
+@Composable
+fun RemoteButtonsPage(model: AppModel, learning: Boolean, learned: Int?, onLearn: () -> Unit, onPicked: () -> Unit) {
+    val note: String
+    val rows: List<SettingsRow>
+    when {
+        learned != null -> {
+            note = "Button ${buttonName(learned)}: pick the app it opens."
+            rows = model.visibleApps.map { app -> SettingsRow(app.label) { model.mapButton(learned, app.pkg); onPicked() } }
+        }
+        learning -> {
+            note = "Press the button on your remote now. Back cancels.\nIf nothing happens, the TV keeps that button for itself."
+            rows = emptyList()
+        }
+        else -> {
+            note = "Give a remote button an app. Works while Afterglow is on screen."
+            val names = model.apps.associate { it.pkg to com.nbansal.afterglow.data.Favourites.named(it, model.state.names).label }
+            rows = listOf(SettingsRow("Learn a button", onClick = onLearn)) +
+                model.state.buttons.entries.sortedBy { it.key }.map { (code, pkg) ->
+                    SettingsRow("${buttonName(code)} → ${names[pkg] ?: pkg}", "OK to remove") { model.unmapButton(code) }
+                }
+        }
+    }
+    SettingsPage("Remote buttons", rows, header = { Text(note, style = Ag.Body.copy(color = Ag.Muted, fontSize = 22.sp), maxLines = 3) })
+}

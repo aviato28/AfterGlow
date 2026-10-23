@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.nbansal.afterglow.apps.AppEntry
 import com.nbansal.afterglow.apps.AppRepository
+import com.nbansal.afterglow.data.ButtonMap
 import com.nbansal.afterglow.data.Favourites
 import com.nbansal.afterglow.data.PrefState
 import com.nbansal.afterglow.data.Prefs
@@ -99,6 +100,11 @@ class AppModel(val app: Application) {
     fun hide(pkg: String) = scope.launch { prefs.setHidden(state.hidden + pkg) }
     fun unhide(pkg: String) = scope.launch { prefs.setHidden(state.hidden - pkg) }
     fun rename(pkg: String, name: String) = scope.launch { prefs.setNames(Favourites.rename(state.names, pkg, name)) }
+
+    /** Package the owner gave this remote button in Settings > Remote buttons, if it is still installed. */
+    fun buttonApp(keyCode: Int): String? = state.buttons[keyCode]?.takeIf { pkg -> apps.any { it.pkg == pkg } }
+    fun mapButton(keyCode: Int, pkg: String) = scope.launch { prefs.setButtons(ButtonMap.set(state.buttons, keyCode, pkg)) }
+    fun unmapButton(keyCode: Int) = scope.launch { prefs.setButtons(ButtonMap.remove(state.buttons, keyCode)) }
 
     // ---- updates ----
     val updater = Updater(app)

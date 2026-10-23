@@ -15,6 +15,11 @@ class ClockDream : DreamService() {
 
     override fun onDreamingStarted() {
         super.onDreamingStarted()
+        // The TV's idle timer keeps counting during a movie. If something is playing, give the screen back (this also restarts the idle timer).
+        if (getSystemService(android.media.AudioManager::class.java)?.isMusicActive == true) {
+            wakeUp()
+            return
+        }
         view?.start()
     }
 

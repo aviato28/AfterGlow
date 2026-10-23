@@ -34,20 +34,28 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open items, newest first)
-1. **BUG: the Afterglow clock screensaver starts while a movie is playing** (reported by the owner on 0.5.0). The TV's idle timer
-   counts playback time, and Google TV's own ambient mode probably checked for playing media where our DreamService does not.
-   Plan: in `ClockDream.onDreamingStarted()` check `AudioManager.isMusicActive()` (and active playback configurations, API 26+); if
-   something is playing, call `wakeUp()` straight away so the screen returns to the movie and the idle timer restarts. Add a unit test
-   for the decision (pure function). Cheap fix, about ten lines. Note: video from an HDMI input has no audio session on the TV, so test that too.
-2. **Remote's Settings (gear) key and the Netflix / Prime Video / YouTube buttons do nothing since the takeover.** Diagnose from the TV's log
-   (`adb logcat -c`, press each button, `adb logcat -d | grep -E "publishKeyEvent|START u0|Unable to find|ActivityNotFound"`); the owner is
-   running this from Termux on the phone (TV on the phone's hotspot). If Afterglow receives the key codes, map them in `HomeActivity.onKeyDown`
-   (Settings opens TV settings, the app buttons launch their app via `AppRepository.launch`). If the system consumes them, document it.
-3. **Check the shipped "Speed up my TV" list against the owner's real TV** (all items are unticked and unverified). Needs the output of
+1. **DONE, awaiting a TV test: screensaver no longer starts while a movie is playing** (commit 1f54b3d). `ClockDream.onDreamingStarted()`
+   calls `wakeUp()` when `AudioManager.isMusicActive()`. To test: play a movie, let the TV idle, no screensaver; pause, it may. Still to
+   check: video from an HDMI input has no audio session on the TV.
+2. **DONE, awaiting a TV test: remote Settings (83), Netflix (4062) and Prime Video (4099) buttons** (commit 1f54b3d, `home/RemoteKeys.kt`
+   + `HomeActivity.onKeyDown` + `RemoteKeysTest`). Only while Afterglow is on screen. YouTube sends nothing to the app (the TV consumes it);
+   open: ask the owner what it does now.
+3. **DONE, awaiting a TV test: Settings > Afterglow settings > Remote buttons.** "Learn a button" waits for a press (`HomeActivity.dispatchKeyEvent`;
+   Back, D-pad, OK, Home, Menu, power and volume can't be learned), then you pick any installed app. Stored as key code -> package in DataStore
+   (`data/ButtonMap.kt`, `ButtonMapTest`), checked in `HomeActivity.onKeyDown` after the built-in `RemoteKeys` (so Netflix/Prime can't be
+   remapped yet). Rows on the page remove a mapping. Same limits as task 2. To test: learn the TCL Channel button, pick an app, press it on Home.
+4. **Auto-restore if Afterglow crash-loops** (safety). If Afterglow crashes 3 times within 2 minutes (`CrashGuard`), run the M2 Restore flow by
+   itself over `127.0.0.1:5555` (re-enable the packages saved in `disabledHomes`) so Google TV comes back instead of leaving the TV stuck, then
+   show a note in Settings > About. Reuse `TakeoverFlow.restore()`; no new adb commands. Needs: crash counter with timestamps, a guard against
+   restoring when USB debugging is off (then just log), unit tests with a fake adb.
+5. **Speed pass (Chunk C, part 1):** baseline profile for the Home screen, cold start under 500 ms on the TCL, memory check on a 2 GB TV
+   (image cache, no leaks when opening apps and coming back), measure and record the numbers in the README.
+6. **Real screenshots in the README + a download button on the owner's website** (afterglow.nbansal28.com should link to the latest GitHub release
+   APK). Screenshots: `adb exec-out screencap -p > afterglow-home.png` from the laptop, then `docs/screenshots/`.
+7. Release 1.0 after 4 to 6 (and the Speed up list check, task 8).
+8. **Check the shipped "Speed up my TV" list against the owner's real TV** (all items are unticked and unverified). Needs the output of
    `adb shell pm list packages` (system and third-party) from the owner.
-4. **Real screenshots for the README** (replace the preview render): `adb exec-out screencap -p > afterglow-home.png` from Termux, then add to `docs/screenshots/`.
-5. Chunk C: speed pass and 1.0 (baseline profile, memory check on a 2 GB TV, release 1.0).
-6. Tidy: the screensaver and takeover pages have only been tested on the TCL 65Q6C; other TVs untested.
+9. Tidy: the screensaver and takeover pages have only been tested on the TCL 65Q6C; other TVs untested.
 
 ## Later (not v1)
 Folders, remote-button remapping, Obtainium listing.
