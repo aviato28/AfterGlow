@@ -41,6 +41,12 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
       (ii) with Google TV restored once, press Settings and read `adb shell dumpsys window | findstr mCurrentFocus` while the bar is open. Step 2: launch that
       component from `RemoteAction.TvSettings` with a plain `startActivity` (no new adb commands). If it lives in a package we disable (launcherx) it cannot
       be started: fall back to Android TV Settings panel activities if any, else keep full-screen Settings and say so on the Remote buttons page.
+      **Discovery result (owner's laptop, 23 Oct):** NOT the side bar: `com.tcl.suspension/.ui.main.MainActivity` (input sources menu), `com.tcl.dashboard/.MainActivity`
+      (TCL home page, opens at the right edge), `com.google.android.apps.tv.dreamx/.settingsv2.TwoPanelActivity` (screensaver settings). Broadcast
+      `com.tcl.quickpanel.show.window` has no receiver. Most likely the bar is inside the Google TV launcher (`launcherx`) we disable. Also found: **with launcherx
+      disabled, the remote's Settings and YouTube keys do nothing inside other apps** (only Afterglow sees keys, and only while on screen): a limit of the takeover itself.
+      Next (only if the owner wants it): Restore once, press Settings during a video with `adb logcat -c` then `adb logcat -d | findstr "START cmp="`, then
+      re-apply the takeover. Otherwise accept full-screen Settings, or try `com.android.tv.settings` side-panel activities. Not worth more guessing.
    b. **"Learn a button" launches the app instead of learning** when the pressed button is already mapped (Netflix, Prime, Settings). Fix: while the Learn
       screen is open, capture the key code BEFORE any mapping (a `learning` flag read in `HomeActivity.onKeyDown`, or consume in the Learn screen's key handler)
       and show the code. User mappings are checked before the built-ins so any button can be re-assigned; each remapped button gets "Reset to default".
