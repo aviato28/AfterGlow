@@ -34,6 +34,17 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open items, newest first)
+0. **Two bugs from the 0.6.0 TV test (owner). Not started.**
+   a. **Settings key opens full-screen Settings; TCL's normal behaviour is a narrow side bar on the right**, so you can change picture/sound while the
+      video keeps playing. Goal: same side bar. Unknown: which component draws it (likely part of the Google TV launcher we disabled, or a TCL/`com.android.tv.settings`
+      panel activity). Step 1 (discovery, owner's laptop, no code): find the component. (i) `adb shell pm list packages | findstr -i "tcl tv.settings"`;
+      (ii) with Google TV restored once, press Settings and read `adb shell dumpsys window | findstr mCurrentFocus` while the bar is open. Step 2: launch that
+      component from `RemoteAction.TvSettings` with a plain `startActivity` (no new adb commands). If it lives in a package we disable (launcherx) it cannot
+      be started: fall back to Android TV Settings panel activities if any, else keep full-screen Settings and say so on the Remote buttons page.
+   b. **"Learn a button" launches the app instead of learning** when the pressed button is already mapped (Netflix, Prime, Settings). Fix: while the Learn
+      screen is open, capture the key code BEFORE any mapping (a `learning` flag read in `HomeActivity.onKeyDown`, or consume in the Learn screen's key handler)
+      and show the code. User mappings are checked before the built-ins so any button can be re-assigned; each remapped button gets "Reset to default".
+      Unit-test: learn mode returns the code for a built-in key; a user mapping wins over `RemoteKeys`.
 1. **DONE, awaiting a TV test: screensaver no longer starts while a movie is playing** (commit 1f54b3d). `ClockDream.onDreamingStarted()`
    calls `wakeUp()` when `AudioManager.isMusicActive()`. To test: play a movie, let the TV idle, no screensaver; pause, it may. Still to
    check: video from an HDMI input has no audio session on the TV.
