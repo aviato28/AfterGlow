@@ -51,11 +51,18 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
    (Settings 83, Netflix 4062, Prime 4099). Also lets the owner remap Netflix/Prime. Same limits as task 2: only while Afterglow is on screen, and
    a button the TV consumes (like YouTube) cannot be learned. Needs: a unit-tested mapping store and a plain "press a button" capture screen.
    Until then, the key code can be read with the adb log test (press the Channel button once, `findstr publishKeyEvent`).
-4. **Check the shipped "Speed up my TV" list against the owner's real TV** (all items are unticked and unverified). Needs the output of
+4. **Auto-restore if Afterglow crash-loops** (safety). If Afterglow crashes 3 times within 2 minutes (`CrashGuard`), run the M2 Restore flow by
+   itself over `127.0.0.1:5555` (re-enable the packages saved in `disabledHomes`) so Google TV comes back instead of leaving the TV stuck, then
+   show a note in Settings > About. Reuse `TakeoverFlow.restore()`; no new adb commands. Needs: crash counter with timestamps, a guard against
+   restoring when USB debugging is off (then just log), unit tests with a fake adb.
+5. **Speed pass (Chunk C, part 1):** baseline profile for the Home screen, cold start under 500 ms on the TCL, memory check on a 2 GB TV
+   (image cache, no leaks when opening apps and coming back), measure and record the numbers in the README.
+6. **Real screenshots in the README + a download button on the owner's website** (afterglow.nbansal28.com should link to the latest GitHub release
+   APK). Screenshots: `adb exec-out screencap -p > afterglow-home.png` from the laptop, then `docs/screenshots/`.
+8. **Check the shipped "Speed up my TV" list against the owner's real TV** (all items are unticked and unverified). Needs the output of
    `adb shell pm list packages` (system and third-party) from the owner.
-5. **Real screenshots for the README** (replace the preview render): `adb exec-out screencap -p > afterglow-home.png` from Termux, then add to `docs/screenshots/`.
-6. Chunk C: speed pass and 1.0 (baseline profile, memory check on a 2 GB TV, release 1.0).
-7. Tidy: the screensaver and takeover pages have only been tested on the TCL 65Q6C; other TVs untested.
+7. Release 1.0 after 4 to 6 (and the Speed up list check, task 8).
+9. Tidy: the screensaver and takeover pages have only been tested on the TCL 65Q6C; other TVs untested.
 
 ## Later (not v1)
 Folders, remote-button remapping, Obtainium listing.
