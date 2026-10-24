@@ -4,8 +4,9 @@ Afterglow is a free, public, ad-free home screen (launcher) for Google TV / Andr
 low-memory TVs. Read `docs/ROADMAP.md` first; build sessions implement exactly one spec in `docs/specs/`.
 
 ## How we work
-- Planning, specs and reviews happen in the Opus planning chat. Build sessions (Sonnet; Haiku for tiny edits) implement
-  one spec, don't redesign, and list anything they couldn't do in the spec's "Not done" section.
+- The Opus master chat plans, keeps the roadmap, writes specs, reviews, merges and releases. It never builds itself: it delegates
+  each build to a subagent (Sonnet; Haiku for tiny edits) that implements one spec, doesn't redesign, and lists anything it
+  couldn't do in the spec's "Not done" section.
 - "Discussion only" means: edit docs, commit with `[skip ci]`, push, don't build.
 - No pull requests unless asked. Develop on the branch the session names.
 - The owner tests on a TCL 65Q6C (Google TV) and has no PC; anything needing a computer must have an in-app path.
