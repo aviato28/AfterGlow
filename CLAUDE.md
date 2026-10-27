@@ -6,7 +6,8 @@ low-memory TVs. Read `docs/ROADMAP.md` first; build sessions implement exactly o
 ## How we work
 - Planning, specs and reviews happen in the Opus planning chat. Build sessions (Sonnet; Haiku for tiny edits) implement
   one spec, don't redesign, and list anything they couldn't do in the spec's "Not done" section.
-- "Discussion only" means: edit docs, commit with `[skip ci]`, push, don't build.
+- **Default is discussion only.** Everything the owner says is task list and discussion unless they explicitly say "build" (or "go").
+  Discussion only means: edit docs, commit with `[skip ci]`, push. No build agents, no merges, no releases.
 - No pull requests unless asked. Develop on the branch the session names.
 - The owner tests on a TCL 65Q6C (Google TV) and has no PC; anything needing a computer must have an in-app path.
 
