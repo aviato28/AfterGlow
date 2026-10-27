@@ -34,6 +34,12 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open items, newest first)
+0000. **YouTube button dead + TCL Channel button can't be remapped** (owner, 0.7.1). Likely cause: TCL handles both keys itself before any app (Channel opens
+   `com.tcl.channelplus`; YouTube probably goes to the disabled Google TV launcher), so Learn a button (which only sees keys reaching the app) never gets them.
+   Plan: (1) Learn a button listens to the log watcher too; (2) built-in mapping YouTube key -> `com.google.android.youtube.tv`, launched by the service;
+   (3) Channel: mapped app launched by the service, plus an optional, undoable `pm disable-user com.tcl.channelplus` (check it isn't protected) so TCL's app doesn't
+   open too. Blocked on: the key codes. Owner test pending: on the Quick panel page press YouTube once, then Channel once, read the newest "Last keys" entry each.
+   If a key never shows in the log, it can't be caught at all.
 000. **DONE, awaiting a TV test: two M4 fixes from the 0.7.0 TV test (23 Oct)** (no self-test wait, Adb retry every 5 s, diagnostics; learner takes every key in `dispatchKeyEvent`, service ignores keys while learning).
    a. Quick panel works inside Afterglow but not over other apps: diagnostics say **Source: none, Service: running, Last keys: none**. Cause: the source choice waits for a
       log line during a self-test, but no key is pressed then, so it never picks. Fix: no wait; Local reader if READ_LOGS is granted and logcat stays alive, else the Adb reader
