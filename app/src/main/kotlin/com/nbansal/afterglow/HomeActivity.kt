@@ -84,7 +84,7 @@ class HomeActivity : ComponentActivity() {
             }
         })
         openFrom(intent)
-        // Restarted in the middle of switching Quick panel on or off (granting READ_LOGS can kill the app): continue on that page.
+        // Restarted in the middle of switching Quick panel on or off (revoking READ_LOGS can kill the app): continue on that page.
         if (QuickPanelController.reopenMarker(this).delete()) screen = Screen.QuickPanel
         setContent {
             TvCanvas {
@@ -109,6 +109,12 @@ class HomeActivity : ComponentActivity() {
         model.refresh()
         model.checkIfDue()
         KeyWatchService.startIfOn(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // The system may have stopped the key-watch service (low memory, an update): bring it back when the switch is on.
+        if (!KeyWatch.running) KeyWatchService.startIfOn(this)
     }
 
     override fun onStop() {

@@ -6,10 +6,13 @@
     <!-- Only for the update check against GitHub Releases. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <!-- Quick panel (opt-in, Settings > Quick panel): both are granted over adb by the app itself and removed when switched off. -->
+    <!-- Quick panel (opt-in, Settings > Quick panel): the overlay permission is granted over adb by the app itself and removed when
+         switched off. READ_LOGS is only declared so it can be revoked (it made Android ask "access all device logs?" at every boot). -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.READ_LOGS"
         xmlns:tools="http://schemas.android.com/tools" tools:ignore="ProtectedPermissions" />
+    <!-- Quick panel's Wi-Fi tile reads "Connected / Off" locally; no network call. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -76,6 +79,17 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Watches remote-control key presses so the TV's Settings and app buttons work while another app is in front." />
+        </service>
+
+        <!-- Does nothing with notifications: only lets Quick panel's Now playing card list media sessions (enabled over adb). -->
+        <service
+            android:name=".panel.NowPlayingListener"
+            android:exported="true"
+            android:label="Afterglow now playing"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
         </service>
 
         <receiver android:name=".keys.BootReceiver" android:exported="true">

@@ -34,9 +34,12 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open items, newest first)
+000000. **DONE, awaiting a TV test: M4.2 (no log-access popup, heartbeat watchdog, diagnostics) and M5 (`docs/specs/M5-quick-panel-v2.md`).**
+   Built together in one push. Owner test: restart the TV -> no popup; panel opens in YouTube, Penumbra+, Netflix; Sleep timer cycles and warns; Now playing shows
+   after switching Quick panel off and on once (grants the listener); Learn a button catches Channel and YouTube.
 00000. **Afterglow 2: UI revamp, Showcase mode, new quick panel** (owner approved the mockups 28 Oct; `docs/design/v2/` has PNGs + the HTML/CSS they were
    made from, which is the visual reference). Keep the sunset glow as identity, softened into ambient light; frosted glass; Outfit.
-   a. **Quick panel redesign** (`quick-panel.png`): glass control centre on the right over the video: clock, **Now playing** card (title, app, prev/play-pause/next;
+   a. **DONE, awaiting a TV test (M5):** **Quick panel redesign** (`quick-panel.png`): glass control centre on the right over the video: clock, **Now playing** card (title, app, prev/play-pause/next;
       needs notification-listener access granted over the existing adb, media sessions only, never notification text), volume bar, 2-column tiles:
       **Sleep** (turn off now, via adb key event or the TV's sleep key), **Sleep timer** (off in 15/30/45/60/90 min, runs in the key-watch service),
       Wi-Fi, Bluetooth, Sound output, Picture, Accessibility (open the stock pages), All settings; footer: Afterglow settings, Back to close. Focused tile cream `#FFD9B0`.
@@ -49,7 +52,7 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
       attribution in About; Favourites shelf at the bottom. TMDB API key typed in by the owner once (never in the repo). Refresh at most every 6 h, cache for
       offline, decode images at screen size, drop them on `onTrimMemory`. **Rule change:** TMDB is the only network call besides GitHub, and only while Showcase is on.
    Order: a, then b, then c. Each gets its own spec before building.
-0000. **YouTube button dead + TCL Channel button can't be remapped** (owner, 0.7.1). Likely cause: TCL handles both keys itself before any app (Channel opens
+0000. **DONE, awaiting a TV test (M5, parts 1 and 3; part 2 still needs the YouTube key code): YouTube button dead + TCL Channel button can't be remapped** (owner, 0.7.1). Likely cause: TCL handles both keys itself before any app (Channel opens
    `com.tcl.channelplus`; YouTube probably goes to the disabled Google TV launcher), so Learn a button (which only sees keys reaching the app) never gets them.
    Plan: (1) Learn a button listens to the log watcher too; (2) built-in mapping YouTube key -> `com.google.android.youtube.tv`, launched by the service;
    (3) Channel: mapped app launched by the service, plus an optional, undoable `pm disable-user com.tcl.channelplus` (check it isn't protected) so TCL's app doesn't

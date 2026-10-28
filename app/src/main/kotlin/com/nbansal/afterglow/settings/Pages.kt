@@ -105,13 +105,22 @@ fun RemoteButtonsPage(model: AppModel, learning: Boolean, learned: Int?, onLearn
             rows = model.visibleApps.map { app -> SettingsRow(app.label) { model.mapButton(learned, app.pkg); onPicked() } }
         }
         learning -> {
-            note = "Press the button on your remote now. Back cancels.\nIf nothing happens, the TV keeps that button for itself."
+            note = "Press the button on your remote now. Back cancels.\nButtons the TV keeps for itself (Channel, YouTube) are caught too when Quick panel is on."
             rows = emptyList()
         }
         else -> {
             note = "Give a remote button an app. Works while Afterglow is on screen, or everywhere with Quick panel switched on."
             val names = model.apps.associate { it.pkg to com.nbansal.afterglow.data.Favourites.named(it, model.state.names).label }
-            rows = listOf(SettingsRow("Learn a button", onClick = onLearn)) +
+            val qp = model.quickPanel
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val channelOff = remember(qp.channelTick, qp.busy) { qp.channelOff(context) }
+            val installed = remember(qp.channelTick) { qp.channelInstalled(context) }
+            val channelRow = if (!installed) emptyList() else listOf(
+                SettingsRow("Stop TCL Channel opening too", if (qp.busy) "…" else if (channelOff) "On" else "Off") {
+                    if (!qp.busy) qp.setChannelOff(!channelOff)
+                },
+            )
+            rows = listOf(SettingsRow("Learn a button", onClick = onLearn)) + channelRow +
                 model.state.buttons.entries.sortedBy { it.key }.map { (code, pkg) ->
                     val builtIn = com.nbansal.afterglow.home.RemoteKeys.builtIn(code) != null
                     SettingsRow("${buttonName(code)} → ${names[pkg] ?: pkg}", if (builtIn) "OK: reset to default" else "OK to remove") {
@@ -120,5 +129,6 @@ fun RemoteButtonsPage(model: AppModel, learning: Boolean, learned: Int?, onLearn
                 }
         }
     }
-    SettingsPage("Remote buttons", rows, header = { Text(note, style = Ag.Body.copy(color = Ag.Muted, fontSize = 22.sp), maxLines = 3) })
+    val extra = model.quickPanel.message.takeIf { it.isNotEmpty() && !learning && learned == null }
+    SettingsPage("Remote buttons", rows, header = { Text(listOfNotNull(note, extra).joinToString("\n"), style = Ag.Body.copy(color = Ag.Muted, fontSize = 22.sp), maxLines = 4) })
 }

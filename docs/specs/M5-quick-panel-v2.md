@@ -35,4 +35,12 @@ No log-access popup (Adb reader only, revoke READ_LOGS), heartbeat watchdog, STA
 One ROADMAP edit: mark M4.2, the YouTube/Channel item and Afterglow 2 part (a) done, awaiting a TV test. List anything skipped under "Not done" below.
 
 ## Not done
-(build agent fills in)
+- Not compiled or run: this container has no Android SDK, so `./gradlew testDebugUnitTest` was not run; CI builds on push. Riskiest APIs to check first:
+  `androidx.compose.ui.graphics.vector.PathParser` (panel icons), `MediaSessionManager.getActiveSessions`, `NotificationListenerService` manifest entry.
+- M4.2 was not in the code yet, so it was built here as part 1 (Adb reader only, `GrantLogs` and the Local reader removed, heartbeat + 75 s watchdog,
+  restart on screen on / user present, START_STICKY, `HomeActivity.onResume` restart, diagnostics). READ_LOGS stays declared in the manifest only so it can be revoked.
+- The built-in YouTube key mapping (ROADMAP item part 2) needs the key code, which is still unknown: Learn a button now catches it from the log instead.
+- Bluetooth, Sound output and Picture subtitles are fixed text ("Open settings"): reading Bluetooth state needs a runtime permission, so it is left out.
+- No unit tests for the panel UI, the now-playing poll or the overlay windows (need a device). Tested as pure logic: sleep cycle/re-arm, whitelist strings,
+  reader source and heartbeat staleness, learn-from-log, the TCL Channel commands.
+- Sleep timer: a timer whose end passed while the service was down is dropped (never turns the TV off at boot). The warning overlay has no Back handling; only Cancel.

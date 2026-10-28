@@ -29,6 +29,8 @@ data class PrefState(
     val buttons: Map<Int, String> = emptyMap(),
     /** Settings > Quick panel switch: key watcher service + overlay panel. */
     val quickPanel: Boolean = false,
+    /** Sleep timer end (epoch ms); 0 = off. Re-armed by the key-watch service after a restart. */
+    val sleepEndMs: Long = 0L,
     /** False until DataStore has delivered its first value (so first-run screens never flash). */
     val loaded: Boolean = false,
 )
@@ -49,6 +51,7 @@ class Prefs(context: Context) {
             saverPrevious = p[SAVER_PREVIOUS],
             buttons = p[BUTTONS]?.let(ButtonMap::decode) ?: emptyMap(),
             quickPanel = p[QUICK_PANEL] ?: false,
+            sleepEndMs = p[SLEEP_END] ?: 0L,
             loaded = true,
         )
     }
@@ -69,6 +72,8 @@ class Prefs(context: Context) {
 
     suspend fun setQuickPanel(on: Boolean) = edit { it[QUICK_PANEL] = on }
 
+    suspend fun setSleepEnd(ms: Long) = edit { it[SLEEP_END] = ms }
+
     private suspend fun edit(block: (androidx.datastore.preferences.core.MutablePreferences) -> Unit) {
         store.edit { block(it) }
     }
@@ -84,6 +89,7 @@ class Prefs(context: Context) {
         private val SAVER_PREVIOUS = stringPreferencesKey("saver_previous")
         private val BUTTONS = stringPreferencesKey("remote_buttons")
         private val QUICK_PANEL = booleanPreferencesKey("quick_panel")
+        private val SLEEP_END = longPreferencesKey("sleep_end_ms")
         private val LAST_CHECK = longPreferencesKey("last_update_check")
 
         fun encodeList(list: List<String>) = list.joinToString("\n")

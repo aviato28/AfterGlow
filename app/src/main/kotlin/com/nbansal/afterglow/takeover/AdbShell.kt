@@ -29,15 +29,21 @@ object AdbWhitelist {
     const val GetScreensaver = "settings get secure screensaver_components"
     const val GetScreensaverEnabled = "settings get secure screensaver_enabled"
 
-    /** Quick panel: watch remote key presses (WindowManager tag only), and Afterglow's own two permissions on and off. */
+    /** Quick panel: watch remote key presses (WindowManager tag only), the overlay permission on and off, and the READ_LOGS revoke. */
     const val Logcat = "logcat -v brief -T 1 WindowManager:D *:S"
     const val OverlayAllow = "appops set com.nbansal.afterglow SYSTEM_ALERT_WINDOW allow"
     const val OverlayDefault = "appops set com.nbansal.afterglow SYSTEM_ALERT_WINDOW default"
-    const val GrantLogs = "pm grant com.nbansal.afterglow android.permission.READ_LOGS"
     const val RevokeLogs = "pm revoke com.nbansal.afterglow android.permission.READ_LOGS"
+
+    /** Quick panel v2: Sleep tile / sleep timer, and the notification-listener grant that lets Now playing read media sessions. */
+    const val Sleep = "input keyevent KEYCODE_SLEEP"
+    const val AllowListener =
+        "cmd notification allow_listener com.nbansal.afterglow/com.nbansal.afterglow.panel.NowPlayingListener"
+    const val DisallowListener =
+        "cmd notification disallow_listener com.nbansal.afterglow/com.nbansal.afterglow.panel.NowPlayingListener"
     private val Exact = setOf(
         ResolveHome, QueryHomes, ListDisabled, GetScreensaver, GetScreensaverEnabled,
-        Logcat, OverlayAllow, OverlayDefault, GrantLogs, RevokeLogs,
+        Logcat, OverlayAllow, OverlayDefault, RevokeLogs, Sleep, AllowListener, DisallowListener,
     )
 
     /** One component `pkg/class`, or several separated by commas (that is how the setting stores them), or the word null. */

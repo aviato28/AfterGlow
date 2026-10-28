@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -31,9 +33,7 @@ class KeyReaderTest {
     private val keys = mutableListOf<Int>()
     private var clock = 0L
 
-    private fun reader(readLogs: Boolean, local: Fake, adb: Fake, rounds: Int) = KeyReader(
-        hasReadLogs = { readLogs },
-        local = { started += "Local"; local },
+    private fun reader(adb: Fake, rounds: Int) = KeyReader(
         adb = { started += "Adb"; adb },
         now = { clock },
         sleep = { sleeps += it; if (sleeps.size >= rounds) throw Stop() },
@@ -42,34 +42,24 @@ class KeyReaderTest {
     private fun runUntilStop(r: KeyReader) = runBlocking { try { r.run { keys += it } } catch (_: Stop) {} }
 
     @Before
-    fun reset() { KeyWatch.linesSeen = 0; KeyWatch.lastError = ""; KeyWatch.source = "none" }
+    fun reset() { KeyWatch.linesSeen = 0; KeyWatch.lastError = ""; KeyWatch.source = "none"; KeyWatch.lastHeartbeatMs = 0L }
 
     @Test
-    fun localWhenReadLogsIsGrantedWithoutWaitingForAPress() {
-        val local = Fake("Local", listOf("old", press(4062), press(83)))
-        runUntilStop(reader(true, local, Fake("Adb", emptyList()), rounds = 1))
-        assertEquals(listOf("Local", "Adb"), started)
-        assertEquals(listOf(4062, 83), keys)
-        assertEquals(3, KeyWatch.linesSeen)
-        assertEquals("Local log ended", KeyWatch.lastError)
+    fun alwaysTheAdbReaderAndTheBacklogLineIsDropped() {
+        val adb = Fake("Adb", listOf("old", press(4099), press(83)))
+        runUntilStop(reader(adb, rounds = 2))
+        assertEquals(listOf("Adb", "Adb"), started)
+        assertEquals(listOf(4099, 83, 4099, 83), keys)
+        assertEquals(6, KeyWatch.linesSeen)
+        assertEquals("Adb log ended", KeyWatch.lastError)
     }
 
     @Test
-    fun adbWhenReadLogsIsMissing() {
-        val local = Fake("Local", listOf("old", press(83)))
-        val adb = Fake("Adb", listOf("old", press(4099)))
-        runUntilStop(reader(false, local, adb, rounds = 1))
-        assertEquals(0, local.runs)
-        assertEquals(listOf(4099), keys)
-    }
-
-    @Test
-    fun errorsRetryAdbAtMostEveryFiveSeconds() {
-        val local = Fake("Local", emptyList(), error = "logcat exited (1)")
+    fun errorsRetryAtMostEveryFiveSeconds() {
         val adb = Fake("Adb", emptyList(), error = "Connection refused")
-        runUntilStop(reader(true, local, adb, rounds = 3))
-        assertEquals(listOf("Local", "Adb", "Adb", "Adb"), started)
-        assertEquals(2, adb.runs)
+        runUntilStop(reader(adb, rounds = 3))
+        assertEquals(listOf("Adb", "Adb", "Adb"), started)
+        assertEquals(3, adb.runs)
         assertEquals(listOf(5_000L, 5_000L, 5_000L), sleeps)
         assertEquals("Adb: Connection refused", KeyWatch.lastError)
         assertEquals("none", KeyWatch.source)
@@ -81,8 +71,27 @@ class KeyReaderTest {
             override val name = "Adb"
             override fun lines() = flow { emit("old"); clock += 60_000 }
         }
-        val r = KeyReader({ false }, { error("unused") }, { adb }, { clock }, { sleeps += it; throw Stop() })
+        val r = KeyReader({ adb }, { clock }, { sleeps += it; throw Stop() })
         runUntilStop(r)
         assertEquals(listOf(0L), sleeps)
+    }
+
+    @Test
+    fun aHeartbeatLineIsRecordedButNeverTreatedAsAKey() {
+        clock = 123_000
+        val adb = Fake("Adb", listOf("old", "D/WindowManager( 9): afterglow-heartbeat", press(4062)))
+        runUntilStop(reader(adb, rounds = 1))
+        assertEquals(123_000L, KeyWatch.lastHeartbeatMs)
+        assertEquals(listOf(4062), keys)
+    }
+
+    @Test
+    fun aReaderWithoutHeartbeatForSeventyFiveSecondsIsStale() {
+        assertFalse(KeyReader.isStale(nowMs = 75_000, startedMs = 0, lastHeartbeatMs = 0))
+        assertTrue(KeyReader.isStale(nowMs = 75_001, startedMs = 0, lastHeartbeatMs = 0))
+        assertFalse("a fresh heartbeat resets the clock", KeyReader.isStale(nowMs = 100_000, startedMs = 0, lastHeartbeatMs = 40_000))
+        assertTrue(KeyReader.isStale(nowMs = 120_000, startedMs = 0, lastHeartbeatMs = 40_000))
+        assertTrue("a new reader counts from its own start", KeyReader.isStale(nowMs = 200_000, startedMs = 100_000, lastHeartbeatMs = 10_000))
+        assertFalse(KeyReader.isStale(nowMs = 160_000, startedMs = 100_000, lastHeartbeatMs = 10_000))
     }
 }
