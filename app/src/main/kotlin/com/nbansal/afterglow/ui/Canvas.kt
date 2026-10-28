@@ -39,4 +39,4 @@ fun TvDialog(onDismiss: () -> Unit, content: @Composable () -> Unit) {
     }
 }
 
-private fun densityOf(context: Context) = LocalDensity provides canvasDensity(context)
+internal fun densityOf(context: Context) = LocalDensity provides canvasDensity(context)

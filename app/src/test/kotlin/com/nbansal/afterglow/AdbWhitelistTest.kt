@@ -19,7 +19,11 @@ class AdbWhitelistTest {
             AdbWhitelist.ResolveHome, AdbWhitelist.QueryHomes, AdbWhitelist.ListDisabled,
             "logcat -v brief -T 1 WindowManager:D *:S",
             "appops set com.nbansal.afterglow SYSTEM_ALERT_WINDOW allow", "appops set com.nbansal.afterglow SYSTEM_ALERT_WINDOW default",
-            "pm grant com.nbansal.afterglow android.permission.READ_LOGS", "pm revoke com.nbansal.afterglow android.permission.READ_LOGS",
+            "pm revoke com.nbansal.afterglow android.permission.READ_LOGS",
+            "input keyevent KEYCODE_SLEEP",
+            "cmd notification allow_listener com.nbansal.afterglow/com.nbansal.afterglow.panel.NowPlayingListener",
+            "cmd notification disallow_listener com.nbansal.afterglow/com.nbansal.afterglow.panel.NowPlayingListener",
+            "pm disable-user --user 0 com.tcl.channelplus", "pm enable com.tcl.channelplus",
         ).forEach { assertTrue(it, AdbWhitelist.allows(it)) }
     }
 
@@ -34,6 +38,11 @@ class AdbWhitelistTest {
             "appops set com.netflix.ninja SYSTEM_ALERT_WINDOW allow", "appops set com.nbansal.afterglow SYSTEM_ALERT_WINDOW ignore",
             "appops set com.nbansal.afterglow RUN_IN_BACKGROUND allow", "appops set com.nbansal.afterglow SYSTEM_ALERT_WINDOW allow; reboot",
             "pm grant com.nbansal.afterglow android.permission.WRITE_SECURE_SETTINGS", "pm grant com.other.app android.permission.READ_LOGS",
+            "pm grant com.nbansal.afterglow android.permission.READ_LOGS",
+            "input keyevent KEYCODE_POWER", "input keyevent KEYCODE_SLEEP; reboot", "input keyevent KEYCODE_SLEEP ", "input text hi",
+            "cmd notification allow_listener com.other.app/com.other.app.Listener",
+            "cmd notification allow_listener com.nbansal.afterglow/com.nbansal.afterglow.panel.NowPlayingListener; id",
+            "cmd notification disallow_listener com.other.app/com.other.app.Listener", "cmd notification list",
             "pm revoke com.nbansal.afterglow android.permission.READ_LOGS ", "logcat", "logcat -d", "logcat -v brief -T 1 *:V",
             "logcat -v brief -T 1 WindowManager:D *:S | sh",
         ).forEach { assertFalse("'$it'", AdbWhitelist.allows(it)) }

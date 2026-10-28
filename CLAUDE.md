@@ -4,9 +4,11 @@ Afterglow is a free, public, ad-free home screen (launcher) for Google TV / Andr
 low-memory TVs. Read `docs/ROADMAP.md` first; build sessions implement exactly one spec in `docs/specs/`.
 
 ## How we work
-- Planning, specs and reviews happen in the Opus planning chat. Build sessions (Sonnet; Haiku for tiny edits) implement
-  one spec, don't redesign, and list anything they couldn't do in the spec's "Not done" section.
-- "Discussion only" means: edit docs, commit with `[skip ci]`, push, don't build.
+- The Opus master chat plans, keeps the roadmap, writes specs, reviews, merges and releases. When the owner says build, it
+  delegates each build to a subagent (Sonnet; Haiku for tiny edits) that implements one spec, doesn't redesign, and lists
+  anything it couldn't do in the spec's "Not done" section.
+- **Default is discussion only.** Everything the owner says is task list and discussion unless they explicitly say "build" (or "go").
+  Discussion only means: edit docs, commit with `[skip ci]`, push. No build agents, no merges, no releases.
 - No pull requests unless asked. Develop on the branch the session names.
 - The owner tests on a TCL 65Q6C (Google TV) and has no PC; anything needing a computer must have an in-app path.
 
@@ -30,7 +32,7 @@ low-memory TVs. Read `docs/ROADMAP.md` first; build sessions implement exactly o
   (not in a loop), and show the last problem in Settings → About.
 
 ## Never
-- Never ads, analytics, trackers or network calls other than GitHub Releases (updates).
+- Never ads, analytics, trackers or network calls other than GitHub Releases (updates) and TMDB (only while Showcase mode is on).
 - Never install, update or sideload other apps (Netflix, YouTube…). Point to the Play Store only.
 - Never disable Play Store, Play Services, Settings, TV input framework, Widevine/DRM or anything on the
   "protected" list in `takeover/` (see `docs/specs/M2-takeover-in-app.md`). Every disable must be undoable from the app, and nothing may be disabled without first proving the TV stays reachable after a restart (`docs/TAKEOVER-TCL.md`).
