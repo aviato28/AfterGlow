@@ -1,0 +1,38 @@
+<html><head><link rel="stylesheet" href="base.css"><style>
+.video{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,#2C4A6A 0,#13202E 45%,#06090D 100%)}
+.video:after{content:"";position:absolute;left:260px;top:300px;width:520px;height:620px;border-radius:260px 260px 40px 40px;background:linear-gradient(180deg,#3A2A24,#140E0C);filter:blur(2px)}
+.dim{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.55) 70%)}
+.p{position:absolute;right:36px;top:36px;bottom:36px;width:640px;border-radius:44px;padding:44px 40px;background:linear-gradient(180deg,rgba(28,22,20,.78),rgba(18,14,13,.86));border:1px solid rgba(255,244,235,.12);backdrop-filter:blur(40px);box-shadow:0 40px 100px rgba(0,0,0,.6);overflow:hidden}
+.p:before{content:"";position:absolute;left:-20%;right:-20%;bottom:-260px;height:420px;background:radial-gradient(ellipse at 50% 100%,rgba(255,176,112,.35),rgba(232,96,122,.18) 45%,transparent 70%)}
+.hd{display:flex;justify-content:space-between;align-items:flex-end}.clock{font-size:56px;font-weight:300}.hd .muted{font-size:24px;margin-bottom:10px}
+.np{margin-top:30px;display:flex;gap:24px;align-items:center;padding:22px;border-radius:30px;background:rgba(255,244,235,.07);border:1px solid rgba(255,244,235,.10)}
+.np .art{width:92px;height:92px;border-radius:20px;background:linear-gradient(135deg,#E50914,#5B0A10)}
+.np h3{font-size:28px;font-weight:500;white-space:nowrap}.np p{font-size:22px;margin-top:4px}
+.ctl{margin-left:auto;display:flex;gap:10px}.ctl div{width:52px;height:52px;border-radius:26px;display:grid;place-items:center;background:rgba(255,244,235,.10);font-size:22px}.ctl div.pp{background:#F3E9DF;color:#0B0908}
+.vol{margin-top:30px;display:flex;align-items:center;gap:20px;font-size:24px}
+.tr{flex:1;height:14px;border-radius:7px;background:rgba(255,244,235,.14);position:relative}.tr i{position:absolute;left:0;top:0;bottom:0;width:38%;border-radius:7px;background:linear-gradient(90deg,#FFB070,#E8607A)}
+.tr b{position:absolute;left:38%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:15px;background:#F3E9DF}
+.g{margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:16px;position:relative}
+.t{height:112px;border-radius:30px;padding:20px 24px;background:rgba(255,244,235,.07);border:1px solid rgba(255,244,235,.09);display:flex;flex-direction:column;justify-content:space-between}
+.t svg{width:32px;height:32px;min-height:32px;flex-shrink:0;stroke:#F3E9DF;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.t h4{font-size:24px;font-weight:500}.t span{font-size:20px;color:#B8ADA3}
+.t.on{background:rgba(255,176,112,.18);border-color:rgba(255,176,112,.35)}.t.on svg{stroke:#FFB070}
+.t.f{background:#FFD9B0;border-color:#FFD9B0;box-shadow:0 0 50px rgba(255,170,100,.5);transform:scale(1.04)}.t.f h4,.t.f span{color:#1A1210}.t.f svg{stroke:#1A1210}
+.ft{position:absolute;left:40px;right:40px;bottom:36px;display:flex;justify-content:space-between;font-size:22px}
+</style></head><body>
+<div class="video"></div><div class="dim"></div>
+<div class="p"><div class="hd"><div class="clock">9:41 PM</div><div class="muted">Quick settings</div></div>
+<div class="np"><div class="art"></div><div><h3>Stranger Things</h3><p class="muted">S4 · E7 · Netflix</p></div><div class="ctl"><div>◀◀</div><div class="pp">❚❚</div><div>▶▶</div></div></div>
+<div class="vol"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#F3E9DF" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg><div class="tr"><i></i><b></b></div><span>38</span></div>
+<div class="g">
+<div class="t f"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg><div><h4>Sleep</h4><span>Turn off now</span></div></div>
+<div class="t on"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg><div><h4>Sleep timer</h4><span>Off in 45 min</span></div></div>
+<div class="t on"><svg viewBox="0 0 24 24"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M2 9a15 15 0 0 1 20 0"/><circle cx="12" cy="19.5" r=".8"/></svg><div><h4>Wi-Fi</h4><span>Home 5G</span></div></div>
+<div class="t"><svg viewBox="0 0 24 24"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg><div><h4>Bluetooth</h4><span>Remote connected</span></div></div>
+<div class="t"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><circle cx="12" cy="14" r="4"/><circle cx="12" cy="6" r="1"/></svg><div><h4>Sound output</h4><span>TV speakers</span></div></div>
+<div class="t"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><div><h4>Picture</h4><span>Open settings</span></div></div>
+<div class="t"><svg viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><path d="M4 8l8 2 8-2M12 10v5l-4 7M12 15l4 7"/></svg><div><h4>Accessibility</h4><span>Captions, text</span></div></div>
+<div class="t"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><div><h4>All settings</h4><span>TV settings</span></div></div>
+</div>
+<div class="ft muted"><span>Afterglow settings</span><span>Back to close</span></div></div>
+</body></html>
