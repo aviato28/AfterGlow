@@ -289,7 +289,7 @@ private fun PanelContent(context: Context, close: () -> Unit) {
 
     fun open(vararg actions: String) {
         close()
-        for (a in actions + Settings.ACTION_SETTINGS) {
+        for (a in actions.toList() + Settings.ACTION_SETTINGS) {
             try {
                 context.startActivity(Intent(a).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                 return
