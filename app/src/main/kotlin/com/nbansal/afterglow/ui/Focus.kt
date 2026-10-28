@@ -32,7 +32,7 @@ private val OkKeys = setOf(Key.DirectionCenter, Key.Enter, Key.NumPadEnter)
 private const val GLOW_LAYERS = 6
 
 /**
- * The one focus look: when focused, lift 6%, draw a cream ring and an amber glow behind. Nothing is drawn (and no
+ * The one focus look: when focused, lift 6% (or [lift]), draw a cream ring and an amber glow behind. Nothing is drawn (and no
  * animation runs) when unfocused. Ring and glow are not clipped, so leave room around the item.
  *
  * OK/Enter = [onClick] on key up. OK held = [onLongClick] once, and the key up then does not click.
@@ -42,13 +42,14 @@ fun Modifier.tvFocus(
     shape: Shape,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
+    lift: Float = 1.06f,
 ): Modifier = composed {
     var focused by remember { mutableStateOf(false) }
     var longFired by remember { mutableStateOf(false) }
     // A release only counts as a click if this item also saw the press: a popup that opens during a long press must not
     // receive the release of the key that opened it.
     var downSeen by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) 1.06f else 1f, tween(durationMillis = 120), label = "tvFocusScale")
+    val scale by animateFloatAsState(if (focused) lift else 1f, tween(durationMillis = 120), label = "tvFocusScale")
 
     this
         .graphicsLayer {

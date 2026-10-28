@@ -31,6 +31,8 @@ data class PrefState(
     val quickPanel: Boolean = false,
     /** Sleep timer end (epoch ms); 0 = off. Re-armed by the key-watch service after a restart. */
     val sleepEndMs: Long = 0L,
+    /** Optional first name for the greeting; "" = none. */
+    val userName: String = "",
     /** False until DataStore has delivered its first value (so first-run screens never flash). */
     val loaded: Boolean = false,
 )
@@ -52,6 +54,7 @@ class Prefs(context: Context) {
             buttons = p[BUTTONS]?.let(ButtonMap::decode) ?: emptyMap(),
             quickPanel = p[QUICK_PANEL] ?: false,
             sleepEndMs = p[SLEEP_END] ?: 0L,
+            userName = p[USER_NAME] ?: "",
             loaded = true,
         )
     }
@@ -74,6 +77,8 @@ class Prefs(context: Context) {
 
     suspend fun setSleepEnd(ms: Long) = edit { it[SLEEP_END] = ms }
 
+    suspend fun setUserName(name: String) = edit { if (name.isEmpty()) it.remove(USER_NAME) else it[USER_NAME] = name }
+
     private suspend fun edit(block: (androidx.datastore.preferences.core.MutablePreferences) -> Unit) {
         store.edit { block(it) }
     }
@@ -90,6 +95,7 @@ class Prefs(context: Context) {
         private val BUTTONS = stringPreferencesKey("remote_buttons")
         private val QUICK_PANEL = booleanPreferencesKey("quick_panel")
         private val SLEEP_END = longPreferencesKey("sleep_end_ms")
+        private val USER_NAME = stringPreferencesKey("user_name")
         private val LAST_CHECK = longPreferencesKey("last_update_check")
 
         fun encodeList(list: List<String>) = list.joinToString("\n")

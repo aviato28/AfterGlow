@@ -57,24 +57,47 @@ fun rememberGlowPhase(): GlowPhase {
     return phase
 }
 
-/** Base fill plus one radial glow centred below the bottom edge (as docs/design/home.svg). */
+/**
+ * Lite home background (docs/design/v2/lite.html): base fill, a soft glow rising from the bottom (ellipse 70% x 55% at 50% 112%:
+ * amber .50, rose .28 at 40%, violet .14 at 70%, clear at 100%) and a faint violet glow top-right. The phase scales the strength
+ * (Evening = the mockup) and tints the warm colours. Drawn once, no animation.
+ */
 @Composable
 fun AfterglowBackground(phase: GlowPhase, modifier: Modifier = Modifier) {
-    val brush = remember(phase) {
+    val bottom = remember(phase) {
+        val k = phase.amber / GlowPhase.Evening.amber
         Brush.radialGradient(
-            *phase.stops().toTypedArray(),
+            0f to phase.warm.copy(alpha = 0.50f * k),
+            0.40f to phase.mid.copy(alpha = 0.28f * k),
+            0.70f to Ag.Violet.copy(alpha = 0.14f * k),
+            1f to Ag.Base.copy(alpha = 0f),
             center = Offset.Zero,
-            radius = 0.85f,
+            radius = 1f,
+        )
+    }
+    val corner = remember {
+        Brush.radialGradient(
+            0f to Ag.Violet.copy(alpha = 0.20f),
+            0.70f to Ag.Violet.copy(alpha = 0f),
+            1f to Ag.Violet.copy(alpha = 0f),
+            center = Offset.Zero,
+            radius = 1f,
         )
     }
     Canvas(modifier.fillMaxSize()) {
         drawRect(Ag.Base)
-        // The SVG gradient is an ellipse in bounding-box units: draw a unit circle scaled to the screen.
+        // CSS ellipses: draw a unit-radius gradient scaled to the ellipse's radii, centred where the CSS says.
         withTransform({
-            translate(size.width / 2f, size.height * 1.18f)
-            scale(size.width, size.height, pivot = Offset.Zero)
+            translate(size.width * 0.5f, size.height * 1.12f)
+            scale(size.width * 0.70f, size.height * 0.55f, pivot = Offset.Zero)
         }) {
-            drawRect(brush, topLeft = Offset(-0.5f, -1.18f), size = Size(1f, 1f))
+            drawRect(bottom, topLeft = Offset(-1f, -1f), size = Size(2f, 2f))
+        }
+        withTransform({
+            translate(size.width * 0.88f, size.height * -0.05f)
+            scale(size.width * 0.40f, size.height * 0.35f, pivot = Offset.Zero)
+        }) {
+            drawRect(corner, topLeft = Offset(-1f, -1f), size = Size(2f, 2f))
         }
     }
 }

@@ -19,6 +19,9 @@ enum class Greeting(val text: String) {
     Evening("Good evening"),
     Night("Good night");
 
+    /** "Good evening, Naman", or just "Good evening" when no name is set. */
+    fun line(name: String): String = cleanName(name).let { if (it.isEmpty()) text else "$text, $it" }
+
     companion object {
         /** Morning 5-12, Afternoon 12-17, Evening 17-21, Night 21-5. */
         fun at(time: LocalTime): Greeting = when (time.hour) {
@@ -29,6 +32,11 @@ enum class Greeting(val text: String) {
         }
     }
 }
+
+const val NAME_MAX = 20
+
+/** The name as stored and shown: trimmed, at most [NAME_MAX] characters. */
+fun cleanName(raw: String): String = raw.trim().take(NAME_MAX).trim()
 
 /** Current time, refreshed on the minute (and on time/zone changes) by the system's own tick: no polling. */
 @Composable

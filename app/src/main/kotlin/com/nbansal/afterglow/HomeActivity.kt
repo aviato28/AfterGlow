@@ -28,6 +28,7 @@ import com.nbansal.afterglow.home.AllAppsScreen
 import com.nbansal.afterglow.home.AppActions
 import com.nbansal.afterglow.home.AppOptions
 import com.nbansal.afterglow.home.HomeScreen
+import com.nbansal.afterglow.home.PEEK_COUNT
 import com.nbansal.afterglow.home.RemoteKeys
 import com.nbansal.afterglow.home.openTvSettings
 import com.nbansal.afterglow.keys.KeyWatch
@@ -60,6 +61,7 @@ class HomeActivity : ComponentActivity() {
     private val allAppsFocus = mutableIntStateOf(0)
     private var optionsFor by mutableStateOf<AppEntry?>(null)
     private var renameFor by mutableStateOf<AppEntry?>(null)
+    private var nameDialog by mutableStateOf(false)
     private var settingsMenu by mutableStateOf(false)
     private var learning by KeyWatch::learning
     private var learned by KeyWatch::learned
@@ -153,6 +155,7 @@ class HomeActivity : ComponentActivity() {
             screen = Screen.Home
             optionsFor = null
             renameFor = null
+            nameDialog = false
             settingsMenu = false
             learning = false
             learned = null
@@ -178,6 +181,8 @@ class HomeActivity : ComponentActivity() {
         when (screen) {
             Screen.Home -> HomeScreen(
                 favourites = model.favourites,
+                peekApps = model.visibleApps.take(PEEK_COUNT),
+                userName = model.state.userName,
                 focusIndex = homeFocus,
                 homeSignal = homeSignal,
                 updateAvailable = model.updateAvailable,
@@ -197,6 +202,7 @@ class HomeActivity : ComponentActivity() {
             Screen.Settings -> SettingsPage(
                 "Afterglow settings",
                 listOf(
+                    SettingsRow("Your name", model.state.userName.ifEmpty { "Not set" }) { nameDialog = true },
                     SettingsRow("Home button", Takeover.homeLabel(this)) { screen = Screen.HomeButton },
                     SettingsRow("Speed up my TV") { screen = Screen.SpeedUp },
                     SettingsRow("Screensaver", com.nbansal.afterglow.saver.Saver.describe(android.provider.Settings.Secure.getString(contentResolver, "screensaver_components"))) { screen = Screen.Screensaver },
@@ -220,7 +226,7 @@ class HomeActivity : ComponentActivity() {
         }
 
         // When the last popup closes, focus goes back to the item that opened it (the screens remember their index).
-        val popupOpen = optionsFor != null || renameFor != null || settingsMenu
+        val popupOpen = optionsFor != null || renameFor != null || nameDialog || settingsMenu
         LaunchedEffect(popupOpen) { if (!popupOpen) homeSignal++ }
 
         if (settingsMenu) {
@@ -248,7 +254,13 @@ class HomeActivity : ComponentActivity() {
             ) { optionsFor = null }
         }
         renameFor?.let { app ->
-            RenameDialog(app.label, { model.rename(app.pkg, it) }) { renameFor = null }
+            RenameDialog(app.label, { model.rename(app.pkg, it) }, onDismiss = { renameFor = null })
+        }
+        if (nameDialog) {
+            RenameDialog(
+                model.state.userName, { model.setUserName(it) }, { nameDialog = false },
+                title = "Your name for the greeting (optional, 20 letters at most)", maxLength = com.nbansal.afterglow.home.NAME_MAX,
+            )
         }
     }
 

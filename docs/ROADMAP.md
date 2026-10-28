@@ -43,7 +43,7 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
       needs notification-listener access granted over the existing adb, media sessions only, never notification text), volume bar, 2-column tiles:
       **Sleep** (turn off now, via adb key event or the TV's sleep key), **Sleep timer** (off in 15/30/45/60/90 min, runs in the key-watch service),
       Wi-Fi, Bluetooth, Sound output, Picture, Accessibility (open the stock pages), All settings; footer: Afterglow settings, Back to close. Focused tile cream `#FFD9B0`.
-   b. **Lite home revamp** (`home-lite.png`, default): logo top-left; top-right glass pill with clock + All apps + Settings icon buttons (replaces the text pills);
+   b. **DONE, awaiting a TV test (M6):** **Lite home revamp** (`home-lite.png`, default): logo top-left; top-right glass pill with clock + All apps + Settings icon buttons (replaces the text pills);
       greeting with the owner's name ("Good evening, Naman", name asked once in onboarding/settings, optional) + date; Favourites on a frosted glass shelf with
       larger rounded cards; All apps row peeking below. Fake glass on low-end TVs (translucent layers, no blur); real blur only where cheap.
    c. **Showcase mode** (`home-showcase.png`), Settings > Look > Lite / Showcase, offered only on TVs with 3 GB RAM or more: full-bleed rotating TMDB trending artwork,

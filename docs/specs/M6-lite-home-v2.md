@@ -22,4 +22,8 @@ Read `CLAUDE.md`, `docs/ROADMAP.md` (task list item "Afterglow 2"). Visual refer
 awaiting TV test).
 
 ## Not done
-(build agent fills in)
+- Not compiled or tested: no Android SDK in the build container (`./gradlew testDebugUnitTest` not run; CI builds on push).
+- All apps peek is the first 9 visible apps as real focusable tiles (Down from the shelf lands in it; OK opens the app, long-press OK gives options). It does not scroll the All apps grid.
+- Favourites shelf shows 6 cards per screen and scrolls sideways when there are more; the focused app's name appears under the shelf.
+- Name entry reuses the Rename text dialog (settings row "Your name", and a row on the onboarding Welcome step); no new onboarding step.
+- The background glow now uses the lite.html ellipses; phases scale it relative to Evening (Evening = the mockup). The clock screensaver is unchanged.

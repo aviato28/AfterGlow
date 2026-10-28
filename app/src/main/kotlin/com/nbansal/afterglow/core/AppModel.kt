@@ -64,6 +64,9 @@ class AppModel(val app: Application) {
     /** Opens the walk-through at the start, with today's favourites already ticked. */
     fun restartOnboarding() = onboarding.restart(state.favourites.orEmpty())
 
+    /** Greeting name from onboarding or Afterglow settings: trimmed, 20 characters at most, empty clears it. */
+    fun setUserName(name: String) = scope.launch { prefs.setUserName(com.nbansal.afterglow.home.cleanName(name)) }
+
     fun finishOnboarding() { scope.launch { prefs.setOnboarded(true) } }
 
     val recentApps: List<AppEntry>
