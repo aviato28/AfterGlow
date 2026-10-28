@@ -30,6 +30,7 @@ import com.nbansal.afterglow.home.AppOptions
 import com.nbansal.afterglow.home.HomeScreen
 import com.nbansal.afterglow.home.PEEK_COUNT
 import com.nbansal.afterglow.home.RemoteKeys
+import com.nbansal.afterglow.home.ShowcaseUi
 import com.nbansal.afterglow.home.openTvSettings
 import com.nbansal.afterglow.keys.KeyWatch
 import com.nbansal.afterglow.keys.KeyWatchService
@@ -40,6 +41,10 @@ import com.nbansal.afterglow.onboarding.OnboardingStep
 import com.nbansal.afterglow.settings.AboutPage
 import com.nbansal.afterglow.settings.HiddenAppsPage
 import com.nbansal.afterglow.settings.HomeButtonPage
+import com.nbansal.afterglow.settings.LookPage
+import com.nbansal.afterglow.settings.OpenWithPage
+import com.nbansal.afterglow.showcase.ShowTitle
+import com.nbansal.afterglow.showcase.ShowcaseLogic
 import com.nbansal.afterglow.takeover.Takeover
 import com.nbansal.afterglow.settings.PackagesPage
 import com.nbansal.afterglow.settings.RemoteButtonsPage
@@ -62,6 +67,8 @@ class HomeActivity : ComponentActivity() {
     private var optionsFor by mutableStateOf<AppEntry?>(null)
     private var renameFor by mutableStateOf<AppEntry?>(null)
     private var nameDialog by mutableStateOf(false)
+    private var keyDialog by mutableStateOf(false)
+    private var resumed by mutableStateOf(false)
     private var settingsMenu by mutableStateOf(false)
     private var learning by KeyWatch::learning
     private var learned by KeyWatch::learned
@@ -110,13 +117,20 @@ class HomeActivity : ComponentActivity() {
         registerReceiver(packageReceiver, filter)
         model.refresh()
         model.checkIfDue()
+        model.showcase.refreshIfDue()
         KeyWatchService.startIfOn(this)
     }
 
     override fun onResume() {
         super.onResume()
+        resumed = true
         // The system may have stopped the key-watch service (low memory, an update): bring it back when the switch is on.
         if (!KeyWatch.running) KeyWatchService.startIfOn(this)
+    }
+
+    override fun onPause() {
+        resumed = false
+        super.onPause()
     }
 
     override fun onStop() {
@@ -156,6 +170,7 @@ class HomeActivity : ComponentActivity() {
             optionsFor = null
             renameFor = null
             nameDialog = false
+            keyDialog = false
             settingsMenu = false
             learning = false
             learned = null
@@ -190,6 +205,9 @@ class HomeActivity : ComponentActivity() {
                 onOptions = { optionsFor = it },
                 onAllApps = { screen = Screen.AllApps },
                 onSettings = { settingsMenu = true },
+                showcase = model.showcase.titles.takeIf { model.showcaseOn && it.isNotEmpty() }?.let {
+                    ShowcaseUi(it, model.showcase.images, model.showcase.trim, resumed) { title -> watch(title) }
+                },
             )
             Screen.AllApps -> AllAppsScreen(
                 apps = model.visibleApps,
@@ -203,6 +221,7 @@ class HomeActivity : ComponentActivity() {
                 "Afterglow settings",
                 listOf(
                     SettingsRow("Your name", model.state.userName.ifEmpty { "Not set" }) { nameDialog = true },
+                    SettingsRow("Look", if (model.showcaseOn) "Showcase" else "Lite") { screen = Screen.Look },
                     SettingsRow("Home button", Takeover.homeLabel(this)) { screen = Screen.HomeButton },
                     SettingsRow("Speed up my TV") { screen = Screen.SpeedUp },
                     SettingsRow("Screensaver", com.nbansal.afterglow.saver.Saver.describe(android.provider.Settings.Secure.getString(contentResolver, "screensaver_components"))) { screen = Screen.Screensaver },
@@ -215,6 +234,8 @@ class HomeActivity : ComponentActivity() {
                 ),
             )
             Screen.Onboarding -> Unit
+            Screen.Look -> LookPage(model, onEditKey = { keyDialog = true }, onPickApp = { screen = Screen.OpenWith })
+            Screen.OpenWith -> OpenWithPage(model, onPicked = { screen = Screen.Look })
             Screen.SpeedUp -> SpeedUpPage(model)
             Screen.Screensaver -> com.nbansal.afterglow.settings.ScreensaverPage(model)
             Screen.HomeButton -> HomeButtonPage(model)
@@ -226,7 +247,7 @@ class HomeActivity : ComponentActivity() {
         }
 
         // When the last popup closes, focus goes back to the item that opened it (the screens remember their index).
-        val popupOpen = optionsFor != null || renameFor != null || nameDialog || settingsMenu
+        val popupOpen = optionsFor != null || renameFor != null || nameDialog || keyDialog || settingsMenu
         LaunchedEffect(popupOpen) { if (!popupOpen) homeSignal++ }
 
         if (settingsMenu) {
@@ -262,7 +283,16 @@ class HomeActivity : ComponentActivity() {
                 title = "Your name for the greeting (optional, 20 letters at most)", maxLength = com.nbansal.afterglow.home.NAME_MAX,
             )
         }
+        if (keyDialog) {
+            RenameDialog(
+                model.state.tmdbKey, { model.setTmdbKey(it) }, { keyDialog = false },
+                title = "TMDB key (v3 key, or a v4 token starting eyJ)", maxLength = 600,
+            )
+        }
     }
+
+    /** Showcase Watch: null when the TMDB link was sent, else the message to show under the buttons. */
+    private fun watch(title: ShowTitle): String? = ShowcaseLogic.watch(this, title, model.state.openWith)
 
     companion object {
         const val ExtraOpen = "com.nbansal.afterglow.OPEN"
@@ -274,6 +304,9 @@ class HomeActivity : ComponentActivity() {
         @Suppress("DEPRECATION")
         super.onTrimMemory(level)
         @Suppress("DEPRECATION")
-        if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) Banners.clear()
+        if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) {
+            Banners.clear()
+            model.showcase.trimMemory()
+        }
     }
 }

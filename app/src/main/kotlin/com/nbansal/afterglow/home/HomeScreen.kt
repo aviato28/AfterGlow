@@ -96,6 +96,7 @@ fun HomeScreen(
     onOptions: (AppEntry) -> Unit = {},
     onAllApps: () -> Unit = {},
     onSettings: () -> Unit = { },
+    showcase: ShowcaseUi? = null,
 ) {
     val now by rememberNow()
     val allApps = remember { FocusRequester() }
@@ -103,10 +104,14 @@ fun HomeScreen(
     val requesters = remember(favourites.size) { List(favourites.size) { FocusRequester() } }
     val hasFavourites = favourites.isNotEmpty()
     var shelfFocused by remember { mutableStateOf(false) }
+    val watch = remember { FocusRequester() }
+    val sc = showcase != null
 
-    // First favourite (or the saved one) gets focus; no favourites: "All apps". Home key again: back to the first tile.
-    LaunchedEffect(hasFavourites, homeSignal) {
-        if (hasFavourites) {
+    // Showcase: Watch gets focus. Lite: first favourite (or the saved one); no favourites: "All apps". Home key again: back to the first tile.
+    LaunchedEffect(hasFavourites, homeSignal, sc) {
+        if (sc) {
+            watch.focusSoon()
+        } else if (hasFavourites) {
             val i = focusIndex.intValue.coerceIn(favourites.indices)
             listState.scrollToItem(i)
             requesters[i].focusSoon()
@@ -116,6 +121,7 @@ fun HomeScreen(
     }
 
     Box(modifier.fillMaxSize()) {
+        if (showcase != null) ShowcaseHero(showcase, watch)
         Row(
             Modifier.align(Alignment.TopStart).fillMaxWidth().padding(start = Ag.MarginX, end = Ag.MarginX, top = Ag.MarginY),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -142,7 +148,7 @@ fun HomeScreen(
             }
         }
 
-        Column(Modifier.align(Alignment.TopStart).padding(start = Ag.MarginX, top = 240.dp, end = Ag.MarginX)) {
+        if (!sc) Column(Modifier.align(Alignment.TopStart).padding(start = Ag.MarginX, top = 240.dp, end = Ag.MarginX)) {
             Text(
                 Greeting.at(now.toLocalTime()).line(userName),
                 style = Ag.Greeting.copy(letterSpacing = (-1).sp),
@@ -158,23 +164,23 @@ fun HomeScreen(
 
         // Favourites shelf: frosted glass without blur (translucent layers only).
         Box(
-            Modifier.padding(start = 72.dp, top = 520.dp).width(1776.dp).height(330.dp)
+            Modifier.padding(start = 72.dp, top = if (sc) 760.dp else 520.dp).width(1776.dp).height(if (sc) 260.dp else 330.dp)
                 .onFocusChanged { shelfFocused = it.hasFocus }
                 .glass(ShelfShape),
         ) {
             Text("FAVOURITES", style = Ag.SectionCaps, modifier = Modifier.padding(start = 40.dp, top = 34.dp))
             if (hasFavourites) {
                 LazyRow(
-                    Modifier.padding(top = 76.dp).fillMaxWidth(),
+                    Modifier.padding(top = if (sc) 62.dp else 76.dp).fillMaxWidth(),
                     state = listState,
-                    contentPadding = PaddingValues(horizontal = 40.dp, vertical = 36.dp),
+                    contentPadding = PaddingValues(horizontal = 40.dp, vertical = if (sc) 28.dp else 36.dp),
                     horizontalArrangement = Arrangement.spacedBy(26.dp),
                 ) {
                     itemsIndexed(favourites, key = { _, app -> app.pkg }) { i, app ->
                         AppTile(
                             app,
                             Modifier.focusRequester(requesters[i]).onFocusChanged { if (it.isFocused) focusIndex.intValue = i },
-                            width = 261.dp,
+                            width = if (sc) 240.dp else 261.dp,
                             shape = CardShape,
                             lift = 1.08f,
                             showLabel = false,
@@ -198,12 +204,12 @@ fun HomeScreen(
                 style = Ag.Label.copy(fontSize = 26.sp),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(start = 112.dp, top = 866.dp, end = 112.dp),
+                modifier = Modifier.padding(start = 112.dp, top = if (sc) 1024.dp else 866.dp, end = 112.dp),
             )
         }
 
         // The first row of All apps, fading out downwards.
-        if (peekApps.isNotEmpty()) {
+        if (!sc && peekApps.isNotEmpty()) {
             Box(
                 Modifier.padding(top = 894.dp).fillMaxWidth().height(186.dp)
                     .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }

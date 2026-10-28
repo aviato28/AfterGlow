@@ -79,12 +79,11 @@ fun AboutPage(model: AppModel) {
         })
     }
     val text = if (available) latest?.notes?.let { Versions.firstLines(it) } else problem?.lines()?.take(6)?.joinToString("\n")
+    val shown = listOfNotNull(text?.takeIf { it.isNotBlank() }, com.nbansal.afterglow.showcase.Tmdb.ATTRIBUTION).joinToString("\n\n")
     SettingsPage(
         "About", rows,
-        headerHeight = if (available) 380.dp else 200.dp,
-        header = text?.takeIf { it.isNotBlank() }?.let { t ->
-            { Text(t, style = Ag.Body.copy(color = Ag.Muted, fontSize = 22.sp), maxLines = 12) }
-        },
+        headerHeight = if (available) 440.dp else 280.dp,
+        header = { Text(shown, style = Ag.Body.copy(color = Ag.Muted, fontSize = 22.sp), maxLines = 14) },
     )
 }
 

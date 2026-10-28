@@ -14,6 +14,8 @@ import com.nbansal.afterglow.data.Recents
 import com.nbansal.afterglow.keys.QuickPanelController
 import com.nbansal.afterglow.onboarding.OnboardingState
 import com.nbansal.afterglow.saver.SaverController
+import com.nbansal.afterglow.showcase.ShowcaseController
+import com.nbansal.afterglow.showcase.ShowcaseLogic
 import com.nbansal.afterglow.settings.versionName
 import com.nbansal.afterglow.takeover.SpeedUpController
 import com.nbansal.afterglow.takeover.TakeoverController
@@ -37,6 +39,10 @@ class AppModel(val app: Application) {
     val saver = SaverController(app, prefs)
     val quickPanel = QuickPanelController(app, prefs)
 
+    val showcase = ShowcaseController(app)
+    /** Showcase needs 2.8 GB of RAM or more; below that the setting is ignored. */
+    val showcaseAllowed: Boolean by lazy { ShowcaseLogic.ramOk(ShowcaseLogic.totalRam(app)) }
+
     val onboarding = OnboardingState { scope.launch { prefs.setFavourites(it) } }
 
     var apps by mutableStateOf<List<AppEntry>>(emptyList()); private set
@@ -47,6 +53,7 @@ class AppModel(val app: Application) {
         scope.launch {
             prefs.state.collect {
                 state = it
+                showcase.sync(showcaseOn, it.tmdbKey)
                 seedDefaults()
             }
         }
@@ -60,6 +67,13 @@ class AppModel(val app: Application) {
 
     val hiddenApps: List<AppEntry>
         get() = apps.filter { it.pkg in state.hidden }.map { Favourites.named(it, state.names) }
+
+    val showcaseOn: Boolean
+        get() = state.showcase && showcaseAllowed
+
+    fun setShowcase(on: Boolean) = scope.launch { prefs.setShowcase(on) }
+    fun setTmdbKey(key: String) = scope.launch { prefs.setTmdbKey(key.trim()) }
+    fun setOpenWith(pkg: String) = scope.launch { prefs.setOpenWith(pkg) }
 
     /** Opens the walk-through at the start, with today's favourites already ticked. */
     fun restartOnboarding() = onboarding.restart(state.favourites.orEmpty())

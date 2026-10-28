@@ -46,7 +46,7 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
    b. **DONE, awaiting a TV test (M6):** **Lite home revamp** (`home-lite.png`, default): logo top-left; top-right glass pill with clock + All apps + Settings icon buttons (replaces the text pills);
       greeting with the owner's name ("Good evening, Naman", name asked once in onboarding/settings, optional) + date; Favourites on a frosted glass shelf with
       larger rounded cards; All apps row peeking below. Fake glass on low-end TVs (translucent layers, no blur); real blur only where cheap.
-   c. **Showcase mode** (`home-showcase.png`), Settings > Look > Lite / Showcase, offered only on TVs with 3 GB RAM or more: full-bleed rotating TMDB trending artwork,
+   c. **DONE, awaiting a TV test (M7, `docs/specs/M7-showcase.md`):** **Showcase mode** (`home-showcase.png`), Settings > Look > Lite / Showcase, offered only on TVs with 3 GB RAM or more: full-bleed rotating TMDB trending artwork,
       title, year/genre/runtime, overview, **Watch** (sends `ACTION_VIEW https://www.themoviedb.org/movie/<id>` (or `/tv/<id>`) to the app the owner picks once;
       their own movie app must accept TMDB links, which is a change in that app, not here), "More like this", dots, "Trending this week · TMDB" credit + TMDB
       attribution in About; Favourites shelf at the bottom. TMDB API key typed in by the owner once (never in the repo). Refresh at most every 6 h, cache for

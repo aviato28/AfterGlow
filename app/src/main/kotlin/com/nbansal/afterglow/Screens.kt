@@ -6,6 +6,8 @@ enum class Screen(val parent: Screen?) {
     AllApps(Home),
     Settings(Home),
     Onboarding(Home),
+    Look(Settings),
+    OpenWith(Look),
     SpeedUp(Settings),
     Screensaver(Settings),
     HomeButton(Settings),
