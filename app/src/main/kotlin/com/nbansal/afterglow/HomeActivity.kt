@@ -254,7 +254,7 @@ class HomeActivity : ComponentActivity() {
             ) { optionsFor = null }
         }
         renameFor?.let { app ->
-            RenameDialog(app.label, { model.rename(app.pkg, it) }) { renameFor = null }
+            RenameDialog(app.label, { model.rename(app.pkg, it) }, onDismiss = { renameFor = null })
         }
         if (nameDialog) {
             RenameDialog(
