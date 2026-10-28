@@ -33,4 +33,11 @@ Read `CLAUDE.md` (network rule: TMDB only while Showcase is on), `docs/ROADMAP.m
 awaiting TV test).
 
 ## Not done
-(build agent fills in)
+- Not compiled or tested: no Android SDK in the build container (`./gradlew testDebugUnitTest` not run; CI builds on push).
+- Unit tests cover parsing, URL/key handling, formatting, RAM gate, cache freshness, sample size and average colour (`TmdbTest`). There is no Compose test for the Showcase hero, and no test of the network/image code.
+- Showcase is chosen in Settings > Look (new page, plus an "Open titles with" picker page). The key is typed in the shared text box (up to 600 characters) and shown only as "Set / Not set".
+- "Test key" calls `/3/configuration`; v3 keys go in the query string, v4 tokens (`eyJ...`) in a Bearer header. Errors are reduced to short texts so the URL/key is never stored or shown.
+- Watch with no app chosen shows "Choose an app in Settings > Look > Open titles with" under the buttons; with no TMDB-capable app it shows "No app on this TV opens TMDB links".
+- The hero sits over the normal background; if the cache/network/key fails, or the first image is still loading, the screen shows the Lite background (the Lite home is used whenever there are no titles). While Showcase is on the Lite greeting and All apps peek are not shown.
+- Glow tint is the average of a 12 x 4 sample of the bottom third. The title font has no Bold weight, so Bold maps to the nearest (SemiBold). Titles over 14 characters use a smaller size to stay on one line.
+- Shelf cards are 240 dp wide in Showcase (shelf 260 dp tall at y 760) to fit the mockup.

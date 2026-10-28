@@ -33,6 +33,12 @@ data class PrefState(
     val sleepEndMs: Long = 0L,
     /** Optional first name for the greeting; "" = none. */
     val userName: String = "",
+    /** Settings > Look: Showcase home (TMDB artwork) instead of Lite. */
+    val showcase: Boolean = false,
+    /** TMDB v3 key or v4 token. Stored here only: never logged, never in the repo. */
+    val tmdbKey: String = "",
+    /** Package that opens TMDB links when Watch is pressed; "" = not chosen. */
+    val openWith: String = "",
     /** False until DataStore has delivered its first value (so first-run screens never flash). */
     val loaded: Boolean = false,
 )
@@ -55,6 +61,9 @@ class Prefs(context: Context) {
             quickPanel = p[QUICK_PANEL] ?: false,
             sleepEndMs = p[SLEEP_END] ?: 0L,
             userName = p[USER_NAME] ?: "",
+            showcase = p[SHOWCASE] ?: false,
+            tmdbKey = p[TMDB_KEY] ?: "",
+            openWith = p[OPEN_WITH] ?: "",
             loaded = true,
         )
     }
@@ -79,6 +88,12 @@ class Prefs(context: Context) {
 
     suspend fun setUserName(name: String) = edit { if (name.isEmpty()) it.remove(USER_NAME) else it[USER_NAME] = name }
 
+    suspend fun setShowcase(on: Boolean) = edit { it[SHOWCASE] = on }
+
+    suspend fun setTmdbKey(key: String) = edit { if (key.isEmpty()) it.remove(TMDB_KEY) else it[TMDB_KEY] = key }
+
+    suspend fun setOpenWith(pkg: String) = edit { if (pkg.isEmpty()) it.remove(OPEN_WITH) else it[OPEN_WITH] = pkg }
+
     private suspend fun edit(block: (androidx.datastore.preferences.core.MutablePreferences) -> Unit) {
         store.edit { block(it) }
     }
@@ -96,6 +111,9 @@ class Prefs(context: Context) {
         private val QUICK_PANEL = booleanPreferencesKey("quick_panel")
         private val SLEEP_END = longPreferencesKey("sleep_end_ms")
         private val USER_NAME = stringPreferencesKey("user_name")
+        private val SHOWCASE = booleanPreferencesKey("showcase")
+        private val TMDB_KEY = stringPreferencesKey("tmdb_key")
+        private val OPEN_WITH = stringPreferencesKey("open_with")
         private val LAST_CHECK = longPreferencesKey("last_update_check")
 
         fun encodeList(list: List<String>) = list.joinToString("\n")
