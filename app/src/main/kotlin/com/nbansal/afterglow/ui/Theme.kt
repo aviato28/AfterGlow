@@ -39,9 +39,9 @@ object Ag {
         outfit(FontWeight.SemiBold),
     )
 
-    val Greeting = TextStyle(fontFamily = Font, fontWeight = FontWeight.Light, fontSize = 84.sp, color = Ink)
+    val Greeting = TextStyle(fontFamily = Font, fontWeight = FontWeight.Light, fontSize = 76.sp, color = Ink)
     val Clock = TextStyle(fontFamily = Font, fontWeight = FontWeight.Light, fontSize = 44.sp, color = Ink)
-    val Date = TextStyle(fontFamily = Font, fontWeight = FontWeight.Normal, fontSize = 30.sp, color = Muted)
+    val Date = TextStyle(fontFamily = Font, fontWeight = FontWeight.Normal, fontSize = 28.sp, color = Muted)
     val Label = TextStyle(fontFamily = Font, fontWeight = FontWeight.Normal, fontSize = 24.sp, color = Ink)
     val SectionCaps = TextStyle(
         fontFamily = Font, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, letterSpacing = 2.sp, color = Muted,

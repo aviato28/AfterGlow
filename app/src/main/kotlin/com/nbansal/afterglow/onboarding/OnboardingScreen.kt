@@ -19,7 +19,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -38,7 +41,9 @@ import com.nbansal.afterglow.settings.SettingsRow
 import com.nbansal.afterglow.settings.SpeedUpPage
 import com.nbansal.afterglow.ui.Ag
 import com.nbansal.afterglow.ui.AppTile
+import com.nbansal.afterglow.home.NAME_MAX
 import com.nbansal.afterglow.ui.ListRow
+import com.nbansal.afterglow.ui.RenameDialog
 import com.nbansal.afterglow.ui.focusSoon
 
 /** First-run walk-through. Every step has Back and Skip; the Home and Speed-up steps reuse the settings pages. */
@@ -49,6 +54,7 @@ fun OnboardingScreen(model: AppModel, onFinish: () -> Unit) {
     LaunchedEffect(model.state.favourites) {
         if (o.step == OnboardingStep.Welcome && o.ticked.isEmpty()) o.restart(model.state.favourites.orEmpty())
     }
+    var nameDialog by remember { mutableStateOf(false) }
     val skipRow = SettingsRow("Skip") { o.skip() }
     val nextRow = SettingsRow("Next") { o.next() }
     val backRow = SettingsRow("Back") { o.back() }
@@ -62,7 +68,11 @@ fun OnboardingScreen(model: AppModel, onFinish: () -> Unit) {
         OnboardingStep.Welcome -> TextStep(
             "Welcome to Afterglow",
             "A free, fast, ad-free home screen for your TV.\nNothing is sent anywhere, and nothing changes without your OK.",
-            listOf(SettingsRow("Get started") { o.next() }, SettingsRow("Skip set-up") { onFinish() }),
+            listOf(
+                SettingsRow("Get started") { o.next() },
+                SettingsRow("Your name (optional)", model.state.userName.ifEmpty { "Not set" }) { nameDialog = true },
+                SettingsRow("Skip set-up") { onFinish() },
+            ),
         )
         OnboardingStep.Updates -> TextStep(
             "Keep apps updating",
@@ -81,6 +91,12 @@ fun OnboardingScreen(model: AppModel, onFinish: () -> Unit) {
             "All set",
             "Your favourites are on Home. Press and hold OK on any app for more options.\nYou can run this set-up again from Afterglow settings.",
             listOf(SettingsRow("Go to Home") { onFinish() }, backRow),
+        )
+    }
+    if (nameDialog) {
+        RenameDialog(
+            model.state.userName, { model.setUserName(it) }, { nameDialog = false },
+            title = "Your name for the greeting (optional, 20 letters at most)", maxLength = NAME_MAX,
         )
     }
 }

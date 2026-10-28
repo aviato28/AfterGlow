@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -40,6 +41,9 @@ fun AppTile(
     modifier: Modifier = Modifier,
     width: androidx.compose.ui.unit.Dp? = null,
     labelAlways: Boolean = false,
+    shape: Shape = TileShape,
+    lift: Float = 1.06f,
+    showLabel: Boolean = true,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
@@ -55,13 +59,13 @@ fun AppTile(
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
                 .onSizeChanged { px = it }
-                .tvFocus(TileShape, onClick, onLongClick)
-                .clip(TileShape)
+                .tvFocus(shape, onClick, onLongClick, lift)
+                .clip(shape)
                 .then(Modifier),
         ) {
             banner?.let { Image(it, null, Modifier.fillMaxWidth().aspectRatio(16f / 9f), contentScale = ContentScale.FillBounds) }
         }
-        Text(
+        if (showLabel) Text(
             app.label,
             style = Ag.Label,
             maxLines = 1,

@@ -32,17 +32,23 @@ import androidx.compose.ui.unit.sp
 
 /** Plain text box; the TV's own on-screen keyboard appears. Done confirms; blank restores the original name. */
 @Composable
-fun RenameDialog(current: String, onDone: (String) -> Unit, onDismiss: () -> Unit) {
+fun RenameDialog(
+    current: String,
+    onDone: (String) -> Unit,
+    onDismiss: () -> Unit,
+    title: String = "Rename (leave empty for the original name)",
+    maxLength: Int = Int.MAX_VALUE,
+) {
     TvDialog(onDismiss) {
         val focus = remember { FocusRequester() }
         var text by remember { mutableStateOf(current) }
         LaunchedEffect(Unit) { focus.focusSoon() }
         Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)), contentAlignment = Alignment.Center) {
             Column(Modifier.width(900.dp).clip(RoundedCornerShape(28.dp)).background(Color(0xFF17120F)).padding(40.dp)) {
-                Text("Rename (leave empty for the original name)", style = Ag.SectionCaps.copy(letterSpacing = 0.sp), maxLines = 1)
+                Text(title, style = Ag.SectionCaps.copy(letterSpacing = 0.sp), maxLines = 1)
                 BasicTextField(
                     value = text,
-                    onValueChange = { text = it },
+                    onValueChange = { text = it.take(maxLength) },
                     singleLine = true,
                     textStyle = Ag.Body.copy(fontSize = 30.sp),
                     cursorBrush = SolidColor(Ag.Amber),
