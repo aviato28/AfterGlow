@@ -73,7 +73,7 @@ class TakeoverController(app: Application, private val prefs: Prefs) {
 
     private fun finish(result: FlowResult) {
         when (result) {
-            is FlowResult.Done -> { message = result.message; homeNow = result.homeNow; probeSaysRestore = false }
+            is FlowResult.Done -> { scope.launch { prefs.setFirmwareFlag(false) }; message = result.message; homeNow = result.homeNow; probeSaysRestore = false }
             is FlowResult.Stopped -> message = result.message
         }
         step = TakeoverStep.Result

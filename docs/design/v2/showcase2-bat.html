@@ -1,0 +1,40 @@
+<html><head><link rel="stylesheet" href="base.css"><style>
+:root{--acc:#FFB070;--acc2:#E8607A;--ring:#FFD9B0;--tint:rgba(255,176,112,.10)}
+body.bat{--acc:#7FB6FF;--acc2:#3A5BD9;--ring:#CFE3FF;--tint:rgba(110,160,255,.10)}
+.art{position:absolute;inset:-4%;transform:scale(var(--z,1.04)) translate(var(--x,0px),var(--y,0px))}
+.dune{background:radial-gradient(circle at 72% 38%,#FFE2A8 0,#FFB060 5%,rgba(255,140,60,0) 16%),linear-gradient(180deg,#3A1A12 0,#9A3E1E 32%,#E07A36 52%,#F2A55A 60%,#8A3A1C 61%,#5A220F 100%)}
+.batart{background:radial-gradient(ellipse at 70% 30%,rgba(200,40,40,.55),transparent 35%),linear-gradient(180deg,#05070C 0,#0D1626 40%,#1B2B44 70%,#0A1018 100%)}
+.art svg{position:absolute;left:0;bottom:0;width:100%;height:100%}
+.shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,9,8,.92) 0,rgba(11,9,8,.55) 38%,rgba(11,9,8,0) 70%),linear-gradient(0deg,#0B0908 0,rgba(11,9,8,.85) 22%,rgba(11,9,8,0) 55%)}
+.glow{position:absolute;left:-10%;right:-10%;bottom:-300px;height:600px;background:radial-gradient(ellipse at 50% 100%,var(--acc),transparent 60%);opacity:.35}
+.info{position:absolute;left:96px;top:210px;width:860px}
+.logo-d{font-size:120px;font-weight:200;letter-spacing:34px;line-height:1;color:#F6E7CF;text-shadow:0 0 40px rgba(255,170,90,.35)}
+.logo-d small{display:block;font-size:30px;letter-spacing:22px;font-weight:300;margin-top:14px;color:#F2C994}
+.logo-b{font-size:118px;font-weight:900;letter-spacing:4px;line-height:.9;color:#E3262A;transform:scaleY(1.25);transform-origin:left top;text-shadow:0 0 50px rgba(227,38,42,.45)}
+.logo-b small{display:block;font-size:30px;letter-spacing:16px;font-weight:600;color:#C9D6EA;transform:scaleY(.8);margin-bottom:6px}
+.meta{font-size:24px;margin-top:40px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.ring{width:66px;height:66px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--acc) var(--p),rgba(255,255,255,.15) 0);position:relative;font-weight:600;font-size:22px}
+.ring:before{content:"";position:absolute;inset:6px;border-radius:50%;background:#140F0D}.ring span{position:relative}
+.bd{padding:5px 12px;border:1px solid rgba(255,244,235,.35);border-radius:8px;font-size:20px;font-weight:500}
+.new{background:var(--acc);color:#140F0D;border:none;font-weight:700}
+.desc{font-size:25px;line-height:1.45;margin-top:22px}
+.btns{display:flex;gap:18px;margin-top:32px}
+.b{height:72px;padding:0 40px;border-radius:36px;display:flex;align-items:center;gap:14px;font-size:28px;font-weight:500}
+.b1{background:#F3E9DF;color:#0B0908;box-shadow:0 0 50px var(--acc);outline:4px solid var(--ring);outline-offset:4px}.b2{background:rgba(255,244,235,.12);border:1px solid rgba(255,244,235,.2)}
+.dots{position:absolute;left:96px;top:720px;display:flex;gap:10px}.dots i{width:12px;height:12px;border-radius:6px;background:rgba(255,244,235,.35)}.dots i:first-child{width:40px;background:var(--ring)}
+.shelf{position:absolute;left:72px;right:72px;top:770px;height:250px;border-radius:40px;padding:26px 40px;background:linear-gradient(180deg,var(--tint),rgba(255,244,235,.04))!important}
+.row{display:grid;grid-template-columns:repeat(6,1fr);gap:26px;margin-top:20px}.row .card{height:136px}.row .card.f{transform:none;outline:none;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.credit{position:absolute;right:96px;top:722px;font-size:18px}
+.tag{position:absolute;right:96px;top:160px;font-size:20px;padding:8px 18px;border-radius:20px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15)}
+body.bat .info{top:150px}body.bat .meta{margin-top:56px}</style></head><body class="bat">
+<div class="art batart"><svg viewBox="0 0 1920 1080" preserveAspectRatio="none"><g fill="#060A12"><rect x="980" y="300" width="120" height="780"/><rect x="1110" y="420" width="90" height="660"/><rect x="1210" y="250" width="150" height="830"/><rect x="1380" y="380" width="110" height="700"/><rect x="1500" y="200" width="140" height="880"/><rect x="1660" y="340" width="120" height="740"/><rect x="1790" y="460" width="130" height="620"/></g><g fill="#F7C46A" opacity=".5"><rect x="1240" y="300" width="8" height="12"/><rect x="1270" y="340" width="8" height="12"/><rect x="1530" y="260" width="8" height="12"/><rect x="1560" y="320" width="8" height="12"/><rect x="1690" y="400" width="8" height="12"/></g><g stroke="#9DB4D8" stroke-width="2" opacity=".18"><path d="M100 0 l-60 1080M300 0 l-60 1080M520 0 l-60 1080M760 0 l-60 1080M1000 0 l-60 1080M1260 0 l-60 1080M1500 0 l-60 1080M1760 0 l-60 1080"/></g></svg></div>
+<div class="shade"></div><div class="glow"></div>
+<div class="top"><div class="logo"><svg width="60" height="40" viewBox="-6 0 64 44"><defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC27A"/><stop offset=".6" stop-color="#F0707A"/><stop offset="1" stop-color="#8A4FA8"/></linearGradient></defs><path d="M0 34 A26 26 0 0 1 52 34 Z" fill="url(#s)"/><rect x="-6" y="38" width="64" height="3" rx="1.5" fill="#F3E9DF" opacity=".8"/></svg> afterglow</div><div class="pill">9:41 PM<div class="ib" style="margin-left:14px"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></div><div class="ib"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></div></div></div>
+<div class="info"><div class="logo-b"><small>THE</small>BATMAN</div>
+<div class="meta"><div class="ring" style="--p:77%"><span>77</span></div><span>2022</span>·<span>Crime · Mystery</span>·<span>2h 56m</span><b class="bd">A</b><b class="bd">4K</b><b class="bd">DOLBY VISION</b><b class="bd new">NEW ON STREAMING</b></div>
+<div class="desc muted">Batman ventures into Gotham City's underworld when a sadistic killer leaves behind a trail of cryptic clues.</div>
+<div class="btns"><div class="b b1">▶&nbsp; Watch</div><div class="b b2">Next</div></div></div>
+<div class="dots"><i></i><i></i><i></i><i></i><i></i></div>
+<div class="credit muted">Trending this week · TMDB</div>
+<div class="shelf glass"><div class="caps">Favourites</div><div class="row"><div class="card f" style="background:#E50914;font-size:40px">NETFLIX</div><div class="card" style="background:#181818;font-size:36px"><span><span style="color:#FF0033">▶</span> YouTube</span></div><div class="card" style="background:#0F2A4A;font-size:32px">prime video</div><div class="card" style="background:#0E1A5C;font-size:36px">Disney+</div><div class="card" style="background:#1F1A10;color:#E5A00D;font-size:40px">plex</div><div class="card" style="background:#121212;color:#1ED760;font-size:34px">Spotify</div></div></div>
+</body></html>

@@ -45,7 +45,9 @@ import com.nbansal.afterglow.settings.LookPage
 import com.nbansal.afterglow.settings.OpenWithPage
 import com.nbansal.afterglow.showcase.ShowTitle
 import com.nbansal.afterglow.showcase.ShowcaseLogic
+import com.nbansal.afterglow.takeover.FirmwareCheck
 import com.nbansal.afterglow.takeover.Takeover
+import com.nbansal.afterglow.ui.FirmwareDialog
 import com.nbansal.afterglow.settings.PackagesPage
 import com.nbansal.afterglow.settings.RemoteButtonsPage
 import com.nbansal.afterglow.settings.SettingsPage
@@ -70,6 +72,7 @@ class HomeActivity : ComponentActivity() {
     private var keyDialog by mutableStateOf(false)
     private var resumed by mutableStateOf(false)
     private var settingsMenu by mutableStateOf(false)
+    private var firmwareHidden by mutableStateOf(false)
     private var learning by KeyWatch::learning
     private var learned by KeyWatch::learned
 
@@ -117,6 +120,7 @@ class HomeActivity : ComponentActivity() {
         registerReceiver(packageReceiver, filter)
         model.refresh()
         model.checkIfDue()
+        model.checkFirmware()
         model.showcase.refreshIfDue()
         KeyWatchService.startIfOn(this)
     }
@@ -206,7 +210,15 @@ class HomeActivity : ComponentActivity() {
                 onAllApps = { screen = Screen.AllApps },
                 onSettings = { settingsMenu = true },
                 showcase = model.showcase.titles.takeIf { model.showcaseOn && it.isNotEmpty() }?.let {
-                    ShowcaseUi(it, model.showcase.images, model.showcase.trim, resumed) { title -> watch(title) }
+                    ShowcaseUi(
+                        titles = it,
+                        images = model.showcase.images,
+                        trim = model.showcase.trim,
+                        resumed = resumed,
+                        onWatch = { title -> watch(title) },
+                        accent = model.showcase.accent,
+                        onAccent = { c -> model.showcase.updateAccent(c) },
+                    )
                 },
             )
             Screen.AllApps -> AllAppsScreen(
@@ -250,6 +262,13 @@ class HomeActivity : ComponentActivity() {
         val popupOpen = optionsFor != null || renameFor != null || nameDialog || keyDialog || settingsMenu
         LaunchedEffect(popupOpen) { if (!popupOpen) homeSignal++ }
 
+        if (!firmwareHidden && FirmwareCheck.promptDue(model.state.firmwareFlag, model.state.firmwarePromptMs, System.currentTimeMillis())) {
+            // A TV update brought Google TV back: ask, never re-apply silently. Re-apply opens the normal verified flow (with its confirmations).
+            FirmwareDialog(
+                onReapply = { firmwareHidden = true; model.firmwareNotNow(); model.takeover.begin(); screen = Screen.HomeButton },
+                onNotNow = { firmwareHidden = true; model.firmwareNotNow() },
+            )
+        }
         if (settingsMenu) {
             TvMenu(
                 "Settings",

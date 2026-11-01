@@ -1,5 +1,6 @@
 package com.nbansal.afterglow
 
+import com.nbansal.afterglow.saver.ArtLogic
 import com.nbansal.afterglow.saver.NightStyle
 import com.nbansal.afterglow.saver.Saver
 import com.nbansal.afterglow.saver.SaverFlow
@@ -75,6 +76,42 @@ class SaverTest {
         assertEquals("Afterglow clock", Saver.describe(Saver.Component))
         assertEquals("Google TV ambient mode", Saver.describe("com.google.android.apps.tv.dreamx/com.google.android.apps.tv.dreamx.service.Backdrop"))
         assertEquals("something else", Saver.describe("a.b/a.b.C"))
+        assertEquals("Afterglow artwork", Saver.describe(Saver.ArtComponent))
+    }
+
+    @Test
+    fun whitelistAcceptsTheArtworkSaver() {
+        assertTrue(AdbWhitelist.allows("settings put secure screensaver_components " + Saver.ArtComponent))
+        assertTrue(AdbWhitelist.allows("settings put secure screensaver_components com.nbansal.afterglow/.saver.ArtDream"))
+        assertFalse(AdbWhitelist.allows("settings put secure screensaver_components com.nbansal.afterglow/.saver.ArtDream;id"))
+    }
+
+    @Test
+    fun artworkRules() {
+        assertFalse(ArtLogic.available(2))
+        assertTrue(ArtLogic.available(3))
+        assertTrue(ArtLogic.isBackdropName("abc.jpg"))
+        assertFalse(ArtLogic.isBackdropName("logo_abc.png"))
+        assertFalse(ArtLogic.isBackdropName("abc.jpg.part"))
+        assertEquals(1, ArtLogic.next(0, 3))
+        assertEquals(0, ArtLogic.next(2, 3))
+        assertEquals(0, ArtLogic.next(0, 0))
+        assertEquals(1.04f, ArtLogic.scale(0), 0.0001f)
+        assertEquals(1.10f, ArtLogic.scale(ArtLogic.SLIDE_MS + ArtLogic.FADE_MS), 0.0001f)
+        assertEquals(1.10f, ArtLogic.scale(10_000_000), 0.0001f)
+        assertEquals(0f, ArtLogic.fadeIn(0), 0f)
+        assertEquals(0.5f, ArtLogic.fadeIn(750), 0.0001f)
+        assertEquals(1f, ArtLogic.fadeIn(5000), 0f)
+    }
+
+    @Test
+    fun switchingBetweenOurScreensaversKeepsTheFirstPreviousValue() = runBlocking {
+        val adb = Fake(components = "a.b/a.b.C")
+        val store = Store()
+        assertTrue(SaverFlow(adb, store).use() is SaverResult.Ok)
+        assertTrue(SaverFlow(adb, store).use(Saver.ArtComponent) is SaverResult.Ok)
+        assertEquals(Saver.ArtComponent, adb.components)
+        assertEquals("a.b/a.b.C", store.value)
     }
 
     @Test

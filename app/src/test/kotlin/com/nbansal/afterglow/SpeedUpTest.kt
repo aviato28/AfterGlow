@@ -25,7 +25,7 @@ class SpeedUpTest {
     @Test
     fun shippedListIsValidAndHasNoProtectedPackages() {
         val items = Debloat.parse(shipped)
-        assertEquals(14, items.size)
+        assertEquals(21, items.size)
         items.forEach {
             assertTrue(it.pkg, it.reason.isNotEmpty())
             assertFalse(it.pkg, Debloat.isProtected(it.pkg))

@@ -3,6 +3,7 @@ package com.nbansal.afterglow.ui
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.focusable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,10 +17,12 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -30,6 +33,12 @@ import kotlinx.coroutines.delay
 
 private val OkKeys = setOf(Key.DirectionCenter, Key.Enter, Key.NumPadEnter)
 private const val GLOW_LAYERS = 6
+
+/** Showcase accent colour for focus ring and glow; null (Lite, dialogs) keeps the amber/cream look. */
+val LocalAccent = compositionLocalOf<Color?> { null }
+
+/** Ring colour for an accent: the accent lightened toward white (amber FFB070 -> about FFD4B0). */
+fun accentRing(accent: Color): Color = lerp(accent, Color.White, 0.45f)
 
 /**
  * The one focus look: when focused, lift 6% (or [lift]), draw a cream ring and an amber glow behind. Nothing is drawn (and no
@@ -49,6 +58,9 @@ fun Modifier.tvFocus(
     // A release only counts as a click if this item also saw the press: a popup that opens during a long press must not
     // receive the release of the key that opened it.
     var downSeen by remember { mutableStateOf(false) }
+    val accent = LocalAccent.current
+    val glowColor = accent ?: Ag.Amber
+    val ringColor = accent?.let { accentRing(it) } ?: Ag.Ring
     val scale by animateFloatAsState(if (focused) lift else 1f, tween(durationMillis = 120), label = "tvFocusScale")
 
     this
@@ -63,7 +75,7 @@ fun Modifier.tvFocus(
                 for (i in GLOW_LAYERS downTo 1) {
                     val grow = i * 5.dp.toPx()
                     drawRoundRect(
-                        color = Ag.Amber.copy(alpha = 0.05f),
+                        color = glowColor.copy(alpha = 0.05f),
                         topLeft = Offset(-grow, -grow),
                         size = Size(size.width + 2 * grow, size.height + 2 * grow),
                         cornerRadius = CornerRadius(corner + grow),
@@ -77,12 +89,12 @@ fun Modifier.tvFocus(
                 val width = 4.dp.toPx()
                 when (val outline = shape.createOutline(size, layoutDirection, this)) {
                     is Outline.Rounded -> drawRoundRect(
-                        color = Ag.Ring,
+                        color = ringColor,
                         cornerRadius = outline.roundRect.topLeftCornerRadius,
                         style = Stroke(width),
                     )
-                    is Outline.Rectangle -> drawRect(Ag.Ring, style = Stroke(width))
-                    is Outline.Generic -> drawPath(outline.path, Ag.Ring, style = Stroke(width))
+                    is Outline.Rectangle -> drawRect(ringColor, style = Stroke(width))
+                    is Outline.Generic -> drawPath(outline.path, ringColor, style = Stroke(width))
                 }
             }
         }

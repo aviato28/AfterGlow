@@ -66,6 +66,18 @@
             <meta-data android:name="android.service.dream" android:resource="@xml/clock_dream" />
         </service>
 
+        <service
+            android:name=".saver.ArtDream"
+            android:exported="true"
+            android:label="Afterglow artwork"
+            android:permission="android.permission.BIND_DREAM_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.dreams.DreamService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data android:name="android.service.dream" android:resource="@xml/clock_dream" />
+        </service>
+
         <receiver android:name=".update.InstallReceiver" android:exported="false" />
 
         <service
@@ -104,6 +116,7 @@
         <receiver android:name=".keys.BootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
     </application>

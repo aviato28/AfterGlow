@@ -45,13 +45,10 @@ class TakeoverTest {
     }
 
     @Test
-    fun serviceEnabledAndStaleNotice() {
+    fun serviceEnabled() {
         val c = "$self/com.nbansal.afterglow.takeover.HomeKeyService"
         assertTrue(Takeover.serviceEnabled("x/y:$c", c))
         assertFalse(Takeover.serviceEnabled(null, c))
-        assertTrue(Takeover.staleNotice(false, setOf("a.b")))
-        assertFalse(Takeover.staleNotice(true, setOf("a.b")))
-        assertFalse(Takeover.staleNotice(false, emptySet()))
     }
 
     @Test

@@ -17,7 +17,9 @@ import com.nbansal.afterglow.saver.SaverController
 import com.nbansal.afterglow.showcase.ShowcaseController
 import com.nbansal.afterglow.showcase.ShowcaseLogic
 import com.nbansal.afterglow.settings.versionName
+import com.nbansal.afterglow.takeover.FirmwareCheck
 import com.nbansal.afterglow.takeover.SpeedUpController
+import com.nbansal.afterglow.takeover.Takeover
 import com.nbansal.afterglow.takeover.TakeoverController
 import com.nbansal.afterglow.update.Release
 import com.nbansal.afterglow.update.Updater
@@ -26,6 +28,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -120,8 +123,6 @@ class AppModel(val app: Application) {
     fun unhide(pkg: String) = scope.launch { prefs.setHidden(state.hidden - pkg) }
     fun rename(pkg: String, name: String) = scope.launch { prefs.setNames(Favourites.rename(state.names, pkg, name)) }
 
-    /** Package the owner gave this remote button in Settings > Remote buttons, if it is still installed. */
-    fun buttonApp(keyCode: Int): String? = state.buttons[keyCode]?.takeIf { pkg -> apps.any { it.pkg == pkg } }
     fun mapButton(keyCode: Int, pkg: String) = scope.launch { prefs.setButtons(ButtonMap.set(state.buttons, keyCode, pkg)) }
     fun unmapButton(keyCode: Int) = scope.launch { prefs.setButtons(ButtonMap.remove(state.buttons, keyCode)) }
 
@@ -139,6 +140,27 @@ class AppModel(val app: Application) {
     fun checkIfDue() {
         if (Versions.shouldCheck(state.lastUpdateCheck, System.currentTimeMillis())) checkForUpdates()
     }
+
+    /** Firmware check (at most once a day): did a TV update undo the takeover? Sets the flag HomeActivity asks about. */
+    fun checkFirmware(onDone: () -> Unit = {}) {
+        scope.launch {
+            try {
+                val s = prefs.state.first()
+                val now = System.currentTimeMillis()
+                if (FirmwareCheck.checkDue(s.firmwareCheckMs, now)) {
+                    val pm = app.packageManager
+                    val back = FirmwareCheck.cameBack(s.disabledHomes, { FirmwareCheck.isEnabled(pm, it) }, Takeover.resolvedHome(pm), app.packageName)
+                    prefs.setFirmwareFlag(back)
+                    prefs.setFirmwareCheck(now)
+                }
+            } catch (_: Exception) {
+            } finally {
+                onDone()
+            }
+        }
+    }
+
+    fun firmwareNotNow() { scope.launch { prefs.setFirmwarePrompt(System.currentTimeMillis()) } }
 
     fun checkForUpdates() {
         if (busy) return

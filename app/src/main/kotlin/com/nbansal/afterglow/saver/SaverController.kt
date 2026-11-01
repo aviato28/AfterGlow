@@ -35,7 +35,7 @@ class SaverController(private val app: Application, prefs: Prefs) {
 
     fun refresh() { current = read() }
 
-    fun use() = run { flow.use() }
+    fun use(component: String = Saver.Component) = run { flow.use(component) }
     fun undo() = run { flow.undo() }
 
     private fun run(block: suspend () -> SaverResult) {

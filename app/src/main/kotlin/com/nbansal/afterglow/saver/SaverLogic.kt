@@ -43,6 +43,7 @@ object NightStyle {
 /** Pure rules of the clock screensaver (unit-tested). */
 object Saver {
     const val Component = "com.nbansal.afterglow/com.nbansal.afterglow.saver.ClockDream"
+    const val ArtComponent = "com.nbansal.afterglow/com.nbansal.afterglow.saver.ArtDream"
     const val DreamX = "com.google.android.apps.tv.dreamx"
 
     private val DateFormat = DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.ENGLISH)
@@ -69,6 +70,7 @@ object Saver {
         val v = value.orEmpty().trim()
         return when {
             v.isEmpty() || v == "null" -> "off"
+            v.contains("com.nbansal.afterglow") && v.contains("ArtDream") -> "Afterglow artwork"
             v.contains("com.nbansal.afterglow") -> "Afterglow clock"
             v.contains(DreamX) -> "Google TV ambient mode"
             else -> "something else"
@@ -77,6 +79,32 @@ object Saver {
 
     /** `settings get` prints "null" for nothing. */
     fun parse(output: String): String? = output.trim().takeIf { it.isNotEmpty() && it != "null" }
+}
+
+/** Pure rules of the artwork screensaver (unit-tested). */
+object ArtLogic {
+    const val MIN_BACKDROPS = 3
+    const val SLIDE_MS = 20_000L
+    const val FADE_MS = 1_500L
+    const val SCALE_FROM = 1.04f
+    const val SCALE_TO = 1.10f
+
+    /** A file in the Showcase image cache that is a backdrop (title logos and unfinished downloads are not). */
+    fun isBackdropName(name: String) = !name.startsWith("logo_") && !name.endsWith(".part")
+
+    fun available(count: Int) = count >= MIN_BACKDROPS
+
+    /** Next picture, wrapping round. */
+    fun next(index: Int, count: Int) = if (count <= 0) 0 else (index + 1) % count
+
+    /** Drift scale after [elapsedMs] of a slide (it lasts the slide plus the fade-out); never leaves 1.04 to 1.10. */
+    fun scale(elapsedMs: Long): Float {
+        val p = (elapsedMs.toFloat() / (SLIDE_MS + FADE_MS)).coerceIn(0f, 1f)
+        return SCALE_FROM + (SCALE_TO - SCALE_FROM) * p
+    }
+
+    /** Opacity of a slide that is fading in. */
+    fun fadeIn(elapsedMs: Long): Float = (elapsedMs.toFloat() / FADE_MS).coerceIn(0f, 1f)
 }
 
 interface SaverStore {
@@ -89,18 +117,18 @@ sealed class SaverResult(val message: String) {
     class Failed(message: String) : SaverResult(message)
 }
 
-/** Switch the TV's screensaver to the Afterglow clock and back. The old value is saved BEFORE anything is changed. */
+/** Switch the TV's screensaver to the Afterglow clock or artwork and back. The old value is saved BEFORE anything is changed. */
 class SaverFlow(private val adb: Adb, private val store: SaverStore) {
     private suspend fun components() = Saver.parse(adb.run(AdbWhitelist.GetScreensaver).output)
 
     private suspend fun put(value: String) = adb.run(AdbWhitelist.putScreensaver(value)).exitCode == 0
 
-    suspend fun use(): SaverResult {
+    suspend fun use(component: String = Saver.Component): SaverResult {
         val old = components()
-        if (old != Saver.Component) store.setPrevious(old ?: "null")
-        val ok = put(Saver.Component) && adb.run(AdbWhitelist.putScreensaverEnabled(true)).exitCode == 0 && components() == Saver.Component
-        if (ok) return SaverResult.Ok("The Afterglow clock is now your screensaver. It starts after the TV's own timeout.")
-        if (old != null && old != Saver.Component) runCatching { put(old) }
+        if (old != Saver.Component && old != Saver.ArtComponent) store.setPrevious(old ?: "null")
+        val ok = put(component) && adb.run(AdbWhitelist.putScreensaverEnabled(true)).exitCode == 0 && components() == component
+        if (ok) return SaverResult.Ok("${Saver.describe(component)} is now your screensaver. It starts after the TV's own timeout.")
+        if (old != null && old != component) runCatching { put(old) }
         return SaverResult.Failed("The TV did not accept the change, so nothing was changed. Use the TV's own Screen saver page instead.")
     }
 

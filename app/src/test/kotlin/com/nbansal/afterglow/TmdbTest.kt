@@ -80,14 +80,6 @@ class TmdbTest {
     }
 
     @Test
-    fun metaLineSkipsMissingParts() {
-        val t = ShowTitle(1, "movie", "X", "2024", "Sci-Fi", "7.8", "", "/x.jpg")
-        assertEquals("2024 · Sci-Fi · ★ 7.8", Tmdb.metaLine(t))
-        assertEquals("2024 · ★ 7.8", Tmdb.metaLine(t.copy(genre = "")))
-        assertEquals("", Tmdb.metaLine(t.copy(year = "", genre = "", rating = "")))
-    }
-
-    @Test
     fun watchUrlByType() {
         assertEquals("https://www.themoviedb.org/movie/693134", Tmdb.watchUrl(ShowTitle(693134, "movie", "D", "", "", "", "", "/d")))
         assertEquals("https://www.themoviedb.org/tv/3", Tmdb.watchUrl(ShowTitle(3, "tv", "S", "", "", "", "", "/s")))

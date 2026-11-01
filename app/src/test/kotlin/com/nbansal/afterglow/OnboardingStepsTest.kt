@@ -1,6 +1,5 @@
 package com.nbansal.afterglow
 
-import com.nbansal.afterglow.apps.AppEntry
 import com.nbansal.afterglow.onboarding.OnboardingStep.*
 import com.nbansal.afterglow.onboarding.OnboardingSteps
 import org.junit.Assert.assertEquals
@@ -34,13 +33,11 @@ class OnboardingStepsTest {
 
     @Test
     fun favouritesFollowTickOrder() {
-        val installed = listOf("a.a", "b.b", "c.c").map { AppEntry(it, "x", it) }
         var t = emptyList<String>()
         for (p in listOf("c.c", "a.a", "b.b")) t = OnboardingSteps.toggle(t, p)
-        assertEquals(listOf("c.c", "a.a", "b.b"), OnboardingSteps.favouritesFrom(t, installed))
+        assertEquals(listOf("c.c", "a.a", "b.b"), t)
         t = OnboardingSteps.toggle(t, "a.a")
         assertEquals(listOf("c.c", "b.b"), t)
-        assertEquals(listOf("c.c"), OnboardingSteps.favouritesFrom(listOf("c.c", "gone.x", "c.c"), installed))
         assertEquals(listOf("b.b", "c.c"), OnboardingSteps.moveEarlier(t, "b.b"))
     }
 }

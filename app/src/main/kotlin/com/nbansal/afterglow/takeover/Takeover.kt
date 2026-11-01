@@ -45,8 +45,6 @@ object Takeover {
     fun serviceEnabled(setting: String?, component: String): Boolean =
         setting.orEmpty().split(':').any { it.equals(component, ignoreCase = true) }
 
-    fun staleNotice(afterglowIsHome: Boolean, disabled: Set<String>) = !afterglowIsHome && disabled.isNotEmpty()
-
     /** Every package that handles HOME (the TV's own launcher, Afterglow, ...). */
     fun homePackages(pm: PackageManager): List<String> =
         runCatching { pm.queryIntentActivities(homeIntent(), 0) }.getOrDefault(emptyList())

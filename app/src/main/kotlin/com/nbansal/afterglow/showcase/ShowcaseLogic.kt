@@ -10,7 +10,38 @@ object ShowcaseLogic {
     const val MIN_RAM_BYTES = 2_300_000_000L
     const val REFRESH_MS = 6 * 60 * 60 * 1000L
     const val GENRES_MS = 30L * 24 * 60 * 60 * 1000L
-    const val MAX_IMAGE_FILES = 10
+    /** 10 backdrops + 10 logos + a little room. */
+    const val MAX_IMAGE_FILES = 24
+    const val DEFAULT_ACCENT = 0xFFFFB070.toInt()
+    const val DRIFT_MS = 15_000
+    const val NIGHT_DIM = 0.4f
+
+    /** Ken Burns duration: doubled in the Night glow phase. */
+    fun driftMs(night: Boolean): Int = if (night) DRIFT_MS * 2 else DRIFT_MS
+
+    /**
+     * One accent per backdrop: among [pixels] (ARGB, from a 16x9 downscale) with value 0.35-0.95, the one with the highest
+     * saturation, as opaque ARGB. The first one wins a tie. [DEFAULT_ACCENT] when none qualifies.
+     */
+    fun pickAccent(pixels: IntArray): Int {
+        var best = DEFAULT_ACCENT
+        var bestSat = -1f
+        for (p in pixels) {
+            val r = (p shr 16) and 0xFF
+            val g = (p shr 8) and 0xFF
+            val b = p and 0xFF
+            val max = maxOf(r, g, b)
+            val min = minOf(r, g, b)
+            val v = max / 255f
+            if (v < 0.35f || v > 0.95f) continue
+            val s = (max - min) / max.toFloat()
+            if (s > bestSat) {
+                bestSat = s
+                best = (0xFF shl 24) or (r shl 16) or (g shl 8) or b
+            }
+        }
+        return best
+    }
 
     /** Showcase is offered from 2.3 GB of total RAM (a "3 GB" TV reports about 2.5-2.9 GB). */
     fun ramOk(totalBytes: Long): Boolean = totalBytes >= MIN_RAM_BYTES

@@ -52,10 +52,16 @@ fun PackagesPage() {
 fun AboutPage(model: AppModel) {
     val context = LocalContext.current
     var problemVersion by remember { mutableIntStateOf(0) }
+    var noteVersion by remember { mutableIntStateOf(0) }
+    val autoNote = remember(noteVersion) { CrashGuard.autoRestoreNote(context) }
     val problem = remember(problemVersion) { CrashGuard.lastProblem(context) }
     val latest = model.latest
     val available = model.updateAvailable
     val rows = buildList {
+        if (autoNote != null) add(SettingsRow("Dismiss", "crash note") {
+            CrashGuard.dismissAutoRestoreNote(context)
+            noteVersion++
+        })
         add(SettingsRow("Version", versionName(context)) {})
         add(
             SettingsRow(
@@ -79,10 +85,11 @@ fun AboutPage(model: AppModel) {
         })
     }
     val text = if (available) latest?.notes?.let { Versions.firstLines(it) } else problem?.lines()?.take(6)?.joinToString("\n")
-    val shown = listOfNotNull(text?.takeIf { it.isNotBlank() }, com.nbansal.afterglow.showcase.Tmdb.ATTRIBUTION).joinToString("\n\n")
+    val autoText = autoNote?.let { "Afterglow crashed repeatedly at ${it.first} and gave Home back to Google TV" + if (it.second.isBlank()) "" else "\n${it.second}" }
+    val shown = listOfNotNull(autoText, text?.takeIf { it.isNotBlank() }, com.nbansal.afterglow.showcase.Tmdb.ATTRIBUTION).joinToString("\n\n")
     SettingsPage(
         "About", rows,
-        headerHeight = if (available) 440.dp else 280.dp,
+        headerHeight = if (available || autoNote != null) 440.dp else 280.dp,
         header = { Text(shown, style = Ag.Body.copy(color = Ag.Muted, fontSize = 22.sp), maxLines = 14) },
     )
 }

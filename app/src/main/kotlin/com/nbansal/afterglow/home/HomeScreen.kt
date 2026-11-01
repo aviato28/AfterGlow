@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
@@ -64,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nbansal.afterglow.apps.AppEntry
 import com.nbansal.afterglow.ui.Ag
+import com.nbansal.afterglow.ui.LocalAccent
 import com.nbansal.afterglow.ui.AppTile
 import com.nbansal.afterglow.ui.focusSoon
 import com.nbansal.afterglow.ui.tvFocus
@@ -120,6 +122,8 @@ fun HomeScreen(
         }
     }
 
+    val accent = if (showcase != null && showcase.accent != 0) Color(showcase.accent) else null
+    CompositionLocalProvider(LocalAccent provides accent) {
     Box(modifier.fillMaxSize()) {
         if (showcase != null) ShowcaseHero(showcase, watch)
         Row(
@@ -166,7 +170,8 @@ fun HomeScreen(
         Box(
             Modifier.padding(start = 72.dp, top = if (sc) 760.dp else 520.dp).width(1776.dp).height(if (sc) 260.dp else 330.dp)
                 .onFocusChanged { shelfFocused = it.hasFocus }
-                .glass(ShelfShape),
+                .glass(ShelfShape)
+                .then(if (sc && accent != null) Modifier.background(accent.copy(alpha = 0.10f), ShelfShape) else Modifier),
         ) {
             Text("FAVOURITES", style = Ag.SectionCaps, modifier = Modifier.padding(start = 40.dp, top = 34.dp))
             if (hasFavourites) {
@@ -241,6 +246,7 @@ fun HomeScreen(
                 }
             }
         }
+    }
     }
 }
 
