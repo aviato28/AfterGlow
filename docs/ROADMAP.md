@@ -39,6 +39,8 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
       `Settings.System.SCREEN_BRIGHTNESS` may not drive the TV backlight (TCL has its own `tcl_app_settings_picture_backlight` feature). Discovery first (laptop, adb):
       `settings list system > a.txt`, change Backlight/Brightness in TV Settings, `settings list system > b.txt`, diff (also `global`/`secure`). Then write that key
       over adb (`settings put system <key> <n>`, strict whitelist pattern + test) or via `WRITE_SETTINGS` if it's a normal system key. Bar: left/right steps, shows the value.
+      **Discovery 1 Nov:** changing Backlight changed nothing in `settings list system/global/secure` (TCL keeps it private). Owner paused this; next idea
+      if resumed: `adb logcat` while changing Backlight to find the TCL call.
    b. **Declutter the tiles:** drop the ones not used on a TV (Bluetooth, likely Accessibility); keep only what the owner actually uses. Owner to list keepers.
 000000. **DONE, awaiting a TV test: M4.2 (no log-access popup, heartbeat watchdog, diagnostics) and M5 (`docs/specs/M5-quick-panel-v2.md`).**
    Built together in one push. Owner test: restart the TV -> no popup; panel opens in YouTube, Penumbra+, Netflix; Sleep timer cycles and warns; Now playing shows
