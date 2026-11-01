@@ -1,6 +1,6 @@
 # Afterglow roadmap
 
-Status: **M0, M1 and Chunk A (in-app Home takeover and Restore) done and tested on the TCL 65Q6C. Next: Chunk B (onboarding, speed-up, recents, polish).**
+Status: **0.10.1 released (Afterglow 2: Lite v2 home, Showcase, quick panel v2). Next: task list item 1 (crash-loop auto-restore).**
 
 ## What it is
 A clean, fast home screen for Google TV / Android TV that replaces the stock Google TV launcher. Free, public, open
@@ -33,111 +33,48 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
-## Task list (open items, newest first)
-0. **Showcase v2 (owner loved the mockups, 1 Nov):** `docs/design/v2/showcase2-dune.png`, `showcase2-batman.png`, `showcase2-kenburns.gif` (+ HTML). Not started.
-   a. **Title logos:** TMDB `/3/{movie|tv}/{id}/images?include_image_language=en,null`, pick the best English PNG logo (`w500`), cache with the backdrop; no logo ->
-      styled text title (thin wide-spaced). Logo max ~860x260 dp, soft glow behind.
+## Task list (open, do in this order)
+1. **Auto-restore if Afterglow crash-loops** (safety, top priority). 3 crashes within 2 minutes (`CrashGuard`) -> run the M2 Restore flow by itself over
+   `127.0.0.1:5555` (re-enable the packages saved in `disabledHomes`) so Google TV comes back, then a note in Settings > About. Reuse `TakeoverFlow.restore()`,
+   no new adb commands. Guard: if USB debugging is off, only log. Unit tests with a fake adb.
+2. **Firmware update check.** On boot / `MY_PACKAGE_REPLACED` / daily: if a package in `disabledHomes` is enabled again (TV update) or Home resolves to
+   another launcher, show "Your TV update brought Google TV back. Re-apply takeover?" (one tap, same verified flow). Never re-apply silently.
+3. **Speed and memory pass.** Baseline profile for Home, cold start under 500 ms on the TCL, memory with Showcase images + glass + key-watch service,
+   no leaks opening/closing apps, a 2 GB TV check; record numbers in the README.
+4. **Showcase v2** (owner loved the mockups, 1 Nov): `docs/design/v2/showcase2-dune.png`, `showcase2-batman.png`, `showcase2-kenburns.gif` (+ HTML).
+   a. **Title logos:** TMDB `/3/{movie|tv}/{id}/images?include_image_language=en,null`, best English PNG logo (`w500`), cached with the backdrop; no logo ->
+      styled text title. Logo max ~860x260 dp, soft glow behind.
    b. **Ken Burns drift:** backdrop scales 1.04 -> 1.10 and pans ~40 dp over the 15 s, GPU transform only (graphicsLayer), stops when Home isn't resumed or focus leaves the hero.
-   c. **Colour matched to the artwork:** one accent color sampled per backdrop (cheap: downscale to 16x9, pick the most saturated mid-bright color) -> focus ring/glow,
-      score ring, dots, shelf tint, bottom glow. Fallback amber.
-   d. **Details:** TMDB score ring (vote_average x10), age certification for India (`/release_dates` for movies, `/content_ratings` for tv, region IN, fall back to US),
-      runtime (movie `runtime` / tv `episode_run_time`), up to 2 genres, "New on streaming" badge when released within 60 days. One details call per title, cached with
-      the 6 h refresh. NO 4K/Dolby Vision badges (TMDB doesn't know).
-0. **Showcase bugs (owner, 0.10.0 test).** a+b done in M7.1 (RAM gate, masked key, Clear key); Quick panel declutter done (Bluetooth and Accessibility tiles removed); brightness still open.
-   a. **RAM gate wrong:** the TCL 65Q6C (sold as 3 GB, `tcl_app_settings_ram=3221225472`) reports less than 2.8 GB in `MemoryInfo.totalMem` (kernel reserve), so
-      Showcase is refused. Fix: `ShowcaseLogic.MIN_RAM_BYTES` to 2_300_000_000 (a "3 GB" TV reports ~2.5-2.9 GB; 2 GB TVs report ~1.6-1.9). Update the test.
-   b. **Key entry:** remote typing is impossible; adb `input text` of the 220-char v4 token got 401 although both keys return 200 from TMDB (verified), so the saved key was mangled. Show the saved key masked (first 4 … last 4 + length) on the Look page. Make the "That does not look like a TMDB key" message say how many characters it got (no key text), trim
-      whitespace on save, and add a "Clear key" row. Later idea (owner to decide): QR code -> phone page on the local network to paste the key.
-0. **Quick panel v2 tweaks (owner, 0.10.0 test): panel looks great.** Not started; owner may add more.
-   a. **Replace the volume bar with a BRIGHTNESS bar** (most-used setting; volume is on the remote). Unknown: which value the TCL backlight uses. Android's
-      `Settings.System.SCREEN_BRIGHTNESS` may not drive the TV backlight (TCL has its own `tcl_app_settings_picture_backlight` feature). Discovery first (laptop, adb):
-      `settings list system > a.txt`, change Backlight/Brightness in TV Settings, `settings list system > b.txt`, diff (also `global`/`secure`). Then write that key
-      over adb (`settings put system <key> <n>`, strict whitelist pattern + test) or via `WRITE_SETTINGS` if it's a normal system key. Bar: left/right steps, shows the value.
-      **Discovery 1 Nov:** changing Backlight changed nothing in `settings list system/global/secure` (TCL keeps it private). Owner paused this; next idea
-      if resumed: `adb logcat` while changing Backlight to find the TCL call.
-   b. **Declutter the tiles:** drop the ones not used on a TV (Bluetooth, likely Accessibility); keep only what the owner actually uses. Owner to list keepers.
-000000. **DONE, awaiting a TV test: M4.2 (no log-access popup, heartbeat watchdog, diagnostics) and M5 (`docs/specs/M5-quick-panel-v2.md`).**
-   Built together in one push. Owner test: restart the TV -> no popup; panel opens in YouTube, Penumbra+, Netflix; Sleep timer cycles and warns; Now playing shows
-   after switching Quick panel off and on once (grants the listener); Learn a button catches Channel and YouTube.
-00000. **Afterglow 2: UI revamp, Showcase mode, new quick panel** (owner approved the mockups 28 Oct; `docs/design/v2/` has PNGs + the HTML/CSS they were
-   made from, which is the visual reference). Keep the sunset glow as identity, softened into ambient light; frosted glass; Outfit.
-   a. **DONE, awaiting a TV test (M5):** **Quick panel redesign** (`quick-panel.png`): glass control centre on the right over the video: clock, **Now playing** card (title, app, prev/play-pause/next;
-      needs notification-listener access granted over the existing adb, media sessions only, never notification text), volume bar, 2-column tiles:
-      **Sleep** (turn off now, via adb key event or the TV's sleep key), **Sleep timer** (off in 15/30/45/60/90 min, runs in the key-watch service),
-      Wi-Fi, Bluetooth, Sound output, Picture, Accessibility (open the stock pages), All settings; footer: Afterglow settings, Back to close. Focused tile cream `#FFD9B0`.
-   b. **DONE, awaiting a TV test (M6):** **Lite home revamp** (`home-lite.png`, default): logo top-left; top-right glass pill with clock + All apps + Settings icon buttons (replaces the text pills);
-      greeting with the owner's name ("Good evening, Naman", name asked once in onboarding/settings, optional) + date; Favourites on a frosted glass shelf with
-      larger rounded cards; All apps row peeking below. Fake glass on low-end TVs (translucent layers, no blur); real blur only where cheap.
-   c. **DONE, awaiting a TV test (M7, `docs/specs/M7-showcase.md`):** **Showcase mode** (`home-showcase.png`), Settings > Look > Lite / Showcase, offered only on TVs with 3 GB RAM or more: full-bleed rotating TMDB trending artwork,
-      title, year/genre/runtime, overview, **Watch** (sends `ACTION_VIEW https://www.themoviedb.org/movie/<id>` (or `/tv/<id>`) to the app the owner picks once;
-      their own movie app must accept TMDB links, which is a change in that app, not here), "More like this", dots, "Trending this week · TMDB" credit + TMDB
-      attribution in About; Favourites shelf at the bottom. TMDB API key typed in by the owner once (never in the repo). Refresh at most every 6 h, cache for
-      offline, decode images at screen size, drop them on `onTrimMemory`. **Rule change:** TMDB is the only network call besides GitHub, and only while Showcase is on.
-   Order: a, then b, then c. Each gets its own spec before building.
-0000. **DONE, awaiting a TV test (M5, parts 1 and 3; part 2 still needs the YouTube key code): YouTube button dead + TCL Channel button can't be remapped** (owner, 0.7.1). Likely cause: TCL handles both keys itself before any app (Channel opens
-   `com.tcl.channelplus`; YouTube probably goes to the disabled Google TV launcher), so Learn a button (which only sees keys reaching the app) never gets them.
-   Plan: (1) Learn a button listens to the log watcher too; (2) built-in mapping YouTube key -> `com.google.android.youtube.tv`, launched by the service;
-   (3) Channel: mapped app launched by the service, plus an optional, undoable `pm disable-user com.tcl.channelplus` (check it isn't protected) so TCL's app doesn't
-   open too. Blocked on: the key codes. Owner test pending: on the Quick panel page press YouTube once, then Channel once, read the newest "Last keys" entry each.
-   If a key never shows in the log, it can't be caught at all.
-000. **DONE, awaiting a TV test: two M4 fixes from the 0.7.0 TV test (23 Oct)** (no self-test wait, Adb retry every 5 s, diagnostics; learner takes every key in `dispatchKeyEvent`, service ignores keys while learning).
-   a. Quick panel works inside Afterglow but not over other apps: diagnostics say **Source: none, Service: running, Last keys: none**. Cause: the source choice waits for a
-      log line during a self-test, but no key is pressed then, so it never picks. Fix: no wait; Local reader if READ_LOGS is granted and logcat stays alive, else the Adb reader
-      (dadb 127.0.0.1:5555), retry at most every 5 s; diagnostics show source, lines seen, last matched key + time, last error. Unit-test with fakes.
-   b. Learn a button still launches the app when a built-in key (Netflix/Prime/Settings) is pressed. Fix: override `HomeActivity.dispatchKeyEvent`; if the learning flag is set,
-      give the key to the learner and return true before anything else; the service ignores keys while learning. Unit-test.
-   Then: merge + Release 0.7.1, owner re-tests (photo of the diagnostics block).
-00. **DONE, awaiting a TV test: Quick panel + remote keys everywhere + Learn-a-button fix** (`docs/specs/M4-quick-panel.md`; also closes task 0a/0b).
-   `keys/` (log watcher service, Local or Adb source), `panel/QuickPanel.kt` (overlay), Settings > Afterglow settings > Quick panel (switch + diagnostics).
-   To test: switch it on; play YouTube, press Settings -> panel over the video, video keeps playing; Netflix/Prime keys launch the app from inside
-   YouTube; Settings > Remote buttons > Learn a button captures the Netflix key (code 4062) instead of opening Netflix.
-0. **Two bugs from the 0.6.0 TV test (owner). Not started.**
-   a. **Settings key opens full-screen Settings; TCL's normal behaviour is a narrow side bar on the right**, so you can change picture/sound while the
-      video keeps playing. Goal: same side bar. Unknown: which component draws it (likely part of the Google TV launcher we disabled, or a TCL/`com.android.tv.settings`
-      panel activity). Step 1 (discovery, owner's laptop, no code): find the component. (i) `adb shell pm list packages | findstr -i "tcl tv.settings"`;
-      (ii) with Google TV restored once, press Settings and read `adb shell dumpsys window | findstr mCurrentFocus` while the bar is open. Step 2: launch that
-      component from `RemoteAction.TvSettings` with a plain `startActivity` (no new adb commands). If it lives in a package we disable (launcherx) it cannot
-      be started: fall back to Android TV Settings panel activities if any, else keep full-screen Settings and say so on the Remote buttons page.
-      **Discovery result (owner's laptop, 23 Oct):** NOT the side bar: `com.tcl.suspension/.ui.main.MainActivity` (input sources menu), `com.tcl.dashboard/.MainActivity`
-      (TCL home page, opens at the right edge), `com.google.android.apps.tv.dreamx/.settingsv2.TwoPanelActivity` (screensaver settings). Broadcast
-      `com.tcl.quickpanel.show.window` has no receiver. Most likely the bar is inside the Google TV launcher (`launcherx`) we disable. Also found: **with launcherx
-      disabled, the remote's Settings and YouTube keys do nothing inside other apps** (only Afterglow sees keys, and only while on screen): a limit of the takeover itself.
-      Also ruled out: `com.tcl.suspension` (MainActivity, InputActivity and the `com.tcl.quickpanel.show.window` service action all open the INPUT menu), launcherx
-      (no panel activity, only a slice provider), `TOGGLE_NOTIFICATION_HANDLER_PANEL`. Log: in another app the Settings key (83, `KEYCODE_NOTIFICATION`) goes straight to
-      the app and no system component reacts (`handleKeyBeforeDispatching keyCode=83 disable`). **PARKED: keep full-screen Settings. `tclhome_passive` is an empty stub (activity class missing). Untried: `com.tcl.tv`, `com.tcl.systemui.plugin`.**
-      **ROOT CAUSE FOUND (restored-state log, 23 Oct):** the Settings key makes TCL's `TclShortCutKeyManager` start `launcherx/.dashboard.DashboardHandler`
-      (action `android.app.action.TOGGLE_NOTIFICATION_HANDLER_PANEL`) in the Google TV launcher package. That package is disabled by the takeover, so the call fails.
-      Home candidates: launcherx HomeActivity priority 2, setupwraith RecoveryActivity 1, Afterglow 0, FallbackHome -1; highest wins, no chooser, and a normal app cannot
-      raise its priority. So: **Afterglow as Home and the stock side bar cannot coexist on this TV.** Left: TV setting `tcl_app_settings_key_customization=true` (look for
-      a "customize buttons" menu in TV Settings); a custom panel inside Afterglow (only on Afterglow's own screen, no video behind). Decision: keep full-screen Settings.
-      Next (only if the owner wants it): Restore once, press Settings during a video with `adb logcat -c` then `adb logcat -d | findstr "START cmp="`, then
-      re-apply the takeover. Otherwise accept full-screen Settings, or try `com.android.tv.settings` side-panel activities. Not worth more guessing.
-   b. **"Learn a button" launches the app instead of learning** when the pressed button is already mapped (Netflix, Prime, Settings). Fix: while the Learn
-      screen is open, capture the key code BEFORE any mapping (a `learning` flag read in `HomeActivity.onKeyDown`, or consume in the Learn screen's key handler)
-      and show the code. User mappings are checked before the built-ins so any button can be re-assigned; each remapped button gets "Reset to default".
-      Unit-test: learn mode returns the code for a built-in key; a user mapping wins over `RemoteKeys`.
-1. **DONE, awaiting a TV test: screensaver no longer starts while a movie is playing** (commit 1f54b3d). `ClockDream.onDreamingStarted()`
-   calls `wakeUp()` when `AudioManager.isMusicActive()`. To test: play a movie, let the TV idle, no screensaver; pause, it may. Still to
-   check: video from an HDMI input has no audio session on the TV.
-2. **DONE, awaiting a TV test: remote Settings (83), Netflix (4062) and Prime Video (4099) buttons** (commit 1f54b3d, `home/RemoteKeys.kt`
-   + `HomeActivity.onKeyDown` + `RemoteKeysTest`). Only while Afterglow is on screen. YouTube sends nothing to the app (the TV consumes it);
-   open: ask the owner what it does now.
-3. **DONE, awaiting a TV test: Settings > Afterglow settings > Remote buttons.** "Learn a button" waits for a press (`HomeActivity.dispatchKeyEvent`;
-   Back, D-pad, OK, Home, Menu, power and volume can't be learned), then you pick any installed app. Stored as key code -> package in DataStore
-   (`data/ButtonMap.kt`, `ButtonMapTest`), checked in `HomeActivity.onKeyDown` after the built-in `RemoteKeys` (so Netflix/Prime can't be
-   remapped yet). Rows on the page remove a mapping. Same limits as task 2. To test: learn the TCL Channel button, pick an app, press it on Home.
-4. **Auto-restore if Afterglow crash-loops** (safety). If Afterglow crashes 3 times within 2 minutes (`CrashGuard`), run the M2 Restore flow by
-   itself over `127.0.0.1:5555` (re-enable the packages saved in `disabledHomes`) so Google TV comes back instead of leaving the TV stuck, then
-   show a note in Settings > About. Reuse `TakeoverFlow.restore()`; no new adb commands. Needs: crash counter with timestamps, a guard against
-   restoring when USB debugging is off (then just log), unit tests with a fake adb.
-5. **Speed pass (Chunk C, part 1):** baseline profile for the Home screen, cold start under 500 ms on the TCL, memory check on a 2 GB TV
-   (image cache, no leaks when opening apps and coming back), measure and record the numbers in the README.
-6. **Real screenshots in the README + a download button on the owner's website** (afterglow.nbansal28.com should link to the latest GitHub release
-   APK). Screenshots: `adb exec-out screencap -p > afterglow-home.png` from the laptop, then `docs/screenshots/`.
-7. Release 1.0 after 4 to 6 (and the Speed up list check, task 8).
-8. **Check the shipped "Speed up my TV" list against the owner's real TV** (all items are unticked and unverified). Needs the output of
-   `adb shell pm list packages` (system and third-party) from the owner.
-9. Tidy: the screensaver and takeover pages have only been tested on the TCL 65Q6C; other TVs untested.
+   c. **Colour matched to the artwork:** one accent per backdrop (downscale to 16x9, most saturated mid-bright color) -> focus ring/glow, score ring, dots, shelf tint,
+      bottom glow. Fallback amber.
+   d. **Details:** score ring (vote_average x10), age certification for India (`/release_dates` movies, `/content_ratings` tv, region IN, fall back to US), runtime,
+      up to 2 genres, "New on streaming" badge (released within 60 days). One details call per title, cached with the 6 h refresh. NO 4K/Dolby Vision badges.
+5. **Showcase night mode:** in the Night glow phase (21-05) the artwork dims ~40% and the drift slows; matches the Lite glow phases.
+6. **Artwork screensaver:** a second screensaver choice next to the sunset clock: cached Showcase backdrops (no extra network), slow crossfade + drift, small clock.
+   Only offered when Showcase has a working key. Same "don't start while video plays" rule.
+7. **Dead code clean-up:** remove what M4/M5/M7 left behind (old list panel, unused icons, Local logcat reader and `GrantLogs` remnants, old Learn paths). No behaviour change.
+8. **README + website for the v2 look:** real screenshots (`adb exec-out screencap -p > home.png` from the laptop -> `docs/screenshots/`), and a download button on
+   afterglow.nbansal28.com linking to the latest release APK.
+9. **Check the "Speed up my TV" list** against the real TV (needs `adb shell pm list packages` output from the owner).
+10. Release 1.0 after 1-3 and 9.
+
+## Waiting for the owner
+- **Brightness bar** instead of volume in the quick panel: TCL keeps Backlight outside `settings` (discovery 1 Nov). Next if resumed: `adb logcat` while changing Backlight.
+- **QR code key entry** (phone page on the local network to paste the TMDB key): owner to decide.
+- **YouTube remote button:** learn it with Learn a button; a built-in mapping needs its key code from the Quick panel diagnostics.
+- **Penumbra+ accepts TMDB links** (change in that app; note given to the owner 1 Nov) -> then pick it in Look > Open titles with.
+
+## Built, awaiting a TV test
+- Quick panel v2 (M4, M4.2, M5, M7.1): overlay over any app via the Adb log reader, heartbeat, no boot popup, Now playing, Sleep, Sleep timer, 6 tiles
+  (Bluetooth/Accessibility removed). Owner confirmed the panel works in YouTube and Penumbra+.
+- Remote buttons: Settings/Netflix/Prime built-ins, Learn a button (also from the log), "Stop TCL Channel opening too".
+- Lite home v2 (M6) and Showcase (M7, M7.1; TMDB key works, 1 Nov).
+- Screensaver yields while video plays (HDMI input not checked).
+
+## Parked / decided
+- **TCL Settings side bar:** lives in the Google TV launcher (`launcherx/.dashboard.DashboardHandler`), which the takeover disables, and Afterglow can't win Home
+  any other way (priority 0 vs 2). Can't coexist; the Afterglow quick panel replaces it.
+- Only the TCL 65Q6C has been tested; other brands and Fire TV untested.
 
 ## Later (not v1)
 Folders, remote-button remapping, Obtainium listing.

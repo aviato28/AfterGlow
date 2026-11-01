@@ -9,7 +9,8 @@ low-memory TVs. Read `docs/ROADMAP.md` first; build sessions implement exactly o
   anything it couldn't do in the spec's "Not done" section.
 - **Default is discussion only.** Everything the owner says is task list and discussion unless they explicitly say "build" (or "go").
   Discussion only means: edit docs, commit with `[skip ci]`, push. No build agents, no merges, no releases.
-- No pull requests unless asked. Develop on the branch the session names.
+- No pull requests unless asked. Develop on the branch the session names. The master chat merges build PRs with a merge commit
+  (not squash) so history stays clean.
 - The owner tests on a TCL 65Q6C (Google TV) and has no PC; anything needing a computer must have an in-app path.
 
 ## Stack
@@ -25,7 +26,7 @@ low-memory TVs. Read `docs/ROADMAP.md` first; build sessions implement exactly o
 - One focus system (`Modifier.tvFocus`): ring always drawn on the focused item, small lift, focus remembered when you
   come back, never "nothing selected" (use `focusSoon()` retry when a screen opens). Ring is never clipped: rows leave room.
 - Many TCL remotes never send Menu to apps: long-press OK opens options everywhere; Menu is a bonus.
-- Look: follow `docs/design/` (home.svg, logo.svg) and the Design section of the roadmap.
+- Look: follow `docs/design/v2/` (Afterglow 2 mockups, PNG + HTML/CSS), `docs/design/logo.svg` and the Design section of the roadmap.
 - Text at least 20 sp; 96 dp / 54 dp safe margins.
 - Images: small memory cache (~10%), decode at the size shown, clear on `onTrimMemory`.
 - Crash safety: a launcher that crashes can strand the user. Catch uncaught errors, log them, restart Home once
