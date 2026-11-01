@@ -34,6 +34,11 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open items, newest first)
+0. **Showcase bugs (owner, 0.10.0 test).** Not started.
+   a. **RAM gate wrong:** the TCL 65Q6C (sold as 3 GB, `tcl_app_settings_ram=3221225472`) reports less than 2.8 GB in `MemoryInfo.totalMem` (kernel reserve), so
+      Showcase is refused. Fix: `ShowcaseLogic.MIN_RAM_BYTES` to 2_300_000_000 (a "3 GB" TV reports ~2.5-2.9 GB; 2 GB TVs report ~1.6-1.9). Update the test.
+   b. **Key entry:** remote typing is impossible. Make the "That does not look like a TMDB key" message say how many characters it got (no key text), trim
+      whitespace on save, and add a "Clear key" row. Later idea (owner to decide): QR code -> phone page on the local network to paste the key.
 0. **Quick panel v2 tweaks (owner, 0.10.0 test): panel looks great.** Not started; owner may add more.
    a. **Replace the volume bar with a BRIGHTNESS bar** (most-used setting; volume is on the remote). Unknown: which value the TCL backlight uses. Android's
       `Settings.System.SCREEN_BRIGHTNESS` may not drive the TV backlight (TCL has its own `tcl_app_settings_picture_backlight` feature). Discovery first (laptop, adb):
