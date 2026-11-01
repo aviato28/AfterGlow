@@ -34,6 +34,15 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open items, newest first)
+0. **Showcase v2 (owner loved the mockups, 1 Nov):** `docs/design/v2/showcase2-dune.png`, `showcase2-batman.png`, `showcase2-kenburns.gif` (+ HTML). Not started.
+   a. **Title logos:** TMDB `/3/{movie|tv}/{id}/images?include_image_language=en,null`, pick the best English PNG logo (`w500`), cache with the backdrop; no logo ->
+      styled text title (thin wide-spaced). Logo max ~860x260 dp, soft glow behind.
+   b. **Ken Burns drift:** backdrop scales 1.04 -> 1.10 and pans ~40 dp over the 15 s, GPU transform only (graphicsLayer), stops when Home isn't resumed or focus leaves the hero.
+   c. **Colour matched to the artwork:** one accent color sampled per backdrop (cheap: downscale to 16x9, pick the most saturated mid-bright color) -> focus ring/glow,
+      score ring, dots, shelf tint, bottom glow. Fallback amber.
+   d. **Details:** TMDB score ring (vote_average x10), age certification for India (`/release_dates` for movies, `/content_ratings` for tv, region IN, fall back to US),
+      runtime (movie `runtime` / tv `episode_run_time`), up to 2 genres, "New on streaming" badge when released within 60 days. One details call per title, cached with
+      the 6 h refresh. NO 4K/Dolby Vision badges (TMDB doesn't know).
 0. **Showcase bugs (owner, 0.10.0 test).** a+b done in M7.1 (RAM gate, masked key, Clear key); Quick panel declutter done (Bluetooth and Accessibility tiles removed); brightness still open.
    a. **RAM gate wrong:** the TCL 65Q6C (sold as 3 GB, `tcl_app_settings_ram=3221225472`) reports less than 2.8 GB in `MemoryInfo.totalMem` (kernel reserve), so
       Showcase is refused. Fix: `ShowcaseLogic.MIN_RAM_BYTES` to 2_300_000_000 (a "3 GB" TV reports ~2.5-2.9 GB; 2 GB TVs report ~1.6-1.9). Update the test.
