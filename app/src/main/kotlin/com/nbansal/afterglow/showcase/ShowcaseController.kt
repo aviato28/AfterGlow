@@ -68,7 +68,7 @@ class ShowcaseController(private val app: Application) {
 
     fun testKey(key: String) {
         if (!Tmdb.isValidKey(key)) {
-            testStatus = "That does not look like a TMDB key (32 letters/digits, or a token starting eyJ)"
+            testStatus = ShowcaseLogic.badKeyMessage(key)
             return
         }
         testStatus = "Testing…"

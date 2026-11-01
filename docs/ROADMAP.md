@@ -34,7 +34,7 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open items, newest first)
-0. **Showcase bugs (owner, 0.10.0 test).** Not started.
+0. **Showcase bugs (owner, 0.10.0 test).** a+b done in M7.1 (RAM gate, masked key, Clear key); Quick panel declutter done (Bluetooth and Accessibility tiles removed); brightness still open.
    a. **RAM gate wrong:** the TCL 65Q6C (sold as 3 GB, `tcl_app_settings_ram=3221225472`) reports less than 2.8 GB in `MemoryInfo.totalMem` (kernel reserve), so
       Showcase is refused. Fix: `ShowcaseLogic.MIN_RAM_BYTES` to 2_300_000_000 (a "3 GB" TV reports ~2.5-2.9 GB; 2 GB TVs report ~1.6-1.9). Update the test.
    b. **Key entry:** remote typing is impossible; adb `input text` of the 220-char v4 token got 401 although both keys return 200 from TMDB (verified), so the saved key was mangled. Show the saved key masked (first 4 … last 4 + length) on the Look page. Make the "That does not look like a TMDB key" message say how many characters it got (no key text), trim

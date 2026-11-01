@@ -182,10 +182,8 @@ internal class PanelOwner : LifecycleOwner, SavedStateRegistryOwner, ViewModelSt
 private const val IconSleep = "M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"
 private const val IconTimer = "M12 5a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 9v4l2 2M9 2h6"
 private const val IconWifi = "M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M2 9a15 15 0 0 1 20 0M12 19.5h.01"
-private const val IconBluetooth = "m7 7 10 10-5 5V2l5 5L7 17"
 private const val IconSound = "M8 2h8a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3zM12 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 6h.01"
 private const val IconPicture = "M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 21h8M12 17v4"
-private const val IconAccess = "M12 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM4 8l8 2 8-2M12 10v5l-4 7M12 15l4 7"
 private const val IconSettings = "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"
 private const val IconVolume = "M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7"
 private const val IconPrev = "M19 5v14L8 12zM5 5v14"
@@ -365,21 +363,13 @@ private fun PanelContent(context: Context, close: () -> Unit) {
                         Tile("Wi-Fi", if (wifi) "Connected" else "Off", IconWifi, wifi, Modifier.weight(1f)) {
                             open(Settings.ACTION_WIFI_SETTINGS)
                         }
-                        Tile("Bluetooth", "Open settings", IconBluetooth, false, Modifier.weight(1f)) {
-                            open(Settings.ACTION_BLUETOOTH_SETTINGS)
-                        }
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Tile("Sound output", "Open settings", IconSound, false, Modifier.weight(1f)) {
                             open(Settings.ACTION_SOUND_SETTINGS)
                         }
-                        Tile("Picture", "Open settings", IconPicture, false, Modifier.weight(1f)) {
-                            open(Settings.ACTION_DISPLAY_SETTINGS)
-                        }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Tile("Accessibility", "Captions, text", IconAccess, false, Modifier.weight(1f)) {
-                            open(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                        Tile("Picture", "Open settings", IconPicture, false, Modifier.weight(1f)) {
+                            open(Settings.ACTION_DISPLAY_SETTINGS)
                         }
                         Tile("All settings", "TV settings", IconSettings, false, Modifier.weight(1f)) {
                             open(Settings.ACTION_SETTINGS)
