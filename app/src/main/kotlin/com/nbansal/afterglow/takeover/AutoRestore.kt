@@ -41,7 +41,7 @@ object AutoRestore {
 object FirmwareCheck {
     const val DAY_MS = 24 * 60 * 60_000L
 
-    fun checkDue(lastCheckMs: Long, nowMs: Long) = nowMs - lastCheckMs !in 0 until DAY_MS
+    fun checkDue(lastCheckMs: Long, nowMs: Long) = lastCheckMs <= 0L || nowMs - lastCheckMs !in 0 until DAY_MS
 
     /** Only meaningful after a takeover (saved list not empty): a switched-off package is on again, or Home is no longer Afterglow. */
     fun cameBack(disabledHomes: Set<String>, isEnabled: (String) -> Boolean, homePackage: String?, self: String): Boolean =
