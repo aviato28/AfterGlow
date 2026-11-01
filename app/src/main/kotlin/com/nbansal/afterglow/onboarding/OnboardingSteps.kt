@@ -1,6 +1,5 @@
 package com.nbansal.afterglow.onboarding
 
-import com.nbansal.afterglow.apps.AppEntry
 import com.nbansal.afterglow.data.Favourites
 
 enum class OnboardingStep { Welcome, Apps, Order, Updates, Home, SpeedUp, Screensaver, Done }
@@ -25,12 +24,6 @@ object OnboardingSteps {
 
     /** Ticking adds to the end, unticking removes: the list is the order the user ticked in. */
     fun toggle(ticked: List<String>, pkg: String): List<String> = if (pkg in ticked) ticked - pkg else ticked + pkg
-
-    /** Ticked apps that are still installed, in ticked order, without repeats. */
-    fun favouritesFrom(ticked: List<String>, installed: List<AppEntry>): List<String> {
-        val have = installed.map { it.pkg }.toSet()
-        return ticked.filter { it in have }.distinct()
-    }
 
     fun moveEarlier(list: List<String>, pkg: String) = Favourites.moveEarlier(list, pkg)
     fun moveLater(list: List<String>, pkg: String) = Favourites.moveLater(list, pkg)

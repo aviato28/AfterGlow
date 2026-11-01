@@ -34,7 +34,7 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open, do in this order)
-3. **Speed and memory pass.** Baseline profile for Home, cold start under 500 ms on the TCL, memory with Showcase images + glass + key-watch service,
+3. **Speed and memory pass** [baseline profile + `docs/SPEED.md` built in M10; measurements on the TV pending]. Baseline profile for Home, cold start under 500 ms on the TCL, memory with Showcase images + glass + key-watch service,
    no leaks opening/closing apps, a 2 GB TV check; record numbers in the README.
 4. **Showcase v2** [built, awaiting test] (owner loved the mockups, 1 Nov): `docs/design/v2/showcase2-dune.png`, `showcase2-batman.png`, `showcase2-kenburns.gif` (+ HTML).
    a. **Title logos:** TMDB `/3/{movie|tv}/{id}/images?include_image_language=en,null`, best English PNG logo (`w500`), cached with the backdrop; no logo ->
@@ -45,12 +45,12 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
    d. **Details:** score ring (vote_average x10), age certification for India (`/release_dates` movies, `/content_ratings` tv, region IN, fall back to US), runtime,
       up to 2 genres, "New on streaming" badge (released within 60 days). One details call per title, cached with the 6 h refresh. NO 4K/Dolby Vision badges.
 5. **Showcase night mode** [built, awaiting test]: in the Night glow phase (21-05) the artwork dims ~40% and the drift slows; matches the Lite glow phases.
-6. **Artwork screensaver:** a second screensaver choice next to the sunset clock: cached Showcase backdrops (no extra network), slow crossfade + drift, small clock.
+6. **Artwork screensaver** [built, awaiting test]: a second screensaver choice next to the sunset clock: cached Showcase backdrops (no extra network), slow crossfade + drift, small clock.
    Only offered when Showcase has a working key. Same "don't start while video plays" rule.
-7. **Dead code clean-up:** remove what M4/M5/M7 left behind (old list panel, unused icons, Local logcat reader and `GrantLogs` remnants, old Learn paths). No behaviour change.
+7. **Dead code clean-up** [built, M10]: remove what M4/M5/M7 left behind (old list panel, unused icons, Local logcat reader and `GrantLogs` remnants, old Learn paths). No behaviour change.
 8. **README + website for the v2 look:** real screenshots (`adb exec-out screencap -p > home.png` from the laptop -> `docs/screenshots/`), and a download button on
    afterglow.nbansal28.com linking to the latest release APK.
-9. **"Speed up my TV" list update** (owner's package lists, 1 Nov; folded into M10). Verified safe (already off on the owner's TV, TV fine): tclhome_passive,
+9. **"Speed up my TV" list update** [built, M10; `youtube.tvmusic` taken off the never-offered list] (owner's package lists, 1 Nov; folded into M10). Verified safe (already off on the owner's TV, TV fine): tclhome_passive,
    channelplus, partnercustomizer, interactive, exhibit, esticker, ocean.instructions, repairguide. REMOVE `com.google.android.tv.remote.service` (owner uses the
    phone remote). `dreamx`: reason says "only if you use Afterglow's screensaver (also holds the TV's screensaver settings)". ADD (owner doesn't use them):
    `com.tcl.smartalexa` (Alexa), `com.tcl.magiconnectfree` (TCL phone app), `com.google.android.youtube.tvmusic` (YouTube Music), `com.google.android.play.games`,

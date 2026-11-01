@@ -123,8 +123,6 @@ class AppModel(val app: Application) {
     fun unhide(pkg: String) = scope.launch { prefs.setHidden(state.hidden - pkg) }
     fun rename(pkg: String, name: String) = scope.launch { prefs.setNames(Favourites.rename(state.names, pkg, name)) }
 
-    /** Package the owner gave this remote button in Settings > Remote buttons, if it is still installed. */
-    fun buttonApp(keyCode: Int): String? = state.buttons[keyCode]?.takeIf { pkg -> apps.any { it.pkg == pkg } }
     fun mapButton(keyCode: Int, pkg: String) = scope.launch { prefs.setButtons(ButtonMap.set(state.buttons, keyCode, pkg)) }
     fun unmapButton(keyCode: Int) = scope.launch { prefs.setButtons(ButtonMap.remove(state.buttons, keyCode)) }
 

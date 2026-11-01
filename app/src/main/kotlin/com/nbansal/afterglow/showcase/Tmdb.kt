@@ -230,10 +230,6 @@ object Tmdb {
     /** One decimal, always a dot; "" when there are no votes. */
     fun rating(v: Double): String = if (v <= 0.0 || v.isNaN()) "" else String.format(Locale.US, "%.1f", v)
 
-    /** "2024 · Sci-Fi · ★ 7.8" with missing parts left out. */
-    fun metaLine(t: ShowTitle): String =
-        listOf(t.year, t.genre, if (t.rating.isEmpty()) "" else "★ ${t.rating}").filter { it.isNotEmpty() }.joinToString(" · ")
-
     /** What Watch sends to the chosen app. */
     fun watchUrl(t: ShowTitle): String = "https://www.themoviedb.org/${t.type}/${t.id}"
 

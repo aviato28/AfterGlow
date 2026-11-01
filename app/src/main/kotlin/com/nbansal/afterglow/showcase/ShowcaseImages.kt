@@ -77,6 +77,14 @@ class ShowcaseImages(private val context: Context) {
         return ShowImage(bitmap, tintOf(bitmap), accentOf(bitmap))
     }
 
+    companion object {
+        /** The backdrop files already on disk (no logos, no half downloads), for the artwork screensaver. Reads the disk only. */
+        fun cachedBackdrops(context: Context): List<File> =
+            File(context.cacheDir, "showcase").listFiles()
+                ?.filter { it.isFile && it.length() > 0 && com.nbansal.afterglow.saver.ArtLogic.isBackdropName(it.name) }
+                .orEmpty()
+    }
+
     private fun safeName(path: String) = path.removePrefix("/").replace(Regex("[^A-Za-z0-9._-]"), "_")
 
     private fun fileFor(title: ShowTitle) = File(dir, safeName(title.backdrop))

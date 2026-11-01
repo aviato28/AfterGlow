@@ -11,7 +11,7 @@ object Debloat {
         "com.android.tv.settings", "com.android.vending", "com.google.android.gms", "com.google.android.gsf",
         // Apps people watch are never in the list.
         "com.netflix.ninja", "com.netflix.mediaclient",
-        "com.google.android.youtube.tv", "com.google.android.youtube", "com.google.android.youtube.tvmusic",
+        "com.google.android.youtube.tv", "com.google.android.youtube",
         "com.amazon.amazonvideo.livingroom", "com.amazon.avod", "com.amazon.avod.thirdpartyclient",
         "com.disney.disneyplus",
     )

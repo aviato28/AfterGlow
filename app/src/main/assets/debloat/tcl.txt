@@ -12,5 +12,12 @@ com.tcl.ocean.instructions # On-screen user guide
 com.tcl.repairguide # Repair guide
 com.google.android.feedback # Sends feedback reports to Google
 com.google.android.marvin.talkback # TalkBack screen reader
-com.google.android.apps.tv.dreamx # Screensaver ambient mode
-com.google.android.tv.remote.service # Phone remote control service
+com.google.android.apps.tv.dreamx # Only if you use Afterglow's screensaver (also holds the TV's screensaver settings)
+com.tcl.smartalexa # Alexa
+com.tcl.magiconnectfree # TCL phone app
+com.google.android.youtube.tvmusic # YouTube Music
+com.google.android.play.games # Play Games
+com.tcl.usercenter # TCL account
+com.tcl.hotelmenu # Hotel mode
+com.tcl.logkit # TCL log collector
+tv.mopa.ginga # Brazil broadcast extras
