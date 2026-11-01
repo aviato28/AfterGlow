@@ -210,7 +210,15 @@ class HomeActivity : ComponentActivity() {
                 onAllApps = { screen = Screen.AllApps },
                 onSettings = { settingsMenu = true },
                 showcase = model.showcase.titles.takeIf { model.showcaseOn && it.isNotEmpty() }?.let {
-                    ShowcaseUi(it, model.showcase.images, model.showcase.trim, resumed) { title -> watch(title) }
+                    ShowcaseUi(
+                        titles = it,
+                        images = model.showcase.images,
+                        trim = model.showcase.trim,
+                        resumed = resumed,
+                        onWatch = { title -> watch(title) },
+                        accent = model.showcase.accent,
+                        onAccent = { c -> model.showcase.setAccent(c) },
+                    )
                 },
             )
             Screen.AllApps -> AllAppsScreen(

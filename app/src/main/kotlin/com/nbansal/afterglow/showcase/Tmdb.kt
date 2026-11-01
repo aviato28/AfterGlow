@@ -1,7 +1,19 @@
 package com.nbansal.afterglow.showcase
 
+import org.json.JSONArray
 import org.json.JSONObject
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.Locale
+
+/** Per-title extras from one TMDB details call. [logo] is a file path like "/abc.png" ("" = none), [released] is "yyyy-MM-dd" or "". */
+data class ShowDetails(
+    val logo: String = "",
+    val cert: String = "",
+    val runtime: Int = 0,
+    val genres: List<String> = emptyList(),
+    val released: String = "",
+)
 
 /** One trending title, as shown on the Showcase home. [type] is "movie" or "tv". [rating] is "" when TMDB has no votes. */
 data class ShowTitle(
@@ -13,6 +25,7 @@ data class ShowTitle(
     val rating: String,
     val overview: String,
     val backdrop: String,
+    val details: ShowDetails = ShowDetails(),
 )
 
 /** TMDB thrown as a plain status so nothing that could contain the request URL (and so the key) is ever kept or shown. */
@@ -22,6 +35,8 @@ class TmdbHttpException(val code: Int) : Exception("HTTP $code")
 object Tmdb {
     const val API = "https://api.themoviedb.org/3"
     const val IMAGE = "https://image.tmdb.org/t/p/w1280"
+    const val LOGO_IMAGE = "https://image.tmdb.org/t/p/w500"
+    const val NEW_DAYS = 60L
     const val TRENDING = "/trending/all/week?language=en-US"
     const val GENRES_MOVIE = "/genre/movie/list?language=en-US"
     const val GENRES_TV = "/genre/tv/list?language=en-US"
@@ -49,6 +64,118 @@ object Tmdb {
     fun bearer(key: String): String? = if (usesBearer(key)) "Bearer ${key.trim()}" else null
 
     fun imageUrl(backdrop: String): String = IMAGE + backdrop
+
+    fun logoUrl(logo: String): String = LOGO_IMAGE + logo
+
+    /** Details path for one title: one call returns the logos and the age ratings too (`append_to_response`). */
+    fun detailsPath(t: ShowTitle): String {
+        val extra = if (t.type == "movie") "images,release_dates" else "images,content_ratings"
+        return "/${t.type}/${t.id}?language=en-US&append_to_response=$extra&include_image_language=en,null"
+    }
+
+    /** Best logo file path: English first, then no language; the highest vote wins; SVG is skipped (cannot be decoded). "" = none. */
+    fun pickLogo(logos: JSONArray?): String {
+        if (logos == null) return ""
+        var best = ""
+        var bestRank = Int.MAX_VALUE
+        var bestVote = -1.0
+        for (i in 0 until logos.length()) {
+            val o = logos.optJSONObject(i) ?: continue
+            val path = o.optString("file_path")
+            if (!path.startsWith("/") || path.endsWith(".svg", ignoreCase = true)) continue
+            val rank = when {
+                o.isNull("iso_639_1") -> 1
+                o.optString("iso_639_1") == "en" -> 0
+                else -> continue
+            }
+            val vote = o.optDouble("vote_average", 0.0)
+            if (rank < bestRank || (rank == bestRank && vote > bestVote)) {
+                best = path
+                bestRank = rank
+                bestVote = vote
+            }
+        }
+        return best
+    }
+
+    /** Age rating: region IN, else US. Movies: first non-empty `certification` of the region in `release_dates`; tv: `rating` in `content_ratings`. */
+    fun pickCert(root: JSONObject, type: String): String {
+        val results = if (type == "movie") root.optJSONObject("release_dates")?.optJSONArray("results")
+        else root.optJSONObject("content_ratings")?.optJSONArray("results")
+        if (results == null) return ""
+        for (region in listOf("IN", "US")) {
+            for (i in 0 until results.length()) {
+                val r = results.optJSONObject(i) ?: continue
+                if (r.optString("iso_3166_1") != region) continue
+                if (type == "movie") {
+                    val list = r.optJSONArray("release_dates") ?: continue
+                    for (j in 0 until list.length()) {
+                        val c = list.optJSONObject(j)?.optString("certification").orEmpty().trim()
+                        if (c.isNotEmpty()) return c
+                    }
+                } else {
+                    val c = r.optString("rating").trim()
+                    if (c.isNotEmpty()) return c
+                }
+            }
+        }
+        return ""
+    }
+
+    fun parseDetails(json: String, type: String): ShowDetails {
+        val o = JSONObject(json)
+        val runtime = if (type == "movie") o.optInt("runtime", 0) else o.optJSONArray("episode_run_time")?.optInt(0, 0) ?: 0
+        val genres = ArrayList<String>()
+        val arr = o.optJSONArray("genres")
+        if (arr != null) for (i in 0 until arr.length()) {
+            if (genres.size >= 2) break
+            val n = arr.optJSONObject(i)?.optString("name").orEmpty()
+            if (n.isNotEmpty()) genres.add(n)
+        }
+        val date = if (type == "movie") o.optString("release_date") else o.optString("first_air_date")
+        return ShowDetails(
+            logo = pickLogo(o.optJSONObject("images")?.optJSONArray("logos")),
+            cert = pickCert(o, type),
+            runtime = runtime.coerceAtLeast(0),
+            genres = genres,
+            released = date.trim(),
+        )
+    }
+
+    fun detailsToJson(d: ShowDetails): JSONObject = JSONObject()
+        .put("logo", d.logo).put("cert", d.cert).put("runtime", d.runtime)
+        .put("genres", JSONArray(d.genres)).put("released", d.released)
+
+    fun detailsFromJson(o: JSONObject): ShowDetails {
+        val g = o.optJSONArray("genres")
+        val genres = if (g == null) emptyList() else (0 until g.length()).map { g.optString(it) }.filter { it.isNotEmpty() }
+        return ShowDetails(o.optString("logo"), o.optString("cert"), o.optInt("runtime", 0), genres, o.optString("released"))
+    }
+
+    /** "New on streaming": released 0 to 60 days before [today] (a future date is not new yet). */
+    fun isNew(released: String, today: LocalDate): Boolean {
+        val d = runCatching { LocalDate.parse(released.take(10)) }.getOrNull() ?: return false
+        val days = ChronoUnit.DAYS.between(d, today)
+        return days in 0L..NEW_DAYS
+    }
+
+    /** 125 -> "2h 5m", 120 -> "2h", 45 -> "45m", 0 -> "". */
+    fun runtimeText(min: Int): String = when {
+        min <= 0 -> ""
+        min < 60 -> "${min}m"
+        min % 60 == 0 -> "${min / 60}h"
+        else -> "${min / 60}h ${min % 60}m"
+    }
+
+    /** Score ring value: vote average x 10 (rating "7.8" -> 78); 0 when there are no votes. */
+    fun scorePercent(rating: String): Int = Math.round((rating.toDoubleOrNull() ?: 0.0) * 10).toInt().coerceIn(0, 100)
+
+    /** Year, up to 2 genres (from details, else the trending genre) and runtime, missing parts left out. */
+    fun infoParts(t: ShowTitle): List<String> = listOf(
+        t.year,
+        t.details.genres.joinToString(" · ").ifEmpty { t.genre },
+        runtimeText(t.details.runtime),
+    ).filter { it.isNotEmpty() }
 
     fun parseGenres(json: String): Map<Int, String> {
         val arr = JSONObject(json).optJSONArray("genres") ?: return emptyMap()

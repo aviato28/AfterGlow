@@ -1,10 +1,12 @@
 package com.nbansal.afterglow.home
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,11 +33,15 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -44,9 +50,14 @@ import com.nbansal.afterglow.showcase.ShowImage
 import com.nbansal.afterglow.showcase.ShowTitle
 import com.nbansal.afterglow.showcase.ShowcaseImages
 import com.nbansal.afterglow.showcase.Tmdb
+import com.nbansal.afterglow.showcase.ShowcaseLogic
 import com.nbansal.afterglow.ui.Ag
+import com.nbansal.afterglow.ui.GlowPhase
+import com.nbansal.afterglow.ui.accentRing
+import com.nbansal.afterglow.ui.rememberGlowPhase
 import com.nbansal.afterglow.ui.tvFocus
 import kotlinx.coroutines.delay
+import java.time.LocalDate
 
 const val ROTATE_MS = 15_000L
 const val FADE_MS = 400
@@ -58,9 +69,60 @@ class ShowcaseUi(
     val trim: Int,
     val resumed: Boolean,
     val onWatch: (ShowTitle) -> String?,
+    /** Current accent (ARGB, 0 = none) and the setter the hero calls when a new backdrop is ready. */
+    val accent: Int = 0,
+    val onAccent: (Int) -> Unit = {},
 )
 
 private val ButtonShape = RoundedCornerShape(36.dp)
+
+// Ken Burns: scale 1.04 -> 1.10 and a pan of about 40 dp over the drift time.
+private const val KB_START = 1.04f
+private const val KB_END = 1.10f
+private const val KB_PAN_DP = 40
+
+/** Score ring, then year / genres / runtime, the age certification badge and the "New on streaming" badge. */
+@Composable
+private fun MetaRow(title: ShowTitle, accent: Color, modifier: Modifier) {
+    val parts = Tmdb.infoParts(title)
+    val cert = title.details.cert
+    val isNew = remember(title) { Tmdb.isNew(title.details.released, LocalDate.now()) }
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        if (title.rating.isNotEmpty()) ScoreRing(Tmdb.scorePercent(title.rating), accent)
+        if (parts.isNotEmpty()) Text(parts.joinToString("  ·  "), style = Ag.Body.copy(fontSize = 26.sp), maxLines = 1)
+        if (cert.isNotEmpty()) Badge(cert, Color.Transparent, Ag.Ink)
+        if (isNew) Badge("New on streaming", accent, Ag.Base)
+    }
+}
+
+@Composable
+private fun Badge(text: String, fill: Color, textColor: Color) {
+    val shape = RoundedCornerShape(8.dp)
+    Text(
+        text,
+        style = Ag.Label.copy(fontSize = 20.sp, fontWeight = FontWeight.Medium, color = textColor),
+        maxLines = 1,
+        modifier = Modifier
+            .background(fill, shape)
+            .then(if (fill == Color.Transparent) Modifier.border(1.dp, Ag.Ink.copy(alpha = 0.35f), shape) else Modifier)
+            .padding(horizontal = 12.dp, vertical = 5.dp),
+    )
+}
+
+/** Vote average x 10 as a ring in the accent colour with the number inside. */
+@Composable
+private fun ScoreRing(percent: Int, accent: Color) {
+    Box(Modifier.size(66.dp), contentAlignment = Alignment.Center) {
+        Canvas(Modifier.fillMaxSize()) {
+            val w = 6.dp.toPx()
+            val inset = w / 2f
+            val arc = Size(size.width - w, size.height - w)
+            drawArc(Color.White.copy(alpha = 0.15f), 0f, 360f, false, Offset(inset, inset), arc, style = Stroke(w))
+            drawArc(accent, -90f, 360f * percent / 100f, false, Offset(inset, inset), arc, style = Stroke(w, cap = StrokeCap.Round))
+        }
+        Text("$percent", style = Ag.Label.copy(fontSize = 22.sp, fontWeight = FontWeight.SemiBold), maxLines = 1)
+    }
+}
 
 /**
  * Backdrop, shades, title, meta, overview, Watch / Next, dots and credit (docs/design/v2/home-showcase.png). Rotates every 15 s
@@ -78,6 +140,14 @@ fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
     var previous by remember { mutableStateOf<ShowImage?>(null) }
     var seenTrim by remember { mutableIntStateOf(ui.trim) }
     val fade = remember { Animatable(1f) }
+    var logo by remember(safe) { mutableStateOf<ImageBitmap?>(null) }
+    val night = rememberGlowPhase() == GlowPhase.Night
+    val accent = Color(current?.accent ?: ShowcaseLogic.DEFAULT_ACCENT)
+    val ring = accentRing(accent)
+    // Ken Burns: one Animatable (0 -> 1) per title; it only runs while Home is in front and focus is in the hero.
+    val drift = remember(safe) { Animatable(0f) }
+    val drifting = ui.resumed && heroFocused
+    val driftMs = ShowcaseLogic.driftMs(night)
 
     LaunchedEffect(safe, titles, ui.trim) {
         if (seenTrim != ui.trim) {
@@ -102,6 +172,17 @@ fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
         if (next.id != title.id) ui.images.load(next, keep)
     }
 
+    LaunchedEffect(safe, titles, ui.trim) {
+        val keep = setOf(title.id, titles[(safe + 1) % titles.size].id)
+        logo = ui.images.loadLogo(title, keep)?.asImageBitmap()
+    }
+
+    LaunchedEffect(current) { current?.let { ui.onAccent(it.accent) } }
+
+    LaunchedEffect(drift, drifting, driftMs) {
+        if (drifting) drift.animateTo(1f, tween(((1f - drift.value) * driftMs).toInt().coerceAtLeast(1), easing = LinearEasing))
+    }
+
     LaunchedEffect(ui.resumed, heroFocused, safe, titles.size) {
         if (ui.resumed && heroFocused && titles.size > 1) {
             delay(ROTATE_MS)
@@ -114,14 +195,33 @@ fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
         if (now != null) {
             previous?.let { p ->
                 val bmp = remember(p) { p.bitmap.asImageBitmap() }
-                Image(bmp, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                // The old art holds the pose where its drift ended while the new one fades in.
+                Image(
+                    bmp, null,
+                    Modifier.fillMaxSize().graphicsLayer {
+                        scaleX = KB_END
+                        scaleY = KB_END
+                        translationX = -KB_PAN_DP.dp.toPx()
+                    },
+                    contentScale = ContentScale.Crop,
+                )
             }
             val bmp = remember(now) { now.bitmap.asImageBitmap() }
             Image(
                 bmp, null,
-                Modifier.fillMaxSize().graphicsLayer { alpha = fade.value },
+                Modifier.fillMaxSize().graphicsLayer {
+                    alpha = fade.value
+                    val p = drift.value
+                    val z = KB_START + (KB_END - KB_START) * p
+                    scaleX = z
+                    scaleY = z
+                    translationX = -KB_PAN_DP.dp.toPx() * p
+                    translationY = -KB_PAN_DP.dp.toPx() * 0.4f * p
+                },
                 contentScale = ContentScale.Crop,
             )
+            // Night: the artwork is about 40% darker.
+            if (night) Box(Modifier.fillMaxSize().background(Ag.Base.copy(alpha = ShowcaseLogic.NIGHT_DIM)))
             // Shades from showcase.html: dark on the left and at the bottom, then a glow tinted toward the art.
             Box(
                 Modifier.fillMaxSize().background(
@@ -138,12 +238,12 @@ fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
                     ),
                 ),
             )
-            val tint = Color(now.tint)
+            val tint = accent
             Box(
                 Modifier.fillMaxSize().drawBehind {
                     drawRect(
                         Brush.radialGradient(
-                            listOf(tint.copy(alpha = 0.35f), tint.copy(alpha = 0f)),
+                            listOf(tint.copy(alpha = 0.40f), tint.copy(alpha = 0f)),
                             center = Offset(size.width / 2f, size.height * 1.05f),
                             radius = size.width * 0.5f,
                         ),
@@ -152,15 +252,32 @@ fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
             )
         }
 
-        Column(Modifier.padding(start = 96.dp, top = 230.dp).width(1000.dp)) {
-            Text(
-                title.title,
-                style = Ag.Greeting.copy(fontSize = Tmdb.titleSizeSp(title.title).sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            val meta = Tmdb.metaLine(title)
-            if (meta.isNotEmpty()) Text(meta, style = Ag.Body.copy(fontSize = 26.sp), maxLines = 1, modifier = Modifier.padding(top = 28.dp))
+        Column(Modifier.padding(start = 96.dp, top = 190.dp).width(1000.dp)) {
+            val logoImage = logo
+            if (logoImage != null) {
+                // Title logo, at most 860 x 200 dp, with a soft glow of the accent behind it.
+                Box(
+                    Modifier.size(860.dp, 200.dp).drawBehind {
+                        drawRect(
+                            Brush.radialGradient(
+                                listOf(accent.copy(alpha = 0.22f), accent.copy(alpha = 0f)),
+                                center = Offset(size.height * 0.9f, size.height / 2f),
+                                radius = size.height * 1.1f,
+                            ),
+                        )
+                    },
+                ) {
+                    Image(logoImage, title.title, Modifier.fillMaxSize(), contentScale = ContentScale.Fit, alignment = Alignment.CenterStart)
+                }
+            } else {
+                Text(
+                    title.title,
+                    style = Ag.Greeting.copy(fontSize = Tmdb.titleSizeSp(title.title).sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            MetaRow(title, accent, Modifier.padding(top = 28.dp))
             if (title.overview.isNotEmpty()) {
                 Text(
                     title.overview,
@@ -185,7 +302,7 @@ fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
             for (i in titles.indices) {
                 Box(
                     Modifier.height(12.dp).width(if (i == safe) 40.dp else 12.dp)
-                        .background(if (i == safe) Ag.Ring else Ag.Ink.copy(alpha = 0.35f), RoundedCornerShape(6.dp)),
+                        .background(if (i == safe) ring else Ag.Ink.copy(alpha = 0.35f), RoundedCornerShape(6.dp)),
                 )
             }
         }

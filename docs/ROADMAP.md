@@ -36,7 +36,7 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
 ## Task list (open, do in this order)
 3. **Speed and memory pass.** Baseline profile for Home, cold start under 500 ms on the TCL, memory with Showcase images + glass + key-watch service,
    no leaks opening/closing apps, a 2 GB TV check; record numbers in the README.
-4. **Showcase v2** (owner loved the mockups, 1 Nov): `docs/design/v2/showcase2-dune.png`, `showcase2-batman.png`, `showcase2-kenburns.gif` (+ HTML).
+4. **Showcase v2** [built, awaiting test] (owner loved the mockups, 1 Nov): `docs/design/v2/showcase2-dune.png`, `showcase2-batman.png`, `showcase2-kenburns.gif` (+ HTML).
    a. **Title logos:** TMDB `/3/{movie|tv}/{id}/images?include_image_language=en,null`, best English PNG logo (`w500`), cached with the backdrop; no logo ->
       styled text title. Logo max ~860x260 dp, soft glow behind.
    b. **Ken Burns drift:** backdrop scales 1.04 -> 1.10 and pans ~40 dp over the 15 s, GPU transform only (graphicsLayer), stops when Home isn't resumed or focus leaves the hero.
@@ -44,7 +44,7 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
       bottom glow. Fallback amber.
    d. **Details:** score ring (vote_average x10), age certification for India (`/release_dates` movies, `/content_ratings` tv, region IN, fall back to US), runtime,
       up to 2 genres, "New on streaming" badge (released within 60 days). One details call per title, cached with the 6 h refresh. NO 4K/Dolby Vision badges.
-5. **Showcase night mode:** in the Night glow phase (21-05) the artwork dims ~40% and the drift slows; matches the Lite glow phases.
+5. **Showcase night mode** [built, awaiting test]: in the Night glow phase (21-05) the artwork dims ~40% and the drift slows; matches the Lite glow phases.
 6. **Artwork screensaver:** a second screensaver choice next to the sunset clock: cached Showcase backdrops (no extra network), slow crossfade + drift, small clock.
    Only offered when Showcase has a working key. Same "don't start while video plays" rule.
 7. **Dead code clean-up:** remove what M4/M5/M7 left behind (old list panel, unused icons, Local logcat reader and `GrantLogs` remnants, old Learn paths). No behaviour change.

@@ -9,18 +9,22 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
-/** A decoded backdrop and the average colour of its bottom third (for the glow). */
-class ShowImage(val bitmap: Bitmap, val tint: Int)
+/** A decoded backdrop, the average colour of its bottom third and its one accent colour (ARGB). */
+class ShowImage(val bitmap: Bitmap, val tint: Int, val accent: Int)
 
 /**
- * Backdrops: files in cacheDir (at most 10), decoded at the screen's width as RGB_565. Memory holds only the titles passed as
+ * Backdrops and title logos: files in cacheDir (at most 24 together), decoded at the screen's width as RGB_565. Memory holds only the titles passed as
  * `keep` (current and next); [clear] drops everything (onTrimMemory).
  */
 class ShowcaseImages(private val context: Context) {
     private val memory = LinkedHashMap<Int, ShowImage>()
+    private val logos = LinkedHashMap<Int, Bitmap>()
     private val dir get() = File(context.cacheDir, "showcase")
 
-    fun clear() = synchronized(memory) { memory.clear() }
+    fun clear() {
+        synchronized(memory) { memory.clear() }
+        synchronized(logos) { logos.clear() }
+    }
 
     suspend fun load(title: ShowTitle, keep: Set<Int>): ShowImage? = withContext(Dispatchers.IO) {
         synchronized(memory) { memory[title.id] }?.let { return@withContext it }
@@ -32,9 +36,36 @@ class ShowcaseImages(private val context: Context) {
         image
     }
 
+    /** The title's logo (ARGB_8888, decoded at its display size), or null when it has none or it cannot be fetched. */
+    suspend fun loadLogo(title: ShowTitle, keep: Set<Int>): Bitmap? = withContext(Dispatchers.IO) {
+        val path = title.details.logo
+        if (path.isEmpty()) return@withContext null
+        synchronized(logos) { logos[title.id] }?.let { return@withContext it }
+        val bitmap = runCatching { decodeLogo(path) }.getOrNull() ?: return@withContext null
+        synchronized(logos) {
+            logos[title.id] = bitmap
+            logos.keys.retainAll(keep + title.id)
+        }
+        bitmap
+    }
+
+    private fun decodeLogo(path: String): Bitmap? {
+        val file = File(dir, "logo_" + safeName(path))
+        if (!file.exists() || file.length() == 0L) download(Tmdb.logoUrl(path), file)
+        // Shown up to 860 dp wide on the 1920-wide canvas.
+        val target = context.resources.displayMetrics.widthPixels * 860 / 1920
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.path, bounds)
+        val opts = BitmapFactory.Options().apply {
+            inSampleSize = ShowcaseLogic.sampleSize(bounds.outWidth, target)
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        }
+        return BitmapFactory.decodeFile(file.path, opts) ?: run { file.delete(); null }
+    }
+
     private fun decode(title: ShowTitle): ShowImage? {
         val file = fileFor(title)
-        if (!file.exists() || file.length() == 0L) download(title, file)
+        if (!file.exists() || file.length() == 0L) download(Tmdb.imageUrl(title.backdrop), file)
         val target = context.resources.displayMetrics.widthPixels
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.path, bounds)
@@ -43,15 +74,17 @@ class ShowcaseImages(private val context: Context) {
             inPreferredConfig = Bitmap.Config.RGB_565
         }
         val bitmap = BitmapFactory.decodeFile(file.path, opts) ?: run { file.delete(); return null }
-        return ShowImage(bitmap, tintOf(bitmap))
+        return ShowImage(bitmap, tintOf(bitmap), accentOf(bitmap))
     }
 
-    private fun fileFor(title: ShowTitle) = File(dir, title.backdrop.removePrefix("/").replace(Regex("[^A-Za-z0-9._-]"), "_"))
+    private fun safeName(path: String) = path.removePrefix("/").replace(Regex("[^A-Za-z0-9._-]"), "_")
 
-    private fun download(title: ShowTitle, file: File) {
+    private fun fileFor(title: ShowTitle) = File(dir, safeName(title.backdrop))
+
+    private fun download(url: String, file: File) {
         dir.mkdirs()
         val tmp = File(dir, file.name + ".part")
-        val conn = (URL(Tmdb.imageUrl(title.backdrop)).openConnection() as HttpURLConnection).apply {
+        val conn = (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = 10_000
             readTimeout = 10_000
         }
@@ -70,6 +103,15 @@ class ShowcaseImages(private val context: Context) {
     private fun prune() {
         dir.listFiles()?.filter { it.isFile }?.sortedByDescending { it.lastModified() }
             ?.drop(ShowcaseLogic.MAX_IMAGE_FILES)?.forEach { it.delete() }
+    }
+
+    /** The accent: backdrop scaled down to 16x9, then the most saturated mid-bright pixel. */
+    private fun accentOf(bitmap: Bitmap): Int {
+        val small = Bitmap.createScaledBitmap(bitmap, 16, 9, true)
+        val px = IntArray(16 * 9)
+        small.getPixels(px, 0, 16, 0, 0, 16, 9)
+        if (small !== bitmap) small.recycle()
+        return ShowcaseLogic.pickAccent(px)
     }
 
     /** A cheap sample (about 12 x 4 points) of the bottom third. */

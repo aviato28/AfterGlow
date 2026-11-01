@@ -22,6 +22,8 @@ class ShowcaseController(private val app: Application) {
 
     var titles by mutableStateOf<List<ShowTitle>>(emptyList()); private set
     var error by mutableStateOf(""); private set
+    /** The current title's accent colour (ARGB), 0 = none yet. Set by the hero, read by the focus ring, shelf and dots. */
+    var accent by mutableIntStateOf(0); private set
     var testStatus by mutableStateOf(""); private set
     /** Bumped on onTrimMemory so the home drops and reloads its bitmaps. */
     var trim by mutableIntStateOf(0); private set
@@ -38,6 +40,7 @@ class ShowcaseController(private val app: Application) {
         syncedKey = k
         if (!on || k.isEmpty()) {
             titles = emptyList()
+            accent = 0
             images.clear()
             error = if (on) "Add a TMDB key to use Showcase" else ""
             return
@@ -76,6 +79,10 @@ class ShowcaseController(private val app: Application) {
             val r = withContext(Dispatchers.IO) { runCatching { repo.testKey(key.trim()) } }
             testStatus = r.fold({ "OK" }, { Tmdb.errorText(it) })
         }
+    }
+
+    fun setAccent(argb: Int) {
+        accent = argb
     }
 
     fun trimMemory() {
