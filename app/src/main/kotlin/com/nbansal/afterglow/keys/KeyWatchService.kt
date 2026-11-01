@@ -197,7 +197,14 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
             val pending = goAsync()
+            runCatching { (context.applicationContext as com.nbansal.afterglow.core.AfterglowApp).model.checkFirmware() }
             KeyWatchService.startIfOn(context) { pending.finish() }
+        } else if (intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
+            val pending = goAsync()
+            val started = runCatching {
+                (context.applicationContext as com.nbansal.afterglow.core.AfterglowApp).model.checkFirmware { pending.finish() }
+            }.isSuccess
+            if (!started) pending.finish()
         }
     }
 }

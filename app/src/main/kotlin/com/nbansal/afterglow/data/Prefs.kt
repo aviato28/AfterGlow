@@ -39,6 +39,10 @@ data class PrefState(
     val tmdbKey: String = "",
     /** Package that opens TMDB links when Watch is pressed; "" = not chosen. */
     val openWith: String = "",
+    /** A TV update seems to have undone the takeover (see FirmwareCheck). */
+    val firmwareFlag: Boolean = false,
+    val firmwareCheckMs: Long = 0L,
+    val firmwarePromptMs: Long = 0L,
     /** False until DataStore has delivered its first value (so first-run screens never flash). */
     val loaded: Boolean = false,
 )
@@ -64,6 +68,9 @@ class Prefs(context: Context) {
             showcase = p[SHOWCASE] ?: false,
             tmdbKey = p[TMDB_KEY] ?: "",
             openWith = p[OPEN_WITH] ?: "",
+            firmwareFlag = p[FW_FLAG] ?: false,
+            firmwareCheckMs = p[FW_CHECK] ?: 0L,
+            firmwarePromptMs = p[FW_PROMPT] ?: 0L,
             loaded = true,
         )
     }
@@ -94,6 +101,10 @@ class Prefs(context: Context) {
 
     suspend fun setOpenWith(pkg: String) = edit { if (pkg.isEmpty()) it.remove(OPEN_WITH) else it[OPEN_WITH] = pkg }
 
+    suspend fun setFirmwareFlag(on: Boolean) = edit { it[FW_FLAG] = on }
+    suspend fun setFirmwareCheck(ms: Long) = edit { it[FW_CHECK] = ms }
+    suspend fun setFirmwarePrompt(ms: Long) = edit { it[FW_PROMPT] = ms }
+
     private suspend fun edit(block: (androidx.datastore.preferences.core.MutablePreferences) -> Unit) {
         store.edit { block(it) }
     }
@@ -114,6 +125,9 @@ class Prefs(context: Context) {
         private val SHOWCASE = booleanPreferencesKey("showcase")
         private val TMDB_KEY = stringPreferencesKey("tmdb_key")
         private val OPEN_WITH = stringPreferencesKey("open_with")
+        private val FW_FLAG = booleanPreferencesKey("fw_flag")
+        private val FW_CHECK = longPreferencesKey("fw_check_ms")
+        private val FW_PROMPT = longPreferencesKey("fw_prompt_ms")
         private val LAST_CHECK = longPreferencesKey("last_update_check")
 
         fun encodeList(list: List<String>) = list.joinToString("\n")

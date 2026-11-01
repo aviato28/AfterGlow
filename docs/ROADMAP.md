@@ -34,11 +34,6 @@ Each milestone gets a spec in `docs/specs/` written by the planning chat before 
 Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a second TV, an accessibility Home-key catcher as the main path.
 
 ## Task list (open, do in this order)
-1. **Auto-restore if Afterglow crash-loops** (safety, top priority). 3 crashes within 2 minutes (`CrashGuard`) -> run the M2 Restore flow by itself over
-   `127.0.0.1:5555` (re-enable the packages saved in `disabledHomes`) so Google TV comes back, then a note in Settings > About. Reuse `TakeoverFlow.restore()`,
-   no new adb commands. Guard: if USB debugging is off, only log. Unit tests with a fake adb.
-2. **Firmware update check.** On boot / `MY_PACKAGE_REPLACED` / daily: if a package in `disabledHomes` is enabled again (TV update) or Home resolves to
-   another launcher, show "Your TV update brought Google TV back. Re-apply takeover?" (one tap, same verified flow). Never re-apply silently.
 3. **Speed and memory pass.** Baseline profile for Home, cold start under 500 ms on the TCL, memory with Showcase images + glass + key-watch service,
    no leaks opening/closing apps, a 2 GB TV check; record numbers in the README.
 4. **Showcase v2** (owner loved the mockups, 1 Nov): `docs/design/v2/showcase2-dune.png`, `showcase2-batman.png`, `showcase2-kenburns.gif` (+ HTML).
@@ -65,6 +60,7 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
 - **Penumbra+ accepts TMDB links** (change in that app; note given to the owner 1 Nov) -> then pick it in Look > Open titles with.
 
 ## Built, awaiting a TV test
+- Safety (M8): auto-restore of Google TV after 3 crashes in 2 min (note in Settings > About), and the firmware check ("A TV update brought Google TV back. Re-apply takeover?").
 - Quick panel v2 (M4, M4.2, M5, M7.1): overlay over any app via the Adb log reader, heartbeat, no boot popup, Now playing, Sleep, Sleep timer, 6 tiles
   (Bluetooth/Accessibility removed). Owner confirmed the panel works in YouTube and Penumbra+.
 - Remote buttons: Settings/Netflix/Prime built-ins, Learn a button (also from the log), "Stop TCL Channel opening too".
