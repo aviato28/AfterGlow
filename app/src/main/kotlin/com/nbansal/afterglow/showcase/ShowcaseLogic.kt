@@ -7,13 +7,25 @@ import android.net.Uri
 
 /** Small pure helpers for Showcase (unit-tested). */
 object ShowcaseLogic {
-    const val MIN_RAM_BYTES = 2_800_000_000L
+    const val MIN_RAM_BYTES = 2_300_000_000L
     const val REFRESH_MS = 6 * 60 * 60 * 1000L
     const val GENRES_MS = 30L * 24 * 60 * 60 * 1000L
     const val MAX_IMAGE_FILES = 10
 
-    /** Showcase is offered from 2.8 GB of total RAM. */
+    /** Showcase is offered from 2.3 GB of total RAM (a "3 GB" TV reports about 2.5-2.9 GB). */
     fun ramOk(totalBytes: Long): Boolean = totalBytes >= MIN_RAM_BYTES
+
+    /** Saved key shown safely: first 4 + "…" + last 4 + " (N characters)". Never the full key. */
+    fun maskKey(key: String): String {
+        val k = key.trim()
+        if (k.isEmpty()) return "Not set"
+        val n = k.length
+        return if (n <= 8) "Set ($n characters)" else k.take(4) + "…" + k.takeLast(4) + " ($n characters)"
+    }
+
+    /** Message for a key that fails the format check; shows only its length. */
+    fun badKeyMessage(key: String): String =
+        "That does not look like a TMDB key (32 letters/digits, or a token starting eyJ) (got ${key.trim().length} characters)"
 
     fun totalRam(context: Context): Long {
         val info = ActivityManager.MemoryInfo()

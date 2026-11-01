@@ -130,8 +130,8 @@ class TmdbTest {
     @Test
     fun ramGate() {
         assertFalse(ShowcaseLogic.ramOk(2_000_000_000L))
-        assertFalse(ShowcaseLogic.ramOk(2_799_999_999L))
-        assertTrue(ShowcaseLogic.ramOk(2_800_000_000L))
+        assertFalse(ShowcaseLogic.ramOk(2_299_999_999L))
+        assertTrue(ShowcaseLogic.ramOk(2_300_000_000L))
         assertTrue(ShowcaseLogic.ramOk(4_000_000_000L))
     }
 
@@ -152,5 +152,20 @@ class TmdbTest {
         assertEquals(2, ShowcaseLogic.sampleSize(1280, 640))
         assertEquals(4, ShowcaseLogic.sampleSize(1280, 320))
         assertEquals(0xFF7F4020.toInt(), ShowcaseLogic.averageColor(intArrayOf(0xFF000000.toInt(), 0xFFFF8040.toInt())))
+    }
+
+    @Test
+    fun maskKeyShowsEndsAndLengthOnly() {
+        val key = "abcd1234efgh5678ijkl9012mnop3456"
+        val m = ShowcaseLogic.maskKey("  $key  ")
+        assertEquals("abcd…3456 (32 characters)", m)
+        assertFalse(m.contains(key))
+        assertEquals("Not set", ShowcaseLogic.maskKey("  "))
+        assertEquals("Set (5 characters)", ShowcaseLogic.maskKey("abcde"))
+    }
+
+    @Test
+    fun badKeyMessageShowsLength() {
+        assertTrue(ShowcaseLogic.badKeyMessage(" 0123 ").endsWith("(got 4 characters)"))
     }
 }
