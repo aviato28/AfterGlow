@@ -18,6 +18,10 @@ Read `CLAUDE.md`, ROADMAP tasks 3, 6, 7. Read only `saver/`, `showcase/` (cache 
 - Add a `docs/SPEED.md` with the owner's measuring commands: `adb shell am force-stop com.nbansal.afterglow; adb shell am start -W -n
   com.nbansal.afterglow/.HomeActivity` (TotalTime = cold start) and `adb shell dumpsys meminfo com.nbansal.afterglow | findstr TOTAL`, plus a table to fill in.
 
+## 4. Speed up list (task 9)
+- Update `app/src/main/assets/debloat/tcl.txt` exactly as ROADMAP task 9 says (remove, re-word, add, with short reasons). Keep the header comment, keep everything
+  unticked; update `SpeedUpTest` if it counts entries. Don't add any package on the "Never listed"/"NOT added" lists.
+
 ## Acceptance
 No SDK here: be compile-careful. Push once to `claude/afterglow-tv-launcher-g6ow3l`, no PR, no release. One ROADMAP edit (tasks 6, 7 built; task 3 groundwork
 done, measurements pending on the TV).

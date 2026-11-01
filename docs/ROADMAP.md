@@ -50,7 +50,13 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
 7. **Dead code clean-up:** remove what M4/M5/M7 left behind (old list panel, unused icons, Local logcat reader and `GrantLogs` remnants, old Learn paths). No behaviour change.
 8. **README + website for the v2 look:** real screenshots (`adb exec-out screencap -p > home.png` from the laptop -> `docs/screenshots/`), and a download button on
    afterglow.nbansal28.com linking to the latest release APK.
-9. **Check the "Speed up my TV" list** against the real TV (needs `adb shell pm list packages` output from the owner).
+9. **"Speed up my TV" list update** (owner's package lists, 1 Nov; folded into M10). Verified safe (already off on the owner's TV, TV fine): tclhome_passive,
+   channelplus, partnercustomizer, interactive, exhibit, esticker, ocean.instructions, repairguide. REMOVE `com.google.android.tv.remote.service` (owner uses the
+   phone remote). `dreamx`: reason says "only if you use Afterglow's screensaver (also holds the TV's screensaver settings)". ADD (owner doesn't use them):
+   `com.tcl.smartalexa` (Alexa), `com.tcl.magiconnectfree` (TCL phone app), `com.google.android.youtube.tvmusic` (YouTube Music), `com.google.android.play.games`,
+   `com.tcl.usercenter` (TCL account), `com.tcl.hotelmenu` (hotel mode), `com.tcl.logkit` (TCL log collector), `tv.mopa.ginga` (Brazil broadcast extras).
+   NOT added: AirPlay (`com.tcl.airplay2`, `com.mediatek.AirplayAPK`, `com.mediatek.airplaydaemon`) and `com.tcl.miracast` (owner uses them sometimes).
+   Never listed: mediashell (Chromecast), katniss (voice), netflix.tokenmanager, ui_mediaCenter, gamebar, factory.view. All stay unticked by default.
 10. Release 1.0 after 1-3 and 9.
 
 ## Waiting for the owner
