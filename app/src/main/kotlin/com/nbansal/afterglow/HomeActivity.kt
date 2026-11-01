@@ -217,7 +217,7 @@ class HomeActivity : ComponentActivity() {
                         resumed = resumed,
                         onWatch = { title -> watch(title) },
                         accent = model.showcase.accent,
-                        onAccent = { c -> model.showcase.setAccent(c) },
+                        onAccent = { c -> model.showcase.updateAccent(c) },
                     )
                 },
             )

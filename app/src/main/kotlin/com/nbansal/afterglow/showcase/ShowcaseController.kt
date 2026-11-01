@@ -81,7 +81,7 @@ class ShowcaseController(private val app: Application) {
         }
     }
 
-    fun setAccent(argb: Int) {
+    fun updateAccent(argb: Int) {
         accent = argb
     }
 
