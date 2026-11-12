@@ -58,6 +58,22 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
    NOT added: AirPlay (`com.tcl.airplay2`, `com.mediatek.AirplayAPK`, `com.mediatek.airplaydaemon`) and `com.tcl.miracast` (owner uses them sometimes).
    Never listed: mediashell (Chromecast), katniss (voice), netflix.tokenmanager, ui_mediaCenter, gamebar, factory.view. All stay unticked by default.
 10. Release 1.0 after 1-3 and 9.
+11. **Phone companion** (owner loves it, 12 Nov). Afterglow shows a QR code; the phone opens a small page served by the TV on the home Wi-Fi (no internet,
+    no account, no app install). Opt-in, a one-time PIN in the QR, switches itself off after 10 min idle or when the owner closes it.
+    a. **Phone as a keyboard for ANY app** (e.g. typing in a movie app's search): text typed on the phone goes to whatever field is focused on the TV, via the
+       existing loopback adb (`input text`, sent in small throttled chunks because the TV keyboard drops fast input, special characters escaped) — no IME switch.
+       Also Enter, Backspace, D-pad, Back, Home, OK from the page.
+    b. Paste the TMDB key straight into Afterglow; reorder favourites; learn/assign remote buttons.
+    c. **Backup and restore** of all Afterglow settings (favourites, names, mappings, look, panel, screensaver; TMDB key only if the owner ticks it) to a file
+       on the phone, restore after a factory reset.
+    **Rule change needed when built:** local network server allowed only while the companion is on (add to CLAUDE.md "Never" line).
+12. **Feel and polish pass:** spring-physics focus movement, screens slide instead of cutting, shared-element transitions (tile/poster grows into its page),
+    all under 200 ms; one accent everywhere (Lite time-of-day glow / Showcase artwork colour tints Settings and the panel too); a consistent icon set;
+    v2 typography and glass on every Settings page (they still look v1). Mockups first.
+13. **Beyond the TCL:** takeover recipes + checks for Chromecast with Google TV, Sony, Xiaomi; Fire TV "watcher" mode (cover Amazon's home, which can't be
+    replaced); testers with other TVs; 1.0 launch (website, screenshots, Obtainium/F-Droid listing).
+Decided NOT to add (owner, 12 Nov): universal search, "Jump back in"/where to watch/watchlist (the owner's movie app does that), kids/guest mode, bedtime,
+movie-night, inputs tile.
 
 ## Waiting for the owner
 - **Brightness bar** instead of volume in the quick panel: TCL keeps Backlight outside `settings` (discovery 1 Nov). Next if resumed: `adb logcat` while changing Backlight.
