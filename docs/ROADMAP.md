@@ -72,6 +72,18 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
     v2 typography and glass on every Settings page (they still look v1). Mockups first.
 13. **Beyond the TCL:** takeover recipes + checks for Chromecast with Google TV, Sony, Xiaomi; Fire TV "watcher" mode (cover Amazon's home, which can't be
     replaced); testers with other TVs; 1.0 launch (website, screenshots, Obtainium/F-Droid listing).
+14. **Showcase fixes + better picks** (owner, 12 Nov; how it works today: TMDB trending/all/week, top 10, 6 h refresh -> same titles for days; it only
+    rotates while focus is in the hero, so it sticks while you're on Favourites).
+    a. **Logo box:** some TMDB logos have a solid background. Reject a logo whose border pixels are mostly opaque (sample the edges after decode); try the next
+       logo, else the styled text title.
+    b. **Smoother rotation:** rotate every 10 s always while Home is in front (also when focus is on Favourites); preload the next backdrop + logo before the switch;
+       700 ms crossfade; drift continues across the switch.
+    c. **Bigger, fresher pool (~50):** trending day + week, popular movies/tv, now playing in India, top rated; shuffle; don't repeat titles shown in the last 3 days.
+    d. **Only what you can watch:** read the installed streaming apps (Netflix, Prime Video, Hotstar, SonyLIV, Zee5, ...) and use TMDB `discover` with
+       `watch_region=IN&with_watch_providers=<ids>` for most of the pool; small "On Netflix" badge.
+    e. **Your taste (optional):** genres more/less, languages (English, Hindi, Korean...) in Settings > Look; long-press OK on a title = "Not interested" (never shown again).
+Mockups 12 Nov (owner asked for basic ones): `docs/design/v2/companion-tv.png`, `companion-phone.png` (task 11), `settings-v2.png` (task 12: Settings with a left
+rail of icon sections and glass rows).
 Decided NOT to add (owner, 12 Nov): universal search, "Jump back in"/where to watch/watchlist (the owner's movie app does that), kids/guest mode, bedtime,
 movie-night, inputs tile.
 
