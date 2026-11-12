@@ -87,6 +87,7 @@ dependencies {
     implementation(libs.coroutines.android)
     implementation(libs.profileinstaller)
     implementation(libs.dadb)
+    implementation(libs.qrcodegen)
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

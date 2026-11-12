@@ -56,8 +56,30 @@ object AdbWhitelist {
 
     fun putScreensaverEnabled(on: Boolean) = "settings put secure screensaver_enabled ${if (on) 1 else 0}"
 
+    /** Phone companion keys: only these nine numeric key codes (up, down, left, right, ok, back, home, del, enter). */
+    private val KeyEvent = Regex("input keyevent (19|20|21|22|23|4|3|67|66)")
+
+    /**
+     * Phone companion typing: `input text` followed by 1 to 64 pieces, each one letter or digit, the two characters `%s` (a space),
+     * or a backslash plus one printable ASCII character other than `%` (the shell then takes it literally). Nothing else can pass.
+     */
+    private val InputText = Regex("input text (?:[A-Za-z0-9]|%s|\\\\[!-$&-~]){1,64}")
+
+    fun keyEvent(code: Int): String {
+        val c = "input keyevent $code"
+        require(KeyEvent.matches(c)) { "bad key" }
+        return c
+    }
+
+    fun inputText(encoded: String): String {
+        val c = "input text $encoded"
+        require(InputText.matches(c)) { "bad text" }
+        return c
+    }
+
     fun allows(command: String): Boolean {
         if (command in Exact) return true
+        if (KeyEvent.matches(command) || InputText.matches(command)) return true
         val parts = command.split(' ')
         return when {
             parts.size == 5 && parts[0] == "pm" && parts[1] == "disable-user" && parts[2] == "--user" && parts[3] == "0" ->

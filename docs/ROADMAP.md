@@ -58,7 +58,7 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
    NOT added: AirPlay (`com.tcl.airplay2`, `com.mediatek.AirplayAPK`, `com.mediatek.airplaydaemon`) and `com.tcl.miracast` (owner uses them sometimes).
    Never listed: mediashell (Chromecast), katniss (voice), netflix.tokenmanager, ui_mediaCenter, gamebar, factory.view. All stay unticked by default.
 10. Release 1.0 after 1-3 and 9.
-11. **Phone companion** (owner loves it, 12 Nov). Afterglow shows a QR code; the phone opens a small page served by the TV on the home Wi-Fi (no internet,
+11. **Phone companion** (owner loves it, 12 Nov). **BUILT (M11), awaiting test on the TV.** Afterglow shows a QR code; the phone opens a small page served by the TV on the home Wi-Fi (no internet,
     no account, no app install). Opt-in once, then always on; a one-time PIN in the QR pairs a phone.
     a. **Phone as a keyboard for ANY app** (e.g. typing in a movie app's search): text typed on the phone goes to whatever field is focused on the TV, via the
        existing loopback adb (`input text`, sent in small throttled chunks because the TV keyboard drops fast input, special characters escaped) — no IME switch.

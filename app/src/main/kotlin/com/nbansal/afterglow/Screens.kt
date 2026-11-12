@@ -14,6 +14,8 @@ enum class Screen(val parent: Screen?) {
     Hidden(Settings),
     RemoteButtons(Settings),
     QuickPanel(Settings),
+    PhoneCompanion(Settings),
+    PairPhone(PhoneCompanion),
     Packages(Settings),
     About(Settings),
 }

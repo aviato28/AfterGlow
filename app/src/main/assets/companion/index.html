@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0908">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<title>Afterglow</title>
+<style>
+:root{--base:#0b0908;--ink:#f3e9df;--muted:#b8ada3;--cream:#ffdcb8;--line:rgba(243,233,223,.14);--fill:rgba(243,233,223,.07)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--base);color:var(--ink);font-family:Outfit,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+body{min-height:100vh;padding:max(18px,env(safe-area-inset-top)) 18px max(24px,env(safe-area-inset-bottom));max-width:480px;margin:0 auto;
+  background:radial-gradient(120% 40% at 50% 105%,rgba(160,60,70,.35),transparent 70%),var(--base);background-attachment:fixed}
+header{display:flex;justify-content:space-between;align-items:center;margin:8px 4px 16px}
+h1{font-size:22px;font-weight:600;margin:0;letter-spacing:.3px}
+.tv{color:var(--muted);font-size:15px;display:flex;align-items:center;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;background:#6fd08c}.dot.off{background:#e8607a}
+nav{display:flex;background:var(--fill);border:1px solid var(--line);border-radius:18px;padding:4px;margin-bottom:18px}
+nav button{flex:1;background:none;border:0;color:var(--ink);font:inherit;font-size:15px;padding:11px 0;border-radius:14px}
+nav button.on{background:var(--cream);color:#2a1a10;font-weight:600}
+section{display:none}section.on{display:block}
+.cap{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:20px 4px 10px}
+textarea,input[type=text],input[type=tel]{width:100%;background:rgba(243,233,223,.06);border:1px solid rgba(255,176,112,.45);color:var(--ink);border-radius:18px;
+  padding:14px 16px;font:inherit;font-size:18px;outline:none}
+textarea{min-height:110px;resize:none}
+.hint{color:var(--muted);font-size:13px;margin:6px 6px 0}
+.row{display:flex;gap:10px;margin:12px 0}
+.btn{flex:1;background:var(--fill);border:1px solid var(--line);color:var(--ink);font:inherit;font-size:16px;padding:14px 8px;border-radius:16px}
+.btn.main{background:var(--cream);color:#2a1a10;font-weight:600;border-color:transparent}
+.btn:active{transform:scale(.97);opacity:.85}
+.pad{position:relative;width:250px;height:250px;margin:18px auto;border-radius:50%;background:var(--fill);border:1px solid var(--line)}
+.pad button{position:absolute;background:none;border:0;color:var(--muted);font-size:26px;width:64px;height:64px}
+.pad .u{left:93px;top:6px}.pad .d{left:93px;bottom:6px}.pad .l{left:6px;top:93px}.pad .r{right:6px;top:93px}
+.pad .ok{left:75px;top:75px;width:100px;height:100px;border-radius:50%;background:rgba(243,233,223,.14);color:var(--ink);font-size:18px;font-weight:600}
+.round{display:flex;justify-content:space-around;margin:8px 0}
+.round button{width:74px;height:74px;border-radius:50%;background:var(--fill);border:1px solid var(--line);color:var(--ink);font:inherit;font-size:15px}
+.fav{display:flex;align-items:center;gap:14px;background:var(--fill);border:1px solid var(--line);border-radius:16px;padding:10px 14px;margin-bottom:10px;touch-action:pan-y}
+.fav.drag{opacity:.7;border-color:var(--cream)}
+.chip{width:46px;height:34px;border-radius:9px;background:#3a2c36;display:grid;place-items:center;font-weight:600;font-size:15px}
+.fav .n{flex:1;font-size:17px}.grip{touch-action:none;color:var(--muted);font-size:22px;padding:6px 8px;user-select:none}
+.kv{display:flex;justify-content:space-between;background:var(--fill);border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.kv span:last-child{color:var(--muted)}
+label.chk{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:15px;margin:6px 4px 12px}
+.foot{text-align:center;color:var(--muted);font-size:13px;margin-top:22px;min-height:20px}
+.foot.err{color:#ff9aa8}
+#pair{display:none;text-align:center;margin-top:40px}
+#pair p{color:var(--muted);font-size:16px;line-height:1.4}
+#pair input{text-align:center;font-size:32px;letter-spacing:12px;margin:16px 0}
+</style>
+</head>
+<body>
+<header><h1>afterglow</h1><div class="tv"><span class="dot off" id="dot"></span><span id="tvname">Not connected</span></div></header>
+
+<div id="pair">
+  <p>Enter the 4-digit PIN shown on the TV<br>(Settings &gt; Phone companion &gt; Pair a phone).</p>
+  <input id="pin" type="tel" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="----">
+  <button class="btn main" id="pairgo" style="width:100%">Pair</button>
+</div>
+
+<div id="app" style="display:none">
+<nav id="tabs"><button data-t="type" class="on">Type</button><button data-t="remote">Remote</button><button data-t="home">Home</button><button data-t="backup">Backup</button></nav>
+
+<section id="s-type" class="on">
+  <textarea id="txt" placeholder="Type here" autocapitalize="off" autocomplete="off" spellcheck="false"></textarea>
+  <div class="hint">Goes into whatever box is open on the TV. Letters, numbers and common symbols only.</div>
+  <div class="row">
+    <button class="btn" id="bs" style="flex:.7">&#9003;</button>
+    <button class="btn" id="sp">Space</button>
+    <button class="btn" id="clr">Clear</button>
+    <button class="btn main" id="send">Send &crarr;</button>
+  </div>
+</section>
+
+<section id="s-pad" class="on">
+  <div class="pad">
+    <button class="u" data-k="up">&#9650;</button><button class="d" data-k="down">&#9660;</button>
+    <button class="l" data-k="left">&#9664;</button><button class="r" data-k="right">&#9654;</button>
+    <button class="ok" data-k="ok">OK</button>
+  </div>
+  <div class="round"><button data-k="back">Back</button><button data-k="home">Home</button><button data-k="panel">Panel</button></div>
+</section>
+
+<section id="s-home">
+  <div class="cap">Favourites &middot; drag to reorder</div>
+  <div id="favs"></div>
+  <div class="cap">Showcase</div>
+  <div class="kv"><span>TMDB key</span><span id="tmdb">-</span></div>
+  <input id="newkey" type="text" placeholder="Paste a new TMDB key" autocapitalize="off" autocomplete="off" spellcheck="false">
+  <div class="row"><button class="btn main" id="savekey">Save key</button></div>
+</section>
+
+<section id="s-backup">
+  <div class="cap">Backup</div>
+  <label class="chk"><input type="checkbox" id="withkey"> Include my TMDB key</label>
+  <div class="row"><button class="btn main" id="save">Save backup</button><button class="btn" id="restore">Restore...</button></div>
+  <input type="file" id="file" accept="application/json,.json" style="display:none">
+  <div class="hint">Saved to your phone. Restoring changes favourites, names, remote buttons and look. It never changes the TV's home-button setup.</div>
+</section>
+
+<div class="foot" id="foot"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+var TK="ag_token", token=null, footTimer=0;
+try{token=localStorage.getItem(TK)}catch(e){}
+
+function say(msg,err){var f=$("foot");f.textContent=msg;f.className="foot"+(err?" err":"");clearTimeout(footTimer);footTimer=setTimeout(function(){f.textContent=""},4000)}
+function setOnline(on,name){$("dot").className="dot"+(on?"":" off");$("tvname").textContent=on?(name||"TV"):"Not connected"}
+
+function api(path,method,body,raw){
+  var h={};if(token)h["Authorization"]="Bearer "+token;
+  var o={method:method||"GET",headers:h};
+  if(body!==undefined){h["Content-Type"]="application/json";o.body=typeof body==="string"?body:JSON.stringify(body)}
+  return fetch(path,o).then(function(r){
+    if(r.status===401&&path!=="/api/pair"){forget();throw new Error("Pair again with the TV")}
+    return r.text().then(function(t){
+      var j=null;try{j=JSON.parse(t)}catch(e){}
+      if(!r.ok)throw new Error((j&&j.error)||"Error "+r.status);
+      return raw?t:j;
+    });
+  },function(){setOnline(false);throw new Error("Cannot reach the TV. Same Wi-Fi?")});
+}
+function forget(){token=null;try{localStorage.removeItem(TK)}catch(e){}showPair()}
+function showPair(){$("app").style.display="none";$("pair").style.display="block";setOnline(false)}
+function showApp(){$("pair").style.display="none";$("app").style.display="block";tab("type")}
+
+function pair(pin){
+  return api("/api/pair","POST",{pin:pin}).then(function(r){
+    token=r.token;try{localStorage.setItem(TK,token)}catch(e){}
+    setOnline(true,r.name);showApp();
+  });
+}
+$("pairgo").onclick=function(){pair($("pin").value.trim()).catch(function(e){alert(e.message)})};
+
+function tab(t){
+  [].forEach.call(document.querySelectorAll("#tabs button"),function(b){b.className=b.getAttribute("data-t")===t?"on":""});
+  $("s-type").className=t==="type"?"on":"";
+  $("s-pad").className=(t==="type"||t==="remote")?"on":"";
+  $("s-home").className=t==="home"?"on":"";
+  $("s-backup").className=t==="backup"?"on":"";
+  if(t==="home")loadFavs();
+}
+$("tabs").onclick=function(e){var t=e.target.getAttribute&&e.target.getAttribute("data-t");if(t)tab(t)};
+
+function key(k){return api("/api/key","POST",{key:k}).catch(function(e){say(e.message,true)})}
+document.querySelectorAll("[data-k]").forEach(function(b){b.onclick=function(){key(b.getAttribute("data-k"))}});
+
+function typeText(t){
+  if(!t)return Promise.resolve();
+  return api("/api/text","POST",{text:t}).then(function(r){
+    if(r.skipped)say(r.skipped+" character(s) could not be typed (only plain letters, numbers and symbols work)",true);
+    return r;
+  });
+}
+$("bs").onclick=function(){key("del")};
+$("sp").onclick=function(){typeText(" ").catch(function(e){say(e.message,true)})};
+$("clr").onclick=function(){$("txt").value="";$("txt").focus()};
+$("send").onclick=function(){
+  var v=$("txt").value;if(!v)return key("enter");
+  $("send").disabled=true;
+  typeText(v).then(function(){return key("enter")}).then(function(){$("txt").value="";say("Sent")})
+    .catch(function(e){say(e.message,true)}).then(function(){$("send").disabled=false});
+};
+
+function loadFavs(){
+  api("/api/favourites").then(function(r){
+    setOnline(true);
+    var box=$("favs");box.textContent="";
+    r.favourites.forEach(function(f){
+      var d=document.createElement("div");d.className="fav";d.setAttribute("data-pkg",f.pkg);
+      var c=document.createElement("div");c.className="chip";c.textContent=(f.label||"?").charAt(0).toUpperCase();
+      var n=document.createElement("div");n.className="n";n.textContent=f.label;
+      var g=document.createElement("div");g.className="grip";g.textContent="≡";
+      d.appendChild(c);d.appendChild(n);d.appendChild(g);box.appendChild(d);
+      dragger(g,d,box);
+    });
+    $("tmdb").textContent=r.tmdb;
+  }).catch(function(e){say(e.message,true)});
+}
+function dragger(grip,item,box){
+  grip.addEventListener("pointerdown",function(ev){
+    ev.preventDefault();grip.setPointerCapture(ev.pointerId);item.classList.add("drag");
+    var move=function(e){
+      var sib=[].filter.call(box.children,function(x){return x!==item});
+      for(var i=0;i<sib.length;i++){
+        var r=sib[i].getBoundingClientRect();
+        if(e.clientY<r.top+r.height/2){box.insertBefore(item,sib[i]);return}
+      }
+      box.appendChild(item);
+    };
+    var up=function(){
+      grip.removeEventListener("pointermove",move);grip.removeEventListener("pointerup",up);grip.removeEventListener("pointercancel",up);
+      item.classList.remove("drag");
+      var order=[].map.call(box.children,function(x){return x.getAttribute("data-pkg")});
+      api("/api/favourites","POST",{order:order}).then(function(){say("Order saved")}).catch(function(e){say(e.message,true);loadFavs()});
+    };
+    grip.addEventListener("pointermove",move);grip.addEventListener("pointerup",up);grip.addEventListener("pointercancel",up);
+  });
+}
+$("savekey").onclick=function(){
+  var k=$("newkey").value.trim();if(!k)return;
+  api("/api/tmdbkey","POST",{key:k}).then(function(r){$("tmdb").textContent=r.tmdb;$("newkey").value="";say("Key saved")})
+    .catch(function(e){say(e.message,true)});
+};
+
+$("save").onclick=function(){
+  api("/api/backup"+($("withkey").checked?"?withKey=1":""),"GET",undefined,true).then(function(t){
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([t],{type:"application/json"}));
+    a.download="afterglow-backup-"+new Date().toISOString().slice(0,10)+".json";
+    document.body.appendChild(a);a.click();a.remove();say("Saved to your phone");
+  }).catch(function(e){say(e.message,true)});
+};
+$("restore").onclick=function(){$("file").click()};
+$("file").onchange=function(){
+  var f=this.files[0];this.value="";if(!f)return;
+  if(f.size>60000){say("That file is too big for a backup",true);return}
+  var rd=new FileReader();
+  rd.onload=function(){
+    api("/api/restore","POST",String(rd.result)).then(function(){say("Restored")}).catch(function(e){say(e.message,true)});
+  };
+  rd.readAsText(f);
+};
+
+// Start: a PIN in the address (from the QR code) pairs this phone once; later the saved token is enough.
+var q=new URLSearchParams(location.search),pin=q.get("pin");
+if(pin){history.replaceState(null,"","/")}
+if(token){
+  api("/api/ping").then(function(r){setOnline(true,r.name);showApp()}).catch(function(e){
+    if(!token&&pin)pair(pin).catch(function(x){showPair();say(x.message,true)});else if(token){setOnline(false);showApp();say(e.message,true)}
+  });
+}else if(pin){
+  pair(pin).catch(function(e){showPair();alert(e.message)});
+}else showPair();
+})();
+</script>
+</body>
+</html>

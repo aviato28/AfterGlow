@@ -24,6 +24,9 @@ class AdbWhitelistTest {
             "cmd notification allow_listener com.nbansal.afterglow/com.nbansal.afterglow.panel.NowPlayingListener",
             "cmd notification disallow_listener com.nbansal.afterglow/com.nbansal.afterglow.panel.NowPlayingListener",
             "pm disable-user --user 0 com.tcl.channelplus", "pm enable com.tcl.channelplus",
+            "input keyevent 19", "input keyevent 20", "input keyevent 21", "input keyevent 22", "input keyevent 23", "input keyevent 4",
+            "input keyevent 3", "input keyevent 67", "input keyevent 66",
+            "input text hi", "input text hello%sworld", "input text a\\;b\\\\c", "input text ${"a".repeat(64)}",
         ).forEach { assertTrue(it, AdbWhitelist.allows(it)) }
     }
 
@@ -39,7 +42,11 @@ class AdbWhitelistTest {
             "appops set com.nbansal.afterglow RUN_IN_BACKGROUND allow", "appops set com.nbansal.afterglow SYSTEM_ALERT_WINDOW allow; reboot",
             "pm grant com.nbansal.afterglow android.permission.WRITE_SECURE_SETTINGS", "pm grant com.other.app android.permission.READ_LOGS",
             "pm grant com.nbansal.afterglow android.permission.READ_LOGS",
-            "input keyevent KEYCODE_POWER", "input keyevent KEYCODE_SLEEP; reboot", "input keyevent KEYCODE_SLEEP ", "input text hi",
+            "input keyevent KEYCODE_POWER", "input keyevent KEYCODE_SLEEP; reboot", "input keyevent KEYCODE_SLEEP ",
+            "input keyevent 26", "input keyevent 19 ", "input keyevent 19;reboot", "input keyevent 190", "input keyevent", "input keyevent 3 4",
+            "input text", "input text ", "input text hi there", "input text hi;reboot", "input text $(id)", "input text a|b", "input text a&b",
+            "input text 'a'", "input text \"a\"", "input text a\\", "input text %", "input text %x", "input text a\\%", "input text `id`",
+            "input text ${"a".repeat(65)}", "input  text a", " input text a", "input text a\nreboot", "input text caf\u00e9",
             "cmd notification allow_listener com.other.app/com.other.app.Listener",
             "cmd notification allow_listener com.nbansal.afterglow/com.nbansal.afterglow.panel.NowPlayingListener; id",
             "cmd notification disallow_listener com.other.app/com.other.app.Listener", "cmd notification list",

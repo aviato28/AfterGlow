@@ -36,6 +36,9 @@ import com.nbansal.afterglow.keys.KeyWatch
 import com.nbansal.afterglow.keys.KeyWatchService
 import com.nbansal.afterglow.keys.QuickPanelController
 import com.nbansal.afterglow.settings.QuickPanelPage
+import com.nbansal.afterglow.settings.CompanionPage
+import com.nbansal.afterglow.settings.PairPhonePage
+import com.nbansal.afterglow.companion.CompanionService
 import com.nbansal.afterglow.onboarding.OnboardingScreen
 import com.nbansal.afterglow.onboarding.OnboardingStep
 import com.nbansal.afterglow.settings.AboutPage
@@ -123,6 +126,7 @@ class HomeActivity : ComponentActivity() {
         model.checkFirmware()
         model.showcase.refreshIfDue()
         KeyWatchService.startIfOn(this)
+        CompanionService.startIfOn(this)
     }
 
     override fun onResume() {
@@ -130,6 +134,7 @@ class HomeActivity : ComponentActivity() {
         resumed = true
         // The system may have stopped the key-watch service (low memory, an update): bring it back when the switch is on.
         if (!KeyWatch.running) KeyWatchService.startIfOn(this)
+        CompanionService.startIfOn(this)
     }
 
     override fun onPause() {
@@ -239,6 +244,7 @@ class HomeActivity : ComponentActivity() {
                     SettingsRow("Screensaver", com.nbansal.afterglow.saver.Saver.describe(android.provider.Settings.Secure.getString(contentResolver, "screensaver_components"))) { screen = Screen.Screensaver },
                     SettingsRow("Remote buttons", "${model.state.buttons.size}") { screen = Screen.RemoteButtons },
                     SettingsRow("Quick panel", if (model.state.quickPanel) "On" else "Off") { screen = Screen.QuickPanel },
+                    SettingsRow("Phone companion", if (model.companion.enabled) "On" else "Off") { screen = Screen.PhoneCompanion },
                     SettingsRow("Hidden apps", "${model.hiddenApps.size}") { screen = Screen.Hidden },
                     SettingsRow("Installed packages") { screen = Screen.Packages },
                     SettingsRow("Set up again") { model.restartOnboarding(); screen = Screen.Onboarding },
@@ -254,6 +260,8 @@ class HomeActivity : ComponentActivity() {
             Screen.Hidden -> HiddenAppsPage(model)
             Screen.RemoteButtons -> RemoteButtonsPage(model, learning, learned, onLearn = { learning = true }, onPicked = { learned = null })
             Screen.QuickPanel -> QuickPanelPage(model)
+            Screen.PhoneCompanion -> CompanionPage(model, onPair = { screen = Screen.PairPhone })
+            Screen.PairPhone -> PairPhonePage(model, onDone = { screen = Screen.PhoneCompanion })
             Screen.Packages -> PackagesPage()
             Screen.About -> AboutPage(model)
         }
