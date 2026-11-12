@@ -46,5 +46,6 @@ object Ag {
     val SectionCaps = TextStyle(
         fontFamily = Font, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, letterSpacing = 2.sp, color = Muted,
     )
+    val Title = TextStyle(fontFamily = Font, fontWeight = FontWeight.Light, fontSize = 40.sp, color = Ink)
     val Body = TextStyle(fontFamily = Font, fontWeight = FontWeight.Normal, fontSize = 24.sp, color = Ink)
 }

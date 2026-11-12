@@ -70,7 +70,7 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
     token so the QR is scanned once). Owner wants zero hassle: once switched on, the companion STAYS ON and paired phones stay paired (no auto-off); a new phone needs a fresh PIN shown on the TV; Settings has "Unpair all phones" and an off switch. An APK would only add a share-sheet
     "Send to TV", volume-button control, notification remote, widgets: revisit only if wanted later.
     **Rule change needed when built:** local network server allowed only while the companion is on (add to CLAUDE.md "Never" line).
-12. **Feel and polish pass:** spring-physics focus movement, screens slide instead of cutting, shared-element transitions (tile/poster grows into its page),
+12. **Feel and polish pass** [BUILT (M12), awaiting owner test on the TV]**:** spring-physics focus movement, screens slide instead of cutting, shared-element transitions (tile/poster grows into its page),
     all under 200 ms; one accent everywhere (Lite time-of-day glow / Showcase artwork colour tints Settings and the panel too); a consistent icon set;
     v2 typography and glass on every Settings page (they still look v1). Mockups first.
 13. **Beyond the TCL:** takeover recipes + checks for Chromecast with Google TV, Sony, Xiaomi; Fire TV "watcher" mode (cover Amazon's home, which can't be

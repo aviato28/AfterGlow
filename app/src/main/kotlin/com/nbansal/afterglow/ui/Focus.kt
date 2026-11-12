@@ -1,8 +1,9 @@
 package com.nbansal.afterglow.ui
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.focusable
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +38,15 @@ private const val GLOW_LAYERS = 6
 /** Showcase accent colour for focus ring and glow; null (Lite, dialogs) keeps the amber/cream look. */
 val LocalAccent = compositionLocalOf<Color?> { null }
 
+/** The accent the overlay windows (quick panel) cannot inherit through composition: HomeActivity keeps it current. */
+object AccentHolder {
+    @Volatile var current: Color? = null
+}
+
+/** The one accent for switches, active rail items and highlights: the current accent, else the default amber. */
+@Composable
+fun accentColor(): Color = LocalAccent.current ?: Ag.Amber
+
 /** Ring colour for an accent: the accent lightened toward white (amber FFB070 -> about FFD4B0). */
 fun accentRing(accent: Color): Color = lerp(accent, Color.White, 0.45f)
 
@@ -61,7 +71,7 @@ fun Modifier.tvFocus(
     val accent = LocalAccent.current
     val glowColor = accent ?: Ag.Amber
     val ringColor = accent?.let { accentRing(it) } ?: Ag.Ring
-    val scale by animateFloatAsState(if (focused) lift else 1f, tween(durationMillis = 120), label = "tvFocusScale")
+    val scale by animateFloatAsState(if (focused) lift else 1f, spring(dampingRatio = 0.8f, stiffness = 400f), label = "tvFocusScale")
 
     this
         .graphicsLayer {

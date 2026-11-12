@@ -95,6 +95,29 @@ import com.nbansal.afterglow.ui.Ag
 import com.nbansal.afterglow.ui.TvCanvas
 import com.nbansal.afterglow.ui.focusSoon
 import com.nbansal.afterglow.ui.tvFocus
+import com.nbansal.afterglow.ui.accentRing
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.runtime.CompositionLocalProvider
+import com.nbansal.afterglow.ui.IconSleep
+import com.nbansal.afterglow.ui.IconTimer
+import com.nbansal.afterglow.ui.IconWifi
+import com.nbansal.afterglow.ui.IconSound
+import com.nbansal.afterglow.ui.IconPicture
+import com.nbansal.afterglow.ui.IconSettings
+import com.nbansal.afterglow.ui.IconVolume
+import com.nbansal.afterglow.ui.IconPrev
+import com.nbansal.afterglow.ui.IconNext
+import com.nbansal.afterglow.ui.IconPlay
+import com.nbansal.afterglow.ui.IconPause
+import com.nbansal.afterglow.ui.PathIcon
+import com.nbansal.afterglow.ui.AccentHolder
+import com.nbansal.afterglow.ui.LocalAccent
+import com.nbansal.afterglow.ui.accentColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -129,7 +152,18 @@ object QuickPanel {
                 setViewTreeLifecycleOwner(o)
                 setViewTreeSavedStateRegistryOwner(o)
                 setViewTreeViewModelStoreOwner(o)
-                setContent { TvCanvas { PanelContent(context, ::hide) } }
+                setContent {
+                    TvCanvas {
+                        CompositionLocalProvider(LocalAccent provides AccentHolder.current) {
+                            // Slides in from the right (200 ms); nothing animates afterwards.
+                            AnimatedVisibility(
+                                visibleState = remember { MutableTransitionState(false).apply { targetState = true } },
+                                enter = slideInHorizontally(tween(200)) { it / 3 } + fadeIn(tween(200)),
+                                exit = ExitTransition.None,
+                            ) { PanelContent(context, ::hide) }
+                        }
+                    }
+                }
             }
             val params = WindowManager.LayoutParams(
                 (widthPx * (PanelWidthDp + EdgeDp) / CanvasWidthDp).toInt(),
@@ -178,34 +212,11 @@ internal class PanelOwner : LifecycleOwner, SavedStateRegistryOwner, ViewModelSt
 }
 
 
-// Icons from docs/design/v2/panel.html (24 x 24 view box, 2 px round strokes).
-private const val IconSleep = "M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"
-private const val IconTimer = "M12 5a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 9v4l2 2M9 2h6"
-private const val IconWifi = "M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M2 9a15 15 0 0 1 20 0M12 19.5h.01"
-private const val IconSound = "M8 2h8a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3zM12 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 6h.01"
-private const val IconPicture = "M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 21h8M12 17v4"
-private const val IconSettings = "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"
-private const val IconVolume = "M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7"
-private const val IconPrev = "M19 5v14L8 12zM5 5v14"
-private const val IconNext = "M5 5v14l11-7zM19 5v14"
-private const val IconPlay = "M7 4v16l13-8z"
-private const val IconPause = "M8 5v14M16 5v14"
 
 private val PanelShape = RoundedCornerShape(44.dp)
 private val TileShape = RoundedCornerShape(30.dp)
 private val Cream = Color(0xFFFFD9B0)
 private val Dark = Color(0xFF1A1210)
-
-@Composable
-private fun PathIcon(d: String, box: Dp, color: Color, modifier: Modifier = Modifier) {
-    val path = remember(d) { PathParser().parsePathString(d).toPath() }
-    Canvas(modifier.size(box)) {
-        val k = this.size.minDimension / 24f
-        scale(k, k, pivot = Offset.Zero) {
-            drawPath(path, color, style = Stroke(width = 2f, cap = StrokeCap.Round, join = StrokeJoin.Round))
-        }
-    }
-}
 
 /** One media session, for the Now playing card. The controller itself is kept apart so the card does not redraw on every poll. */
 private data class Playing(val pkg: String, val title: String, val app: String, val playing: Boolean)
@@ -406,17 +417,19 @@ private fun PanelContent(context: Context, close: () -> Unit) {
 @Composable
 private fun Tile(title: String, subtitle: String, icon: String, on: Boolean, modifier: Modifier, onClick: () -> Unit) {
     var focused by remember { mutableStateOf(false) }
+    val accent = accentColor()
+    val cream = accentRing(accent)
     val fill = when {
-        focused -> Cream
-        on -> Ag.Amber.copy(alpha = 0.18f)
+        focused -> cream
+        on -> accent.copy(alpha = 0.18f)
         else -> Ag.Ink.copy(alpha = 0.07f)
     }
     val line = when {
-        focused -> Cream
-        on -> Ag.Amber.copy(alpha = 0.35f)
+        focused -> cream
+        on -> accent.copy(alpha = 0.35f)
         else -> Ag.Ink.copy(alpha = 0.09f)
     }
-    val iconColor = if (focused) Dark else if (on) Ag.Amber else Ag.Ink
+    val iconColor = if (focused) Dark else if (on) accent else Ag.Ink
     Column(
         modifier
             .height(116.dp)
