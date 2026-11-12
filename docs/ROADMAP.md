@@ -66,6 +66,9 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
     b. Paste the TMDB key straight into Afterglow; reorder favourites; learn/assign remote buttons.
     c. **Backup and restore** of all Afterglow settings (favourites, names, mappings, look, panel, screensaver; TMDB key only if the owner ticks it) to a file
        on the phone, restore after a factory reset.
+    **Decision (12 Nov): web page only, no phone APK.** Make it an installable web app (manifest + icon, "Add to Home screen", remembers the TV with a paired
+    token so the QR is scanned once). Optional "Keep phone companion on" toggle (default off = auto-off after 10 min idle). An APK would only add a share-sheet
+    "Send to TV", volume-button control, notification remote, widgets: revisit only if wanted later.
     **Rule change needed when built:** local network server allowed only while the companion is on (add to CLAUDE.md "Never" line).
 12. **Feel and polish pass:** spring-physics focus movement, screens slide instead of cutting, shared-element transitions (tile/poster grows into its page),
     all under 200 ms; one accent everywhere (Lite time-of-day glow / Showcase artwork colour tints Settings and the panel too); a consistent icon set;
