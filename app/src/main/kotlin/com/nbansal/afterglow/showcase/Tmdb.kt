@@ -6,13 +6,17 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
-/** Per-title extras from one TMDB details call. [logo] is a file path like "/abc.png" ("" = none), [released] is "yyyy-MM-dd" or "". */
+/**
+ * Per-title extras from one TMDB details call. [logo] is a file path like "/abc.png" ("" = none), [logos] all usable candidates best first
+ * (the next one is tried when a logo has a solid box around it), [released] is "yyyy-MM-dd" or "".
+ */
 data class ShowDetails(
     val logo: String = "",
     val cert: String = "",
     val runtime: Int = 0,
     val genres: List<String> = emptyList(),
     val released: String = "",
+    val logos: List<String> = emptyList(),
 )
 
 /** One trending title, as shown on the Showcase home. [type] is "movie" or "tv". [rating] is "" when TMDB has no votes. */
@@ -26,6 +30,11 @@ data class ShowTitle(
     val overview: String,
     val backdrop: String,
     val details: ShowDetails = ShowDetails(),
+    /** Streaming service this title came from ("" = none): shown as "On <service>". */
+    val via: String = "",
+    /** TMDB genre ids and original language, for the "More of / Less of" taste filter. */
+    val genreIds: List<Int> = emptyList(),
+    val lang: String = "",
 )
 
 /** TMDB thrown as a plain status so nothing that could contain the request URL (and so the key) is ever kept or shown. */
@@ -73,12 +82,11 @@ object Tmdb {
         return "/${t.type}/${t.id}?language=en-US&append_to_response=$extra&include_image_language=en,null"
     }
 
-    /** Best logo file path: English first, then no language; the highest vote wins; SVG is skipped (cannot be decoded). "" = none. */
-    fun pickLogo(logos: JSONArray?): String {
-        if (logos == null) return ""
-        var best = ""
-        var bestRank = Int.MAX_VALUE
-        var bestVote = -1.0
+    /** Usable logo file paths, best first (at most 5): English before no language, higher vote first; SVG is skipped (cannot be decoded). */
+    fun pickLogos(logos: JSONArray?): List<String> {
+        if (logos == null) return emptyList()
+        class Cand(val path: String, val rank: Int, val vote: Double)
+        val found = ArrayList<Cand>()
         for (i in 0 until logos.length()) {
             val o = logos.optJSONObject(i) ?: continue
             val path = o.optString("file_path")
@@ -88,15 +96,13 @@ object Tmdb {
                 o.optString("iso_639_1") == "en" -> 0
                 else -> continue
             }
-            val vote = o.optDouble("vote_average", 0.0)
-            if (rank < bestRank || (rank == bestRank && vote > bestVote)) {
-                best = path
-                bestRank = rank
-                bestVote = vote
-            }
+            found.add(Cand(path, rank, o.optDouble("vote_average", 0.0)))
         }
-        return best
+        return found.sortedWith(compareBy<Cand> { it.rank }.thenByDescending { it.vote }).map { it.path }.take(5)
     }
+
+    /** Best logo file path (the first of [pickLogos]); "" = none. */
+    fun pickLogo(logos: JSONArray?): String = pickLogos(logos).firstOrNull() ?: ""
 
     /** Age rating: region IN, else US. Movies: first non-empty `certification` of the region in `release_dates`; tv: `rating` in `content_ratings`. */
     fun pickCert(root: JSONObject, type: String): String {
@@ -133,8 +139,10 @@ object Tmdb {
             if (n.isNotEmpty()) genres.add(n)
         }
         val date = if (type == "movie") o.optString("release_date") else o.optString("first_air_date")
+        val logos = pickLogos(o.optJSONObject("images")?.optJSONArray("logos"))
         return ShowDetails(
-            logo = pickLogo(o.optJSONObject("images")?.optJSONArray("logos")),
+            logo = logos.firstOrNull() ?: "",
+            logos = logos,
             cert = pickCert(o, type),
             runtime = runtime.coerceAtLeast(0),
             genres = genres,
@@ -144,12 +152,15 @@ object Tmdb {
 
     fun detailsToJson(d: ShowDetails): JSONObject = JSONObject()
         .put("logo", d.logo).put("cert", d.cert).put("runtime", d.runtime)
-        .put("genres", JSONArray(d.genres)).put("released", d.released)
+        .put("genres", JSONArray(d.genres)).put("released", d.released).put("logos", JSONArray(d.logos))
 
     fun detailsFromJson(o: JSONObject): ShowDetails {
         val g = o.optJSONArray("genres")
         val genres = if (g == null) emptyList() else (0 until g.length()).map { g.optString(it) }.filter { it.isNotEmpty() }
-        return ShowDetails(o.optString("logo"), o.optString("cert"), o.optInt("runtime", 0), genres, o.optString("released"))
+        val l = o.optJSONArray("logos")
+        val logo = o.optString("logo")
+        val logos = if (l == null) listOfNotNull(logo.takeIf { it.isNotEmpty() }) else (0 until l.length()).map { l.optString(it) }.filter { it.isNotEmpty() }
+        return ShowDetails(logo, o.optString("cert"), o.optInt("runtime", 0), genres, o.optString("released"), logos)
     }
 
     /** "New on streaming": released 0 to 60 days before [today] (a future date is not new yet). */
@@ -201,14 +212,14 @@ object Tmdb {
         return out
     }
 
-    /** Movie/tv items that have a backdrop, first [limit] in TMDB's order. */
-    fun parseTrending(json: String, genres: Map<Int, String>, limit: Int = COUNT): List<ShowTitle> {
+    /** Movie/tv items that have a backdrop, first [limit] in TMDB's order. [defaultType] is used when an item has no `media_type` (discover, popular...). */
+    fun parseTrending(json: String, genres: Map<Int, String>, limit: Int = COUNT, defaultType: String = ""): List<ShowTitle> {
         val results = JSONObject(json).optJSONArray("results") ?: return emptyList()
         val out = ArrayList<ShowTitle>()
         for (i in 0 until results.length()) {
             if (out.size >= limit) break
             val o = results.optJSONObject(i) ?: continue
-            val type = o.optString("media_type")
+            val type = o.optString("media_type").ifEmpty { defaultType }
             if (type != "movie" && type != "tv") continue
             if (o.isNull("backdrop_path")) continue
             val backdrop = o.optString("backdrop_path")
@@ -220,7 +231,13 @@ object Tmdb {
             val date = if (type == "movie") o.optString("release_date") else o.optString("first_air_date")
             val ids = o.optJSONArray("genre_ids")
             val genre = if (ids != null && ids.length() > 0) genres[ids.optInt(0)].orEmpty() else ""
-            out.add(ShowTitle(id, type, title, year(date), genre, rating(o.optDouble("vote_average", 0.0)), o.optString("overview").trim(), backdrop))
+            val genreIds = if (ids == null) emptyList() else (0 until ids.length()).map { ids.optInt(it) }
+            out.add(
+                ShowTitle(
+                    id, type, title, year(date), genre, rating(o.optDouble("vote_average", 0.0)), o.optString("overview").trim(), backdrop,
+                    genreIds = genreIds, lang = o.optString("original_language"),
+                ),
+            )
         }
         return out
     }

@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,7 +32,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -46,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nbansal.afterglow.showcase.ShowDetails
 import com.nbansal.afterglow.showcase.ShowImage
 import com.nbansal.afterglow.showcase.ShowTitle
 import com.nbansal.afterglow.showcase.ShowcaseImages
@@ -53,14 +54,16 @@ import com.nbansal.afterglow.showcase.Tmdb
 import com.nbansal.afterglow.showcase.ShowcaseLogic
 import com.nbansal.afterglow.ui.Ag
 import com.nbansal.afterglow.ui.GlowPhase
+import com.nbansal.afterglow.ui.MenuRow
+import com.nbansal.afterglow.ui.TvMenu
 import com.nbansal.afterglow.ui.accentRing
 import com.nbansal.afterglow.ui.rememberGlowPhase
 import com.nbansal.afterglow.ui.tvFocus
 import kotlinx.coroutines.delay
 import java.time.LocalDate
 
-const val ROTATE_MS = 15_000L
-const val FADE_MS = 400
+const val ROTATE_MS = 10_000L
+const val FADE_MS = 700
 
 /** What the Showcase hero needs. [resumed]: Home is in front (rotation stops otherwise). [onWatch] returns a message, or null when sent. */
 class ShowcaseUi(
@@ -72,7 +75,15 @@ class ShowcaseUi(
     /** Current accent (ARGB, 0 = none) and the setter the hero calls when a new backdrop is ready. */
     val accent: Int = 0,
     val onAccent: (Int) -> Unit = {},
+    /** Details fetched so far (id -> logos, age rating...), and the call that fetches them for the next few titles. */
+    val details: Map<Int, ShowDetails> = emptyMap(),
+    val onNeedDetails: (List<ShowTitle>) -> Unit = {},
+    /** The title came on screen (not picked again for 3 days) / was marked "Not interested" in the long-press menu. */
+    val onShown: (ShowTitle) -> Unit = {},
+    val onNotInterested: (ShowTitle) -> Unit = {},
 )
+
+private fun ShowTitle.with(details: Map<Int, ShowDetails>): ShowTitle = details[id]?.let { copy(details = it) } ?: this
 
 private val ButtonShape = RoundedCornerShape(36.dp)
 
@@ -91,6 +102,7 @@ private fun MetaRow(title: ShowTitle, accent: Color, modifier: Modifier) {
         if (title.rating.isNotEmpty()) ScoreRing(Tmdb.scorePercent(title.rating), accent)
         if (parts.isNotEmpty()) Text(parts.joinToString("  ·  "), style = Ag.Body.copy(fontSize = 26.sp), maxLines = 1)
         if (cert.isNotEmpty()) Badge(cert, Color.Transparent, Ag.Ink)
+        if (title.via.isNotEmpty()) Badge("On ${title.via}", Color.Transparent, Ag.Ink)
         if (isNew) Badge("New on streaming", accent, Ag.Base)
     }
 }
@@ -125,16 +137,19 @@ private fun ScoreRing(percent: Int, accent: Color) {
 }
 
 /**
- * Backdrop, shades, title, meta, overview, Watch / Next, dots and credit (docs/design/v2/home-showcase.png). Rotates every 15 s
- * with a 400 ms crossfade, only while Home is resumed and focus is in the hero. Only the current and next bitmap are held.
+ * Backdrop, shades, title, meta, overview, Watch / Next, dots and credit (docs/design/v2/home-showcase.png). Rotates every 10 s
+ * with a 700 ms crossfade whenever Home is in front (whatever has focus). Only the current and next bitmap are held. Long-press OK = "Not interested".
  */
 @Composable
 fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
     val titles = ui.titles
     var index by remember(titles) { mutableIntStateOf(0) }
     val safe = index.coerceIn(titles.indices)
-    val title = titles[safe]
-    var heroFocused by remember { mutableStateOf(false) }
+    val title = titles[safe].with(ui.details)
+    val next = titles[(safe + 1) % titles.size].with(ui.details)
+    var menuFor by remember { mutableStateOf<ShowTitle?>(null) }
+    // Where the old art's drift stopped, so it holds that pose while the new one fades in.
+    var leavingPose by remember { mutableFloatStateOf(1f) }
     var notice by remember(safe) { mutableStateOf("") }
     var current by remember { mutableStateOf<ShowImage?>(null) }
     var previous by remember { mutableStateOf<ShowImage?>(null) }
@@ -144,9 +159,9 @@ fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
     val night = rememberGlowPhase() == GlowPhase.Night
     val accent = Color(current?.accent ?: ShowcaseLogic.DEFAULT_ACCENT)
     val ring = accentRing(accent)
-    // Ken Burns: one Animatable (0 -> 1) per title; it only runs while Home is in front and focus is in the hero.
+    // Ken Burns: one Animatable (0 -> 1) per title; it only runs while Home is in front.
     val drift = remember(safe) { Animatable(0f) }
-    val drifting = ui.resumed && heroFocused
+    val drifting = ui.resumed
     val driftMs = ShowcaseLogic.driftMs(night)
 
     LaunchedEffect(safe, titles, ui.trim) {
@@ -155,7 +170,6 @@ fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
             current = null
             previous = null
         }
-        val next = titles[(safe + 1) % titles.size]
         val keep = setOf(title.id, next.id)
         val loaded = ui.images.load(title, keep)
         if (loaded != null && loaded !== current) {
@@ -172,10 +186,22 @@ fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
         if (next.id != title.id) ui.images.load(next, keep)
     }
 
-    LaunchedEffect(safe, titles, ui.trim) {
-        val keep = setOf(title.id, titles[(safe + 1) % titles.size].id)
+    LaunchedEffect(safe, titles, ui.trim, title.details) {
+        val keep = setOf(title.id, next.id)
         logo = ui.images.loadLogo(title, keep)?.asImageBitmap()
     }
+
+    // The next logo is ready before the switch.
+    LaunchedEffect(next.id, next.details, ui.trim) {
+        if (next.id != title.id) ui.images.loadLogo(next, setOf(title.id, next.id))
+    }
+
+    // Details (logos...) only for this title and the two after it.
+    LaunchedEffect(safe, titles) {
+        ui.onNeedDetails(List(minOf(3, titles.size)) { titles[(safe + it) % titles.size] })
+    }
+
+    LaunchedEffect(title.id, ui.resumed) { if (ui.resumed) ui.onShown(titles[safe]) }
 
     LaunchedEffect(current) { current?.let { ui.onAccent(it.accent) } }
 
@@ -183,9 +209,10 @@ fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
         if (drifting) drift.animateTo(1f, tween(((1f - drift.value) * driftMs).toInt().coerceAtLeast(1), easing = LinearEasing))
     }
 
-    LaunchedEffect(ui.resumed, heroFocused, safe, titles.size) {
-        if (ui.resumed && heroFocused && titles.size > 1) {
+    LaunchedEffect(ui.resumed, safe, titles.size, menuFor) {
+        if (ui.resumed && titles.size > 1 && menuFor == null) {
             delay(ROTATE_MS)
+            leavingPose = drift.value
             index = (safe + 1) % titles.size
         }
     }
@@ -199,9 +226,11 @@ fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
                 Image(
                     bmp, null,
                     Modifier.fillMaxSize().graphicsLayer {
-                        scaleX = KB_END
-                        scaleY = KB_END
-                        translationX = -KB_PAN_DP.dp.toPx()
+                        val z = KB_START + (KB_END - KB_START) * leavingPose
+                        scaleX = z
+                        scaleY = z
+                        translationX = -KB_PAN_DP.dp.toPx() * leavingPose
+                        translationY = -KB_PAN_DP.dp.toPx() * 0.4f * leavingPose
                     },
                     contentScale = ContentScale.Crop,
                 )
@@ -287,14 +316,14 @@ fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
                     modifier = Modifier.padding(top = 20.dp).width(820.dp),
                 )
             }
-            Row(
-                Modifier.padding(top = 34.dp).onFocusChanged { heroFocused = it.hasFocus },
-                horizontalArrangement = Arrangement.spacedBy(26.dp),
-            ) {
-                ShowButton("▶  Watch", primary = true, modifier = Modifier.focusRequester(watch)) {
+            Row(Modifier.padding(top = 34.dp), horizontalArrangement = Arrangement.spacedBy(26.dp)) {
+                ShowButton("▶  Watch", primary = true, modifier = Modifier.focusRequester(watch), onLongClick = { menuFor = titles[safe] }) {
                     notice = ui.onWatch(title).orEmpty()
                 }
-                ShowButton("Next", primary = false, modifier = Modifier) { index = (safe + 1) % titles.size }
+                ShowButton("Next", primary = false, modifier = Modifier, onLongClick = { menuFor = titles[safe] }) {
+                    leavingPose = drift.value
+                    index = (safe + 1) % titles.size
+                }
             }
         }
 
@@ -307,22 +336,29 @@ fun ShowcaseHero(ui: ShowcaseUi, watch: FocusRequester) {
             }
         }
         Text(
-            "Trending this week · TMDB",
+            "Picked for you · TMDB",
             style = Ag.Body.copy(fontSize = 20.sp, color = Ag.Muted),
             modifier = Modifier.align(Alignment.TopEnd).padding(end = 96.dp, top = 694.dp),
         )
         if (notice.isNotEmpty()) {
             Text(notice, style = Ag.Body.copy(fontSize = 22.sp, color = Ag.Amber), maxLines = 1, modifier = Modifier.padding(start = 96.dp, top = 726.dp))
         }
+        menuFor?.let { m ->
+            TvMenu(
+                m.title,
+                listOf(MenuRow("Not interested") { ui.onNotInterested(m) }, MenuRow("Cancel") {}),
+                onDismiss = { menuFor = null },
+            )
+        }
     }
 }
 
 @Composable
-private fun ShowButton(label: String, primary: Boolean, modifier: Modifier, onClick: () -> Unit) {
+private fun ShowButton(label: String, primary: Boolean, modifier: Modifier, onLongClick: (() -> Unit)? = null, onClick: () -> Unit) {
     Box(
         modifier
             .height(72.dp)
-            .tvFocus(ButtonShape, onClick)
+            .tvFocus(ButtonShape, onClick, onLongClick)
             .clip(ButtonShape)
             .background(if (primary) Ag.Ink else Ag.Ink.copy(alpha = 0.12f))
             .border(1.dp, if (primary) Color.Transparent else Ag.Ink.copy(alpha = 0.2f), ButtonShape)

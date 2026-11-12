@@ -43,6 +43,27 @@ object ShowcaseLogic {
         return best
     }
 
+    /**
+     * True when a decoded logo has a solid box around it: more than 60% of the pixels in its outer 4% border have alpha above 200.
+     * [pixels] are ARGB, row by row, [width] x [height].
+     */
+    fun logoIsBoxed(pixels: IntArray, width: Int, height: Int): Boolean {
+        if (width <= 0 || height <= 0 || pixels.size < width * height) return false
+        val bx = maxOf(1, width * 4 / 100)
+        val by = maxOf(1, height * 4 / 100)
+        var total = 0
+        var opaque = 0
+        for (y in 0 until height) {
+            val innerY = y >= by && y < height - by
+            for (x in 0 until width) {
+                if (innerY && x >= bx && x < width - bx) continue
+                total++
+                if ((pixels[y * width + x] ushr 24) > 200) opaque++
+            }
+        }
+        return total > 0 && opaque * 100 > total * 60
+    }
+
     /** Showcase is offered from 2.3 GB of total RAM (a "3 GB" TV reports about 2.5-2.9 GB). */
     fun ramOk(totalBytes: Long): Boolean = totalBytes >= MIN_RAM_BYTES
 

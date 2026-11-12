@@ -218,6 +218,10 @@ class HomeActivity : ComponentActivity() {
                         onWatch = { title -> watch(title) },
                         accent = model.showcase.accent,
                         onAccent = { c -> model.showcase.updateAccent(c) },
+                        details = model.showcase.details,
+                        onNeedDetails = { list -> model.showcase.ensureDetails(list) },
+                        onShown = { t -> model.showcase.markShown(t) },
+                        onNotInterested = { t -> model.showcase.notInterested(t) },
                     )
                 },
             )
