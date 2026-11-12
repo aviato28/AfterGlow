@@ -19,6 +19,8 @@ class ShowImage(val bitmap: Bitmap, val tint: Int, val accent: Int)
 class ShowcaseImages(private val context: Context) {
     private val memory = LinkedHashMap<Int, ShowImage>()
     private val logos = LinkedHashMap<Int, Bitmap>()
+    /** Logo paths found to have a solid background (guarded by `logos`). */
+    private val boxedLogos = HashSet<String>()
     private val dir get() = File(context.cacheDir, "showcase")
 
     fun clear() {
@@ -38,15 +40,33 @@ class ShowcaseImages(private val context: Context) {
 
     /** The title's logo (ARGB_8888, decoded at its display size), or null when it has none or it cannot be fetched. */
     suspend fun loadLogo(title: ShowTitle, keep: Set<Int>): Bitmap? = withContext(Dispatchers.IO) {
-        val path = title.details.logo
-        if (path.isEmpty()) return@withContext null
+        val candidates = title.details.logos.ifEmpty { listOfNotNull(title.details.logo.takeIf { it.isNotEmpty() }) }
+        if (candidates.isEmpty()) return@withContext null
         synchronized(logos) { logos[title.id] }?.let { return@withContext it }
-        val bitmap = runCatching { decodeLogo(path) }.getOrNull() ?: return@withContext null
-        synchronized(logos) {
-            logos[title.id] = bitmap
-            logos.keys.retainAll(keep + title.id)
+        // A logo with a solid box around it is skipped: the next candidate is tried, else the caller shows the text title.
+        for (path in candidates) {
+            if (synchronized(logos) { path in boxedLogos }) continue
+            val bitmap = runCatching { decodeLogo(path) }.getOrNull() ?: continue
+            if (isBoxed(bitmap)) {
+                synchronized(logos) { boxedLogos.add(path) }
+                bitmap.recycle()
+                continue
+            }
+            synchronized(logos) {
+                logos[title.id] = bitmap
+                logos.keys.retainAll(keep + title.id)
+            }
+            return@withContext bitmap
         }
-        bitmap
+        null
+    }
+
+    private fun isBoxed(bitmap: Bitmap): Boolean {
+        val w = bitmap.width
+        val h = bitmap.height
+        val px = IntArray(w * h)
+        bitmap.getPixels(px, 0, w, 0, 0, w, h)
+        return ShowcaseLogic.logoIsBoxed(px, w, h)
     }
 
     private fun decodeLogo(path: String): Bitmap? {

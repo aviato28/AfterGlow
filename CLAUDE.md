@@ -33,7 +33,8 @@ low-memory TVs. Read `docs/ROADMAP.md` first; build sessions implement exactly o
   (not in a loop), and show the last problem in Settings → About.
 
 ## Never
-- Never ads, analytics, trackers or network calls other than GitHub Releases (updates) and TMDB (only while Showcase mode is on).
+- Never ads, analytics, trackers or network calls other than GitHub Releases (updates) and TMDB (only while Showcase mode is on). The phone
+  companion may serve a page on the local network (LAN clients only, paired token) only while it is switched on.
 - Never install, update or sideload other apps (Netflix, YouTube…). Point to the Play Store only.
 - Never disable Play Store, Play Services, Settings, TV input framework, Widevine/DRM or anything on the
   "protected" list in `takeover/` (see `docs/specs/M2-takeover-in-app.md`). Every disable must be undoable from the app, and nothing may be disabled without first proving the TV stays reachable after a restart (`docs/TAKEOVER-TCL.md`).

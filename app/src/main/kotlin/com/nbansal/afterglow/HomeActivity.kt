@@ -36,6 +36,9 @@ import com.nbansal.afterglow.keys.KeyWatch
 import com.nbansal.afterglow.keys.KeyWatchService
 import com.nbansal.afterglow.keys.QuickPanelController
 import com.nbansal.afterglow.settings.QuickPanelPage
+import com.nbansal.afterglow.settings.CompanionPage
+import com.nbansal.afterglow.settings.PairPhonePage
+import com.nbansal.afterglow.companion.CompanionService
 import com.nbansal.afterglow.onboarding.OnboardingScreen
 import com.nbansal.afterglow.onboarding.OnboardingStep
 import com.nbansal.afterglow.settings.AboutPage
@@ -53,6 +56,27 @@ import com.nbansal.afterglow.settings.RemoteButtonsPage
 import com.nbansal.afterglow.settings.SettingsPage
 import com.nbansal.afterglow.settings.SettingsRow
 import com.nbansal.afterglow.settings.SpeedUpPage
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
+import com.nbansal.afterglow.settings.SettingsHub
+import com.nbansal.afterglow.settings.SettingsHubState
+import com.nbansal.afterglow.settings.SettingsSection
+import com.nbansal.afterglow.ui.AccentHolder
+import com.nbansal.afterglow.ui.Ag
+import com.nbansal.afterglow.ui.IconBolt
+import com.nbansal.afterglow.ui.IconHome
+import com.nbansal.afterglow.ui.IconInfo
+import com.nbansal.afterglow.ui.IconPhone
+import com.nbansal.afterglow.ui.IconPicture
+import com.nbansal.afterglow.ui.IconRemote
+import com.nbansal.afterglow.ui.LocalAccent
 import com.nbansal.afterglow.ui.AfterglowBackground
 import com.nbansal.afterglow.ui.MenuRow
 import com.nbansal.afterglow.ui.RenameDialog
@@ -92,6 +116,7 @@ class HomeActivity : ComponentActivity() {
                     return
                 }
                 if (learning || learned != null) { learning = false; learned = null; return }
+                if (screen == Screen.Settings) hubState.inContent = false
                 screen.parent?.let { screen = it }
             }
         })
@@ -100,9 +125,15 @@ class HomeActivity : ComponentActivity() {
         if (QuickPanelController.reopenMarker(this).delete()) screen = Screen.QuickPanel
         setContent {
             TvCanvas {
-                Box(Modifier.fillMaxSize()) {
-                    AfterglowBackground(rememberGlowPhase())
-                    Content()
+                val phase = rememberGlowPhase()
+                // One accent everywhere: the Showcase artwork colour, else the time-of-day glow (null = the default amber and cream).
+                val accent = if (model.showcaseOn && model.showcase.accent != 0) Color(model.showcase.accent) else phase.warm.takeIf { it != Ag.Amber }
+                SideEffect { AccentHolder.current = accent }
+                CompositionLocalProvider(LocalAccent provides accent) {
+                    Box(Modifier.fillMaxSize()) {
+                        AfterglowBackground(phase)
+                        Content()
+                    }
                 }
             }
         }
@@ -123,6 +154,7 @@ class HomeActivity : ComponentActivity() {
         model.checkFirmware()
         model.showcase.refreshIfDue()
         KeyWatchService.startIfOn(this)
+        CompanionService.startIfOn(this)
     }
 
     override fun onResume() {
@@ -130,6 +162,7 @@ class HomeActivity : ComponentActivity() {
         resumed = true
         // The system may have stopped the key-watch service (low memory, an update): bring it back when the switch is on.
         if (!KeyWatch.running) KeyWatchService.startIfOn(this)
+        CompanionService.startIfOn(this)
     }
 
     override fun onPause() {
@@ -162,6 +195,7 @@ class HomeActivity : ComponentActivity() {
     private fun openFrom(intent: Intent?) {
         if (intent?.getStringExtra(ExtraOpen) == OpenSettings) {
             intent.removeExtra(ExtraOpen)
+            hubState.inContent = false
             screen = Screen.Settings
         }
     }
@@ -191,13 +225,67 @@ class HomeActivity : ComponentActivity() {
         screen = Screen.Home
     }
 
+    private val hubState = SettingsHubState()
+
+    private fun settingsSections(): List<SettingsSection> = listOf(
+        SettingsSection(
+            "Home & look", "Name, theme and the Home button", IconHome,
+            listOf(
+                SettingsRow("Your name", model.state.userName.ifEmpty { "Not set" }) { nameDialog = true },
+                SettingsRow("Look", if (model.showcaseOn) "Showcase" else "Lite") { screen = Screen.Look },
+                SettingsRow("Home button", Takeover.homeLabel(this)) { screen = Screen.HomeButton },
+                SettingsRow("Hidden apps", "${model.hiddenApps.size}") { screen = Screen.Hidden },
+            ),
+        ),
+        SettingsSection(
+            "Remote & panel", "Buttons and the quick panel", IconRemote,
+            listOf(
+                SettingsRow("Remote buttons", "${model.state.buttons.size}") { screen = Screen.RemoteButtons },
+                SettingsRow("Quick panel", if (model.state.quickPanel) "On" else "Off") { screen = Screen.QuickPanel },
+            ),
+        ),
+        SettingsSection(
+            "Phone companion", "Control Afterglow from your phone", IconPhone,
+            listOf(SettingsRow("Phone companion", if (model.companion.enabled) "On" else "Off") { screen = Screen.PhoneCompanion }),
+        ),
+        SettingsSection(
+            "Screensaver", "What shows when the TV is idle", IconPicture,
+            listOf(
+                SettingsRow("Screensaver", com.nbansal.afterglow.saver.Saver.describe(android.provider.Settings.Secure.getString(contentResolver, "screensaver_components"))) { screen = Screen.Screensaver },
+            ),
+        ),
+        SettingsSection(
+            "Speed up my TV", "Switch off what you never use", IconBolt,
+            listOf(
+                SettingsRow("Speed up my TV") { screen = Screen.SpeedUp },
+                SettingsRow("Installed packages") { screen = Screen.Packages },
+            ),
+        ),
+        SettingsSection(
+            "About", "Version, updates and set up", IconInfo,
+            listOf(
+                SettingsRow("About") { screen = Screen.About },
+                SettingsRow("Set up again") { model.restartOnboarding(); screen = Screen.Onboarding },
+            ),
+        ),
+    )
+
     @Composable
     private fun Content() {
         if (inOnboarding()) {
             OnboardingScreen(model, ::finishOnboarding)
             return
         }
-        when (screen) {
+        AnimatedContent(
+            targetState = screen,
+            transitionSpec = {
+                // Forward (into a child) slides in from the right, Back from the left: 180 ms slide + fade.
+                val dir = if (targetState.parent == initialState) 1 else -1
+                (fadeIn(tween(180)) + slideInHorizontally(tween(180)) { dir * it / 14 }) togetherWith fadeOut(tween(90))
+            },
+            label = "screen",
+        ) { current ->
+        when (current) {
             Screen.Home -> HomeScreen(
                 favourites = model.favourites,
                 peekApps = model.visibleApps.take(PEEK_COUNT),
@@ -218,6 +306,10 @@ class HomeActivity : ComponentActivity() {
                         onWatch = { title -> watch(title) },
                         accent = model.showcase.accent,
                         onAccent = { c -> model.showcase.updateAccent(c) },
+                        details = model.showcase.details,
+                        onNeedDetails = { list -> model.showcase.ensureDetails(list) },
+                        onShown = { t -> model.showcase.markShown(t) },
+                        onNotInterested = { t -> model.showcase.notInterested(t) },
                     )
                 },
             )
@@ -229,22 +321,7 @@ class HomeActivity : ComponentActivity() {
                 onOpen = { model.launch(it.pkg) },
                 onOptions = { optionsFor = it },
             )
-            Screen.Settings -> SettingsPage(
-                "Afterglow settings",
-                listOf(
-                    SettingsRow("Your name", model.state.userName.ifEmpty { "Not set" }) { nameDialog = true },
-                    SettingsRow("Look", if (model.showcaseOn) "Showcase" else "Lite") { screen = Screen.Look },
-                    SettingsRow("Home button", Takeover.homeLabel(this)) { screen = Screen.HomeButton },
-                    SettingsRow("Speed up my TV") { screen = Screen.SpeedUp },
-                    SettingsRow("Screensaver", com.nbansal.afterglow.saver.Saver.describe(android.provider.Settings.Secure.getString(contentResolver, "screensaver_components"))) { screen = Screen.Screensaver },
-                    SettingsRow("Remote buttons", "${model.state.buttons.size}") { screen = Screen.RemoteButtons },
-                    SettingsRow("Quick panel", if (model.state.quickPanel) "On" else "Off") { screen = Screen.QuickPanel },
-                    SettingsRow("Hidden apps", "${model.hiddenApps.size}") { screen = Screen.Hidden },
-                    SettingsRow("Installed packages") { screen = Screen.Packages },
-                    SettingsRow("Set up again") { model.restartOnboarding(); screen = Screen.Onboarding },
-                    SettingsRow("About") { screen = Screen.About },
-                ),
-            )
+            Screen.Settings -> SettingsHub(settingsSections(), hubState)
             Screen.Onboarding -> Unit
             Screen.Look -> LookPage(model, onEditKey = { keyDialog = true }, onPickApp = { screen = Screen.OpenWith })
             Screen.OpenWith -> OpenWithPage(model, onPicked = { screen = Screen.Look })
@@ -254,8 +331,11 @@ class HomeActivity : ComponentActivity() {
             Screen.Hidden -> HiddenAppsPage(model)
             Screen.RemoteButtons -> RemoteButtonsPage(model, learning, learned, onLearn = { learning = true }, onPicked = { learned = null })
             Screen.QuickPanel -> QuickPanelPage(model)
+            Screen.PhoneCompanion -> CompanionPage(model, onPair = { screen = Screen.PairPhone })
+            Screen.PairPhone -> PairPhonePage(model, onDone = { screen = Screen.PhoneCompanion })
             Screen.Packages -> PackagesPage()
             Screen.About -> AboutPage(model)
+        }
         }
 
         // When the last popup closes, focus goes back to the item that opened it (the screens remember their index).
@@ -274,7 +354,7 @@ class HomeActivity : ComponentActivity() {
                 "Settings",
                 listOf(
                     MenuRow("TV settings") { openTvSettings(this) },
-                    MenuRow("Afterglow settings") { screen = Screen.Settings },
+                    MenuRow("Afterglow settings") { hubState.inContent = false; screen = Screen.Settings },
                 ),
             ) { settingsMenu = false }
         }

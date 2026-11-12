@@ -102,6 +102,16 @@
                 android:value="Watches remote-control key presses so the TV's Settings and app buttons work while another app is in front." />
         </service>
 
+        <!-- Phone companion (opt-in, Settings > Phone companion): serves a small page to phones on the home network. -->
+        <service
+            android:name=".companion.CompanionService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Serves the phone companion page on the home network so a phone can type and steer the TV." />
+        </service>
+
         <!-- Does nothing with notifications: only lets Quick panel's Now playing card list media sessions (enabled over adb). -->
         <service
             android:name=".panel.NowPlayingListener"

@@ -122,7 +122,7 @@ fun HomeScreen(
         }
     }
 
-    val accent = if (showcase != null && showcase.accent != 0) Color(showcase.accent) else null
+    val accent = if (showcase != null && showcase.accent != 0) Color(showcase.accent) else LocalAccent.current
     CompositionLocalProvider(LocalAccent provides accent) {
     Box(modifier.fillMaxSize()) {
         if (showcase != null) ShowcaseHero(showcase, watch)

@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -26,7 +28,7 @@ import androidx.compose.ui.unit.sp
 
 class MenuRow(val label: String, val value: String? = null, val onClick: () -> Unit)
 
-val RowShape = RoundedCornerShape(20.dp)
+val RowShape = RoundedCornerShape(24.dp)
 
 /** One large focusable row: label left, optional value right. */
 @Composable
@@ -43,7 +45,21 @@ fun ListRow(label: String, modifier: Modifier = Modifier, value: String? = null,
         contentAlignment = Alignment.CenterStart,
     ) {
         Text(label, style = Ag.Body, maxLines = 1, modifier = Modifier.fillMaxWidth(0.62f))
-        if (value != null) Text(value, style = Ag.Body.copy(color = Ag.Muted), maxLines = 1, modifier = Modifier.align(Alignment.CenterEnd))
+        if (value == "On" || value == "Off") SwitchPill(value == "On", Modifier.align(Alignment.CenterEnd))
+        else if (value != null) Text(value, style = Ag.Body.copy(color = Ag.Muted), maxLines = 1, modifier = Modifier.align(Alignment.CenterEnd))
+    }
+}
+
+/** The mockup's switch: a pill that is filled with the accent when on, a round knob at the end (on) or the start (off). */
+@Composable
+fun SwitchPill(on: Boolean, modifier: Modifier = Modifier) {
+    val accent = accentColor()
+    Box(
+        modifier.width(72.dp).height(40.dp).clip(CircleShape)
+            .background(if (on) accent else Ag.Ink.copy(alpha = 0.18f)),
+        contentAlignment = if (on) Alignment.CenterEnd else Alignment.CenterStart,
+    ) {
+        Box(Modifier.padding(4.dp).size(32.dp).clip(CircleShape).background(if (on) Ag.Base else Ag.Muted))
     }
 }
 

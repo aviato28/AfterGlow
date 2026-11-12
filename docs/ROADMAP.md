@@ -58,6 +58,37 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
    NOT added: AirPlay (`com.tcl.airplay2`, `com.mediatek.AirplayAPK`, `com.mediatek.airplaydaemon`) and `com.tcl.miracast` (owner uses them sometimes).
    Never listed: mediashell (Chromecast), katniss (voice), netflix.tokenmanager, ui_mediaCenter, gamebar, factory.view. All stay unticked by default.
 10. Release 1.0 after 1-3 and 9.
+11. **Phone companion** (owner loves it, 12 Nov). **BUILT (M11), awaiting test on the TV.** Afterglow shows a QR code; the phone opens a small page served by the TV on the home Wi-Fi (no internet,
+    no account, no app install). Opt-in once, then always on; a one-time PIN in the QR pairs a phone.
+    a. **Phone as a keyboard for ANY app** (e.g. typing in a movie app's search): text typed on the phone goes to whatever field is focused on the TV, via the
+       existing loopback adb (`input text`, sent in small throttled chunks because the TV keyboard drops fast input, special characters escaped) — no IME switch.
+       Also Enter, Backspace, D-pad, Back, Home, OK from the page.
+    b. Paste the TMDB key straight into Afterglow; reorder favourites; learn/assign remote buttons.
+    c. **Backup and restore** of all Afterglow settings (favourites, names, mappings, look, panel, screensaver; TMDB key only if the owner ticks it) to a file
+       on the phone, restore after a factory reset.
+    **Decision (12 Nov): web page only, no phone APK.** Make it an installable web app (manifest + icon, "Add to Home screen", remembers the TV with a paired
+    token so the QR is scanned once). Owner wants zero hassle: once switched on, the companion STAYS ON and paired phones stay paired (no auto-off); a new phone needs a fresh PIN shown on the TV; Settings has "Unpair all phones" and an off switch. An APK would only add a share-sheet
+    "Send to TV", volume-button control, notification remote, widgets: revisit only if wanted later.
+    **Rule change needed when built:** local network server allowed only while the companion is on (add to CLAUDE.md "Never" line).
+12. **Feel and polish pass** [BUILT (M12), awaiting owner test on the TV]**:** spring-physics focus movement, screens slide instead of cutting, shared-element transitions (tile/poster grows into its page),
+    all under 200 ms; one accent everywhere (Lite time-of-day glow / Showcase artwork colour tints Settings and the panel too); a consistent icon set;
+    v2 typography and glass on every Settings page (they still look v1). Mockups first.
+13. **Beyond the TCL:** takeover recipes + checks for Chromecast with Google TV, Sony, Xiaomi; Fire TV "watcher" mode (cover Amazon's home, which can't be
+    replaced); testers with other TVs; 1.0 launch (website, screenshots, Obtainium/F-Droid listing).
+14. **Showcase fixes + better picks** [BUILT, awaiting owner test] (owner, 12 Nov; how it works today: TMDB trending/all/week, top 10, 6 h refresh -> same titles for days; it only
+    rotates while focus is in the hero, so it sticks while you're on Favourites).
+    a. **Logo box:** some TMDB logos have a solid background. Reject a logo whose border pixels are mostly opaque (sample the edges after decode); try the next
+       logo, else the styled text title.
+    b. **Smoother rotation:** rotate every 10 s always while Home is in front (also when focus is on Favourites); preload the next backdrop + logo before the switch;
+       700 ms crossfade; drift continues across the switch.
+    c. **Bigger, fresher pool (~50):** trending day + week, popular movies/tv, now playing in India, top rated; shuffle; don't repeat titles shown in the last 3 days.
+    d. **Only what you can watch:** read the installed streaming apps (Netflix, Prime Video, Hotstar, SonyLIV, Zee5, ...) and use TMDB `discover` with
+       `watch_region=IN&with_watch_providers=<ids>` for most of the pool; small "On Netflix" badge.
+    e. **Your taste (optional):** genres more/less, languages (English, Hindi, Korean...) in Settings > Look; long-press OK on a title = "Not interested" (never shown again).
+Mockups 12 Nov (owner asked for basic ones): `docs/design/v2/companion-tv.png`, `companion-phone.png` (task 11), `settings-v2.png` (task 12: Settings with a left
+rail of icon sections and glass rows).
+Decided NOT to add (owner, 12 Nov): universal search, "Jump back in"/where to watch/watchlist (the owner's movie app does that), kids/guest mode, bedtime,
+movie-night, inputs tile.
 
 ## Waiting for the owner
 - **Brightness bar** instead of volume in the quick panel: TCL keeps Backlight outside `settings` (discovery 1 Nov). Next if resumed: `adb logcat` while changing Backlight.

@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.nbansal.afterglow.apps.AppEntry
 import com.nbansal.afterglow.apps.AppRepository
+import com.nbansal.afterglow.companion.CompanionController
 import com.nbansal.afterglow.data.ButtonMap
 import com.nbansal.afterglow.data.Favourites
 import com.nbansal.afterglow.data.PrefState
@@ -41,6 +42,7 @@ class AppModel(val app: Application) {
     val speedUp = SpeedUpController(app, prefs)
     val saver = SaverController(app, prefs)
     val quickPanel = QuickPanelController(app, prefs)
+    val companion = CompanionController(app, prefs) { apps }
 
     val showcase = ShowcaseController(app)
     /** Showcase needs 2.8 GB of RAM or more; below that the setting is ignored. */
