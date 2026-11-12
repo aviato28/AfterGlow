@@ -59,7 +59,7 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
    Never listed: mediashell (Chromecast), katniss (voice), netflix.tokenmanager, ui_mediaCenter, gamebar, factory.view. All stay unticked by default.
 10. Release 1.0 after 1-3 and 9.
 11. **Phone companion** (owner loves it, 12 Nov). Afterglow shows a QR code; the phone opens a small page served by the TV on the home Wi-Fi (no internet,
-    no account, no app install). Opt-in, a one-time PIN in the QR, switches itself off after 10 min idle or when the owner closes it.
+    no account, no app install). Opt-in once, then always on; a one-time PIN in the QR pairs a phone.
     a. **Phone as a keyboard for ANY app** (e.g. typing in a movie app's search): text typed on the phone goes to whatever field is focused on the TV, via the
        existing loopback adb (`input text`, sent in small throttled chunks because the TV keyboard drops fast input, special characters escaped) — no IME switch.
        Also Enter, Backspace, D-pad, Back, Home, OK from the page.
@@ -67,7 +67,7 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
     c. **Backup and restore** of all Afterglow settings (favourites, names, mappings, look, panel, screensaver; TMDB key only if the owner ticks it) to a file
        on the phone, restore after a factory reset.
     **Decision (12 Nov): web page only, no phone APK.** Make it an installable web app (manifest + icon, "Add to Home screen", remembers the TV with a paired
-    token so the QR is scanned once). Optional "Keep phone companion on" toggle (default off = auto-off after 10 min idle). An APK would only add a share-sheet
+    token so the QR is scanned once). Owner wants zero hassle: once switched on, the companion STAYS ON and paired phones stay paired (no auto-off); a new phone needs a fresh PIN shown on the TV; Settings has "Unpair all phones" and an off switch. An APK would only add a share-sheet
     "Send to TV", volume-button control, notification remote, widgets: revisit only if wanted later.
     **Rule change needed when built:** local network server allowed only while the companion is on (add to CLAUDE.md "Never" line).
 12. **Feel and polish pass:** spring-physics focus movement, screens slide instead of cutting, shared-element transitions (tile/poster grows into its page),
