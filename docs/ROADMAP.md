@@ -75,7 +75,7 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
     v2 typography and glass on every Settings page (they still look v1). Mockups first.
 13. **Beyond the TCL:** takeover recipes + checks for Chromecast with Google TV, Sony, Xiaomi; Fire TV "watcher" mode (cover Amazon's home, which can't be
     replaced); testers with other TVs; 1.0 launch (website, screenshots, Obtainium/F-Droid listing).
-14. **Showcase fixes + better picks** (owner, 12 Nov; how it works today: TMDB trending/all/week, top 10, 6 h refresh -> same titles for days; it only
+14. **Showcase fixes + better picks** [BUILT, awaiting owner test] (owner, 12 Nov; how it works today: TMDB trending/all/week, top 10, 6 h refresh -> same titles for days; it only
     rotates while focus is in the hero, so it sticks while you're on Favourites).
     a. **Logo box:** some TMDB logos have a solid background. Reject a logo whose border pixels are mostly opaque (sample the edges after decode); try the next
        logo, else the styled text title.
