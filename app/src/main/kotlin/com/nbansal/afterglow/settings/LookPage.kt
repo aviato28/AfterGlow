@@ -31,12 +31,12 @@ fun LookPage(model: AppModel, onEditKey: () -> Unit, onPickApp: () -> Unit) {
         val genres = model.showcase.genres.entries.sortedBy { it.value }
         val choices: List<SettingsRow> = when (section) {
             "lang" -> Picks.LANGUAGES.map { (code, name) ->
-                SettingsRow(name, if (code in taste.languages) "On" else null) { model.showcase.setTaste(taste.toggleLanguage(code)) }
+                SettingsRow(name, if (code in taste.languages) "On" else null) { model.showcase.updateTaste(taste.toggleLanguage(code)) }
             }
             else -> genres.map { (id, name) ->
                 val on = if (section == "more") id in taste.more else id in taste.less
                 SettingsRow(name, if (on) "On" else null) {
-                    model.showcase.setTaste(if (section == "more") taste.toggleMore(id) else taste.toggleLess(id))
+                    model.showcase.updateTaste(if (section == "more") taste.toggleMore(id) else taste.toggleLess(id))
                 }
             }
         }

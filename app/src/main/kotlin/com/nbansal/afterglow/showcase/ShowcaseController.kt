@@ -107,7 +107,7 @@ class ShowcaseController(private val app: Application) {
     }
 
     /** Settings > Look: new taste. Saved, and the pool is rebuilt right away. */
-    fun setTaste(t: Taste) {
+    fun updateTaste(t: Taste) {
         taste = t
         scope.launch {
             withContext(Dispatchers.IO) { repo.store.update { it.copy(taste = t) } }
