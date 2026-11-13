@@ -1,6 +1,6 @@
 # Afterglow roadmap
 
-Status: **0.10.1 released (Afterglow 2: Lite v2 home, Showcase, quick panel v2). Next: task list item 1 (crash-loop auto-restore).**
+Status: **0.12.0 released and LIVE on afterglow.nbansal28.com (13 Nov): download button -> newest GitHub release APK, install steps, disclaimers.**
 
 ## What it is
 A clean, fast home screen for Google TV / Android TV that replaces the stock Google TV launcher. Free, public, open
