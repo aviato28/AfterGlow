@@ -87,6 +87,12 @@ Decided NOT to build: HDMI inputs row, weather, themes, settings backup for a se
     e. **Your taste (optional):** genres more/less, languages (English, Hindi, Korean...) in Settings > Look; long-press OK on a title = "Not interested" (never shown again).
 Mockups 12 Nov (owner asked for basic ones): `docs/design/v2/companion-tv.png`, `companion-phone.png` (task 11), `settings-v2.png` (task 12: Settings with a left
 rail of icon sections and glass rows).
+15. **Explain USB debugging in the app** (owner, 14 Nov): the owner switched USB debugging off because of repeated "Allow USB debugging?" prompts, which
+    silently broke the quick panel over other apps (key watcher reads the log over loopback adb) and also disables Restore, auto-restore, companion typing and Speed up.
+    Root cause of the prompts: Afterglow's own loopback connection (key watcher reconnects regularly) without "Always allow" ticked; the key is stable in filesDir.
+    a. Before the first adb use (and on the Quick panel / Home button pages): one-time explainer "The TV will ask 'Allow USB debugging?'. That's Afterglow on this TV:
+       tick Always allow." b. If debugging is off (`Settings.Global.ADB_ENABLED == 0`) while a feature needs it: a calm banner on Home and the Quick panel page naming
+       what stopped working and how to turn it back on. c. Key watcher: back off reconnects (5 s -> 60 s max) when the connection is refused, so it never spams prompts.
 Decided NOT to add (owner, 12 Nov): universal search, "Jump back in"/where to watch/watchlist (the owner's movie app does that), kids/guest mode, bedtime,
 movie-night, inputs tile.
 
